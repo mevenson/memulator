@@ -1,0 +1,2449 @@
+                               * osm os9p2.txt,+  ,+y
+
+                                      NAM                OS9P2.TXT
+                                      OPT                PAG
+        0000                          LEN    132
+        0000                          INI    29          17 char/inch on OKIDATA
+
+                               *       OS9 service requests
+                               *
+                               *               User mode
+
+      E 0000                   F$LINK equ    $00         link to a memory module
+      E 0001                   F$LOAD equ    $01         load module from mass storage
+      E 0002                   F$UNLK equ    $02         Unlink a module
+      E 0003                   F$FORK equ    $03         Start a new process
+      E 0004                   F$WAIT equ    $04         wait for a signal
+      E 0005                   F$CHAN equ    $05         chain a process to a new module
+      E 0006                   F$EXIT equ    $06         terminate a process
+      E 0007                   F$MEM  equ    $07         set memory size
+      E 0008                   F$SEND equ    $08         send a signal to a process
+      E 0009                   F$ICPT equ    $09         set signal intercept trap
+      E 000A                   F$SLEP equ    $0A         suspend process
+      E 000C                   F$ID   equ    $0C         return process ID
+      E 000D                   F$SPRI equ    $0D         set process priority
+      E 000E                   F$SSWI equ    $0E         set software interrupt vector
+      E 000F                   F$PERR equ    $0F         print error message
+      E 0010                   F$PNAM equ    $10         parse pathlist name
+      E 0011                   F$CNAM equ    $11         compare two names
+      E 0012                   F$SBIT equ    $12         search a bit map
+      E 0013                   F$ABIT equ    $13         allocate a bit map
+      E 0014                   F$DBIT equ    $14         deallocate a bit map
+      E 0015                   F$TIME equ    $15         return current time
+      E 0016                   F$STIM equ    $16         set current time
+      E 0017                   F$CRC  equ    $17         generate CRC
+      E 0018                   F$GPRD equ    $18         get process descriptor copy
+      E 0019                   F$GBLK equ    $19         get system block map copy
+      E 001A                   F$GMOD equ    $1A         get module directory copy
+      E 001B                   F$CPYM equ    $1B         copy external memory
+      E 001C                   F$USER equ    $1C         set user ID number
+      E 001D                   F$UNLO equ    $1D         unlink module by name
+
+                               *               system mode privileged
+
+      E 0028                   F$SRQM equ    $28         system memory request
+      E 0029                   F$SRTM equ    $29         system memory return
+      E 002A                   F$IRQ  equ    $2A         enter IRQ polling table
+      E 002B                   F$IOQU equ    $2B         enter I/O queue
+      E 002C                   F$APRC equ    $2C         enter active process queue
+      E 002D                   F$NPRC equ    $2D         start next process
+      E 002E                   F$VMOD equ    $2E         validate module
+      E 002F                   F$F64  equ    $2F         find 64 byte memory block
+      E 0030                   F$A64  equ    $30         allocate a 64 byte memory block
+      E 0031                   F$R64  equ    $31         return a 64 byte memory block
+      E 0032                   F$SSVC equ    $32         install a function request (user mode)
+      E 0033                   F$IODL equ    $33         delete I/O module
+      E 0034                   F$SLIN equ    $34         system link
+      E 0035                   F$BOOT equ    $35         bootstrap system
+      E 0036                   F$BTME equ    $36         bootstrap memory request
+      E 0037                   F$GPRO equ    $37         get process pointer
+      E 0038                   F$MOVE equ    $38         move data to different address space
+      E 0039                   F$ALLR equ    $39         allocate ram blocks
+      E 003A                   F$ALLI equ    $3A         allocate image ram blocks
+      E 003B                   F$DELI equ    $3B         deallocate image ram blocks
+      E 003C                   F$SETI equ    $3C         set process DAT image
+      E 003D                   F$FREL equ    $3D         get free low block
+      E 003E                   F$FREH equ    $3E         get free high block
+      E 003F                   F$ALLT equ    $3F         allocate process task number
+      E 0040                   F$DELT equ    $40         deallocate process task number
+      E 0041                   F$SETT equ    $41         set process DAT registers
+      E 0042                   F$REST equ    $42         reserve task number
+      E 0043                   F$RELT equ    $43         release task number
+      E 0044                   F$DATL equ    $44         convert dat block/off to logical address
+      E 0045                   F$DATT equ    $45         make temporary dat image
+      E 0046                   F$AXY  equ    $46         load A [X,[Y]]
+      E 0047                   F$AXYP equ    $47         load A [X+,[Y]]
+      E 0048                   F$DXY  equ    $48         load D [D+X, [Y]]
+      E 0049                   F$LDAB equ    $49         load A from 0,X in task B
+      E 004A                   F$STAB equ    $4A         store A at 0,X in task B
+      E 004B                   F$ALLP equ    $4B         allocate process descriptor
+      E 004C                   F$DELP equ    $4C         deallocate process descriptor
+      E 004D                   F$ELIN equ    $4D         link using module directory entry
+      E 004E                   F$FMOD equ    $4E         find module directory entry
+
+                               *        I/O service requests
+
+      E 0080                   I$ATCH equ    $80         Attach I/O device
+      E 0081                   I$DTCH equ    $81         Detach I/O device
+      E 0082                   I$DUP  equ    $82         duplicate path
+      E 0083                   I$CREA equ    $83         create a new file
+      E 0084                   I$OPEN equ    $84         open a path to an existing file
+      E 0085                   I$MDIR equ    $85         make a directory file
+      E 0086                   I$CDIR equ    $86         change working directory
+      E 0087                   I$DLET equ    $87         delete a file
+      E 0088                   I$SEEK equ    $88         reposition file pointer
+      E 0089                   I$READ equ    $89         read data
+      E 008A                   I$WRIT equ    $8A         write data
+      E 008B                   I$RDLN equ    $8B         read a line
+      E 008C                   I$WRLN equ    $8C         write a line
+      E 008D                   I$GSTT equ    $8D         get device status
+      E 008E                   I$SSTT equ    $8E         set device status
+      E 008F                   I$CLOS equ    $8F         close a path
+      E 0090                   I$DELX equ    $90         delete a file
+
+                               *               I/O equates
+
+      E 0000                   stdin  equ    0
+      E 0001                   stdout equ    1
+      E 0002                   stderr equ    2
+
+                               *                module types
+
+      E 0001                   ORDONL equ    $01
+      E 0002                   OWRONL equ    $02
+      E 0003                   OUPDAT equ    ORDONLY+OWRONLY
+      E 0004                   OEXEC  equ    $04
+      E 0008                   OPREAD equ    $08
+      E 0010                   OPWRIT equ    $10
+      E 0020                   OPEXEC equ    $20
+      E 0040                   OSHARE equ    $40
+      E 0080                   ODIR   equ    $80
+                               *
+                               *       Equate file for OS9 page zero data segment
+                               *
+      E 0001                   Z0001  EQU    $0001
+      E 000D                   Z000D  EQU    $000D
+      E 0012                   Z0012  EQU    $0012
+      E 0013                   Z0013  EQU    $0013
+      E 0016                   Z0016  EQU    $0016
+      E 0020                   Z0020  EQU    $0020
+      E 0022                   Z0022  EQU    $0022
+      E 0024                   Z0024  EQU    $0024
+      E 0026                   Z0026  EQU    $0026
+      E 0028                   Z0028  EQU    $0028
+      E 002A                   Z002A  EQU    $002A
+      E 002C                   Z002C  EQU    $002C
+      E 002E                   Z002E  EQU    $002E
+      E 0030                   Z0030  EQU    $0030
+      E 0032                   Z0032  EQU    $0032
+      E 0034                   Z0034  EQU    $0034
+      E 0036                   Z0036  EQU    $0036
+      E 0038                   Z0038  EQU    $0038
+      E 003A                   Z003A  EQU    $003A
+      E 003C                   Z003C  EQU    $003C
+      E 003E                   Z003E  EQU    $003E
+      E 003F                   Z003F  EQU    $003F
+      E 0040                   Z0040  EQU    $0040
+      E 0041                   Z0041  EQU    $0041
+      E 0042                   Z0042  EQU    $0042
+      E 0043                   Z0043  EQU    $0043
+      E 0044                   Z0044  EQU    $0044
+      E 0046                   Z0046  EQU    $0046
+      E 0048                   Z0048  EQU    $0048
+      E 0049                   Z0049  EQU    $0049
+      E 004B                   Z004B  EQU    $004B
+      E 004D                   Z004D  EQU    $004D
+      E 004F                   Z004F  EQU    $004F
+      E 0051                   Z0051  EQU    $0051
+      E 0053                   Z0053  EQU    $0053
+      E 0055                   Z0055  EQU    $0055
+      E 0057                   Z0057  EQU    $0057
+      E 005B                   Z005B  EQU    $005B
+      E 0066                   Z0066  EQU    $0066
+      E 0068                   Z0068  EQU    $0068
+      E 0073                   Z0073  EQU    $0073
+
+      E 0800                   Z0800  EQU    $0800
+
+      E E014                   ZE014  EQU    $E014
+
+      E 00C0                   sys    EQU    $C0
+      E 0001                   objct  EQU    $01
+      E 0080                   reent  EQU    $80
+
+      E F800                   P1base EQU    $F800
+      E F000                   P2base EQU    $F000
+
+      E 87CD                   MODHD  EQU    $87CD
+
+      S 0000 87 CD                    mod    ZF4FC,ZF00D,sys+objct,reent+1,ZF041,0
+        0002 04 FB
+        0004 00 0D 
+        0006 C1 
+        0007 81 
+        0008 07 
+        0009 00 41 
+        000B 00 00
+
+      C 000D 4F 53 39 70       ZF00D  fcs    "OS9p2"
+        0011 B2
+      C 0012 09                       fcb    $09
+
+      C 0013 7F                ZF013  FCB    $7F
+      C 0014 0481                     FDB    ZF497-ZF016 $0481
+      C 0016 02                ZF016  FCB    $02
+      C 0017 0098                     FDB    ZF0B2-ZF019 $0099
+      C 0019 04                ZF019  FCB    $04
+      C 001A 00DE                     FDB    ZF0FB-ZF01C $00DF
+      C 001C 06                ZF01C  FCB    $06
+      C 001D 0129                     FDB    ZF149-ZF01F $012A
+      C 001F 07                ZF01F  FCB    $07
+      C 0020 01A4                     FDB    ZF1C7-ZF022 $01A5
+      C 0022 08                ZF022  FCB    $08
+      C 0023 0217                     FDB    ZF23D-ZF025 $0218
+      C 0025 0A                ZF025  FCB    $0A
+      C 0026 029F                     FDB    ZF2C8-ZF028 $02A0
+      C 0028 09                ZF028  FCB    $09
+      C 0029 032A                     FDB    ZF355-ZF02B $032A
+      C 002B 0C                ZF02B  FCB    $0C
+      C 002C 0350                     FDB    ZF37E-ZF02E $0350
+      C 002E 0D                ZF02E  FCB    $0D
+      C 002F 0332                     FDB    ZF363-ZF031 $0332
+      C 0031 0E                ZF031  FCB    $0E
+      C 0032 0356                     FDB    ZF38A-ZF034 $0356
+      C 0034 16                ZF034  FCB    $16
+      C 0035 036E                     FDB    ZF3A5-ZF037 $036E
+      C 0037 AF                ZF037  FCB    $AF
+      C 0038 0387                     FDB    ZF3C1-ZF03A $0387
+      C 003A B0                ZF03A  FCB    $B0
+      C 003B 03A7                     FDB    ZF3E4-ZF03D $03A7
+      C 003D B1                ZF03D  FCB    $B1
+      C 003E 0425                     FDB    ZF465-ZF040 $0425
+      C 0040 80                ZF040  FCB    $80
+
+        0041   31 8C   CF 0013 ZF041  LEAY   ZF013,PCR   get address of srvc req init table
+      S 0044 103F      32             OS9    F$SSVC      install function service request
+        0047   9E      49             LDX    Z0049       get base address of page table
+      S 0049 103F      30             OS9    F$A64       Allocate a 64 byte memory block
+        004C   25      32 0080        BCS    ZF081       branch on error
+
+        004E   9F      49             STX    Z0049       save base address of page table
+        0050 109F      4B             STY    Z004B       save address of block
+        0053   1F      40             TFR    S,D
+        0055   4A                     DECA               
+        0056   C6      01             LDB    #$01
+        0058   ED 27                  STD    $07,Y
+        005A   86      80             LDA    #$80
+        005C   A7 2D                  STA    $0D,Y
+        005E   DE      2A             LDU    Z002A
+        0060   8D      22 0084        BSR    ZF085
+        0062   24      05 0069        BCC    ZF06A
+        0064   17    0453 04BA        LBSR   ZF4BB
+        0067   8D      1B 0084        BSR    ZF085
+
+        0069   8D      27 0092 ZF06A  BSR    ZF093
+        006B   24      05 0072        BCC    ZF073
+        006D   17    044A 04BA        LBSR   ZF4BB
+        0070   8D      20 0092        BSR    ZF093
+
+        0072   EC 4E           ZF073  LDD    $0E,U       get pointer to relative pointer
+        0074   30 CB                  LEAX   D,U         set address of module name or filename
+        0076   86      01             LDA    #$01        set type/language code = program module
+        0078   5F                     CLRB               set optional data area size
+        0079 108E    0000             LDY    #$0000      set parameter area size
+      S 007D 103F      05             OS9    F$CHAN      load and execute a new primary module
+
+      W 0080   6E 9F FFFE      ZF081  JMP    [$FFFE]
+
+        0084   5F              ZF085  CLRB               
+        0085   EC C8   10             LDD    $10,U       get relative pointer
+        0088   27      07 0091        BEQ    ZF092
+        008A   30 CB                  LEAX   D,U         get address of pathlist
+        008C   86      05             LDA    #$05        set access mode = execute and read
+      S 008E 103F      86             OS9    I$CDIR      change working directory
+
+        0091   39              ZF092  RTS                
+
+        0092   5F              ZF093  CLRB               
+        0093   EC C8   12             LDD    $12,U       point D to address of pathlist
+        0096   30 CB                  LEAX   D,U         get address of pathlist
+        0098   86      03             LDA    #$03        set access mode = write and read
+      S 009A 103F      84             OS9    I$OPEN      open the path
+        009D   25      11 00B0        BCS    ZF0B1
+
+        009F   9E      4B             LDX    Z004B
+        00A1   A7 88   26             STA    $26,X       set path number of path to duplicate
+      S 00A4 103F      82             OS9    I$DUP       duplicate pathlist
+        00A7   A7 88   27             STA    $27,X       set path number of path to duplicate
+      S 00AA 103F      82             OS9    I$DUP       duplicate pathlist
+        00AD   A7 88   28             STA    $28,X
+        00B0   39              ZF0B1  RTS                
+
+        00B1   EC 48           ZF0B2  LDD    $08,U
+        00B3   27      43 00F8        BEQ    ZF0F9
+        00B5   9E      26             LDX    Z0026
+
+        00B7 10A3 84           ZF0B8  CMPD   ,X
+        00BA   27      08 00C4        BEQ    ZF0C5
+        00BC   30 04                  LEAX   $04,X
+        00BE   9C      28             CMPX   Z0028
+        00C0   25      F5 00B7        BCS    ZF0B8
+        00C2   20      34 00F8        BRA    ZF0F9
+
+        00C4   A6 02           ZF0C5  LDA    $02,X
+        00C6   27      05 00CD        BEQ    ZF0CE
+        00C8   4A                     DECA               
+        00C9   A7 02                  STA    $02,X
+        00CB   26      2B 00F8        BNE    ZF0F9
+
+        00CD 10AE 84           ZF0CE  LDY    ,X
+        00D0 109C      66             CMPY   Z0066
+        00D3   24      23 00F8        BCC    ZF0F9
+
+        00D5   E6 26                  LDB    $06,Y
+        00D7   C1      D0             CMPB   #$D0
+        00D9   25      09 00E4        BCS    ZF0E5
+
+      S 00DB 103F      33             OS9    F$IODL      delete I/O module
+        00DE   24      04 00E4        BCC    ZF0E5
+        00E0   6C 02                  INC    $02,X
+        00E2   20      15 00F9        BRA    ZF0FA
+
+        00E4   4F              ZF0E5  CLRA               
+        00E5   5F                     CLRB               
+        00E6   ED 84                  STD    ,X
+        00E8   ED A4                  STD    ,Y
+        00EA   EC 22                  LDD    $02,Y
+        00EC   17    0146 0235        LBSR   ZF236
+        00EF   1E      02             EXG    D,Y
+        00F1   1E      89             EXG    A,B
+        00F3   9E      20             LDX    Z0020
+      S 00F5 103F      14             OS9    F$DBIT      deallocate in a bit map
+        00F8   4F              ZF0F9  CLRA               
+        00F9   39              ZF0FA  RTS                
+
+        00FA 109E      4B      ZF0FB  LDY    Z004B
+        00FD   9E      49             LDX    Z0049
+        00FF   A6 23                  LDA    $03,Y
+        0101   26      04 0107        BNE    ZF108
+        0103   53                     COMB               
+        0104   C6      E2             LDB    #$E2
+        0106   39                     RTS                
+
+      S 0107 103F      2F      ZF108  OS9    F$F64       find a 64 byte memory block
+        010A   A6 2D                  LDA    $0D,Y
+        010C   85      01             BITA   #$01
+        010E   26      13 0123        BNE    ZF124
+
+        0110   A6 22                  LDA    $02,Y
+        0112   26      F3 0107        BNE    ZF108
+
+        0114   6F 41                  CLR    $01,U
+        0116   9E      4B             LDX    Z004B
+        0118   1A      50             ORCC   #$50
+        011A   DC      4F             LDD    Z004F
+        011C   ED 0E                  STD    $0E,X
+        011E   9F      4F             STX    Z004F
+        0120   16    0217 033A        LBRA   ZF33B
+
+        0123   9E      4B      ZF124  LDX    Z004B
+
+        0125   A6 A4           ZF126  LDA    ,Y
+        0127   E6 A8   36             LDB    $36,Y
+        012A   ED 41                  STD    $01,U
+
+        012C   34      72             PSHS   U,Y,X,A
+        012E   31 01                  LEAY   $01,X
+        0130   9E      49             LDX    Z0049
+        0132   20      03 0137        BRA    ZF138
+
+      S 0134 103F      2F      ZF135  OS9    F$F64       find a 64 byte memory block
+
+        0137   A6 22           ZF138  LDA    $02,Y
+        0139   A1 E4                  CMPA   ,S
+        013B   26      F7 0134        BNE    ZF135
+
+        013D   EE 63                  LDU    $03,S
+        013F   E6 42                  LDB    $02,U
+        0141   E7 22                  STB    $02,Y
+      S 0143 103F      31             OS9    F$R64       return a 64 byte memory block
+        0146   35      F2             PULS   PC,U,Y,X,A
+
+        0148   9E      4B      ZF149  LDX    Z004B
+        014A   E6 42                  LDB    $02,U
+        014C   E7 88   36             STB    $36,X
+        014F   C6      10             LDB    #$10
+        0151   31 88   26             LEAY   $26,X
+
+        0154   A6 A0           ZF155  LDA    ,Y+
+        0156   27      07 015F        BEQ    ZF160
+
+        0158   34      04             PSHS   B
+      S 015A 103F      8F             OS9    I$CLOS      close a path
+        015D   35      04             PULS   B
+
+        015F   5A              ZF160  DECB               
+        0160   26      F2 0154        BNE    ZF155
+
+        0162   A6 07                  LDA    $07,X
+        0164   1F      03             TFR    D,U
+        0166   A6 08                  LDA    $08,X
+      S 0168 103F      29             OS9    F$SRTM      return system memory
+        016B   EE 88   12             LDU    $12,X
+      S 016E 103F      02             OS9    F$UNLK      unlink a module
+        0171   DE      4B             LDU    Z004B
+        0173   31 41                  LEAY   $01,U
+        0175   9E      49             LDX    Z0049
+        0177   20      12 018B        BRA    ZF18C
+
+        0179   6F 22           ZF17A  CLR    $02,Y
+      S 017B 103F      2F             OS9    F$F64       find a 64 byte memory block
+        017E   A6 2D                  LDA    $0D,Y
+        0180   85      01             BITA   #$01
+        0182   27      05 0189        BEQ    ZF18A
+        0184   A6 A4                  LDA    ,Y
+        0186 103F      31             OS9    F$R64
+
+        0189   6F 21           ZF18A  CLR    $01,Y
+
+        018B   A6 22           ZF18C  LDA    $02,Y
+        018D   26      EA 0179        BNE    ZF17A
+
+        018F   8E    0041             LDX    #Z0041
+        0192   A6 41                  LDA    $01,U
+        0194   26      0D 01A3        BNE    ZF1A4
+        0196   9E      49             LDX    Z0049
+        0198   A6 C4                  LDA    ,U
+        019A 103F      31             OS9    F$R64
+        019D   20      22 01C1        BRA    ZF1C2
+
+        019F   A1 84           ZF1A0  CMPA   ,X
+        01A1   27      0E 01B1        BEQ    ZF1B2
+
+        01A3   31 84           ZF1A4  LEAY   ,X
+        01A5   AE 0E                  LDX    $0E,X
+        01A7   26      F6 019F        BNE    ZF1A0
+        01A9   A6 4D                  LDA    $0D,U
+        01AB   8A      01             ORA    #$01
+        01AD   A7 4D                  STA    $0D,U
+        01AF   20      10 01C1        BRA    ZF1C2
+
+        01B1   EC 0E           ZF1B2  LDD    $0E,X
+        01B3   ED 2E                  STD    $0E,Y
+        01B5 103F      2C             OS9    F$APRC
+        01B8   31 C4                  LEAY   ,U
+        01BA   EE 04                  LDU    $04,X
+        01BC   EE 41                  LDU    $01,U
+        01BE   17    FF64 0125        LBSR   ZF126
+
+        01C1   4F              ZF1C2  CLRA               
+        01C2   5F                     CLRB               
+        01C3   DD      4B             STD    Z004B
+        01C5   39                     RTS                
+
+        01C6   9E      4B      ZF1C7  LDX    Z004B
+        01C8   EC 41                  LDD    $01,U
+        01CA   27      5A 0226        BEQ    ZF227
+        01CC   8D      67 0235        BSR    ZF236
+        01CE   E0 08                  SUBB   $08,X
+        01D0   27      54 0226        BEQ    ZF227
+        01D2   25      32 0206        BCS    ZF207
+        01D4   1F      02             TFR    D,Y
+        01D6   AE 07                  LDX    $07,X
+        01D8   34      70             PSHS   U,Y,X
+        01DA   E6 E4                  LDB    ,S
+        01DC   27      02 01E0        BEQ    ZF1E1
+        01DE   EB 61                  ADDB   $01,S
+
+        01E0   9E      20      ZF1E1  LDX    Z0020
+        01E2   DE      22             LDU    Z0022
+        01E4 103F      12             OS9    F$SBIT
+        01E7   25      47 0230        BCS    ZF231
+        01E9   E7 62                  STB    $02,S
+        01EB   E6 E4                  LDB    ,S
+        01ED   27      06 01F5        BEQ    ZF1F6
+
+        01EF   EB 61                  ADDB   $01,S
+        01F1   E1 62                  CMPB   $02,S
+        01F3   26      3B 0230        BNE    ZF231
+
+        01F5   E6 62           ZF1F6  LDB    $02,S
+        01F7 103F      13             OS9    F$ABIT
+        01FA   EC 62                  LDD    $02,S
+        01FC   A0 61                  SUBA   $01,S
+        01FE   EB 61                  ADDB   $01,S
+        0200   35      70             PULS   U,Y,X
+        0202   9E      4B             LDX    Z004B
+        0204   20      1E 0224        BRA    ZF225
+
+        0206   50              ZF207  NEGB               
+        0207   1F      02             TFR    D,Y
+        0209   50                     NEGB               
+        020A   EB 08                  ADDB   $08,X
+        020C   EB 07                  ADDB   $07,X
+        020E   E1 04                  CMPB   $04,X
+        0210   22      04 0216        BHI    ZF217
+        0212   53                     COMB               
+        0213   C6      DF             LDB    #$DF
+        0215   39                     RTS                
+
+        0216   9E      20      ZF217  LDX    Z0020
+        0218 103F      14             OS9    F$DBIT
+        021B   1F      20             TFR    Y,D
+        021D   50                     NEGB               
+        021E   9E      4B             LDX    Z004B
+        0220   EB 08                  ADDB   $08,X
+        0222   A6 07                  LDA    $07,X
+
+        0224   ED 07           ZF225  STD    $07,X
+
+        0226   A6 08           ZF227  LDA    $08,X
+        0228   5F                     CLRB               
+        0229   ED 41                  STD    $01,U
+        022B   AB 07                  ADDA   $07,X
+        022D   ED 46                  STD    $06,U
+        022F   39                     RTS                
+
+        0230   53              ZF231  COMB               
+        0231   C6      CF             LDB    #$CF
+        0233   35      F0             PULS   PC,U,Y,X
+
+        0235   C3    00FF      ZF236  ADDD   #$00FF
+        0238   5F                     CLRB               
+        0239   1E      89             EXG    A,B
+        023B   39                     RTS                
+
+        023C   A6 41           ZF23D  LDA    $01,U
+        023E   26      0E 024E        BNE    ZF24F
+        0240   4C                     INCA               
+
+        0241   9E      4B      ZF242  LDX    Z004B
+        0243   A1 84                  CMPA   ,X
+        0245   27      02 0249        BEQ    ZF24A
+        0247   8D      05 024E        BSR    ZF24F
+
+        0249   4C              ZF24A  INCA               
+        024A   26      F5 0241        BNE    ZF242
+        024C   5F                     CLRB               
+        024D   39                     RTS                
+
+        024E   9E      49      ZF24F  LDX    Z0049
+        0250 103F      2F             OS9    F$F64
+        0253   24      03 0258        BCC    ZF259
+        0255   C6      E0             LDB    #$E0
+        0257   39                     RTS                
+
+        0258   1A      50      ZF259  ORCC   #$50
+        025A   34      22             PSHS   Y,A
+        025C   E6 42                  LDB    $02,U
+        025E   26      06 0266        BNE    ZF267
+        0260   A6 2D                  LDA    $0D,Y
+        0262   8A      02             ORA    #$02
+        0264   A7 2D                  STA    $0D,Y
+
+        0266   A6 A8   36      ZF267  LDA    $36,Y
+        0269   27      08 0273        BEQ    ZF274
+        026B   4A                     DECA               
+        026C   27      05 0273        BEQ    ZF274
+        026E   53                     COMB               
+        026F   C6      E9             LDB    #$E9
+        0271   35      A2             PULS   PC,Y,A
+
+        0273   E7 A8   36      ZF274  STB    $36,Y
+        0276   8E    0043             LDX    #Z0043
+        0279   20      26 02A1        BRA    ZF2A2
+
+        027B   AC 61           ZF27C  CMPX   $01,S
+        027D   26      22 02A1        BNE    ZF2A2
+        027F   A6 0D                  LDA    $0D,X
+        0281   85      40             BITA   #$40
+        0283   27      2F 02B4        BEQ    ZF2B5
+        0285   EE 04                  LDU    $04,X
+        0287   EC 44                  LDD    $04,U
+        0289   27      29 02B4        BEQ    ZF2B5
+        028B   EE 0E                  LDU    $0E,X
+        028D   27      25 02B4        BEQ    ZF2B5
+        028F   34      06             PSHS   B,A
+        0291   A6 4D                  LDA    $0D,U
+        0293   85      40             BITA   #$40
+        0295   35      06             PULS   B,A
+        0297   27      1B 02B4        BEQ    ZF2B5
+        0299   EE 44                  LDU    $04,U
+        029B   E3 44                  ADDD   $04,U
+        029D   ED 44                  STD    $04,U
+        029F   20      13 02B4        BRA    ZF2B5
+
+        02A1   31 84           ZF2A2  LEAY   ,X
+        02A3   AE 2E                  LDX    $0E,Y
+        02A5   26      D4 027B        BNE    ZF27C
+        02A7   8E    0041             LDX    #Z0041
+
+        02AA   31 84           ZF2AB  LEAY   ,X
+        02AC   AE 2E                  LDX    $0E,Y
+        02AE   27      14 02C4        BEQ    ZF2C5
+        02B0   AC 61                  CMPX   $01,S
+        02B2   26      F6 02AA        BNE    ZF2AB
+
+        02B4   EC 0E           ZF2B5  LDD    $0E,X
+        02B6   ED 2E                  STD    $0E,Y
+        02B8   A6 88   36             LDA    $36,X
+        02BB   4A                     DECA               
+        02BC   26      03 02C1        BNE    ZF2C2
+        02BE   A7 88   36             STA    $36,X
+
+        02C1 103F      2C      ZF2C2  OS9    F$APRC
+
+        02C4   5F              ZF2C5  CLRB               
+        02C5   35      A2             PULS   PC,Y,A
+
+        02C7   9E      4B      ZF2C8  LDX    Z004B
+        02C9   1A      50             ORCC   #$50
+        02CB   A6 88   36             LDA    $36,X
+        02CE   27      0B 02DB        BEQ    ZF2DC
+        02D0   4A                     DECA               
+        02D1   26      03 02D6        BNE    ZF2D7
+        02D3   A7 88   36             STA    $36,X
+
+        02D6 103F      2C      ZF2D7  OS9    F$APRC            
+        02D9   20      5F 033A        BRA    ZF33B
+
+        02DB   EC 44           ZF2DC  LDD    $04,U
+        02DD   27      48 0327        BEQ    ZF328
+        02DF   83    0001             SUBD   #$0001
+        02E2   ED 44                  STD    $04,U
+        02E4   27      F0 02D6        BEQ    ZF2D7
+        02E6   34      50             PSHS   U,X
+        02E8   8E    0043             LDX    #Z0043
+
+        02EB   31 84           ZF2EC  LEAY   ,X
+        02ED   AE 0E                  LDX    $0E,X
+        02EF   27      12 0303        BEQ    ZF304
+        02F1   34      06             PSHS   B,A
+        02F3   A6 0D                  LDA    $0D,X
+        02F5   85      40             BITA   #$40
+        02F7   35      06             PULS   B,A
+        02F9   27      08 0303        BEQ    ZF304
+        02FB   EE 04                  LDU    $04,X
+        02FD   A3 44                  SUBD   $04,U
+        02FF   24      EA 02EB        BCC    ZF2EC
+        0301   E3 44                  ADDD   $04,U
+
+        0303   35      50      ZF304  PULS   U,X
+        0305   ED 44                  STD    $04,U
+        0307   EC 2E                  LDD    $0E,Y
+        0309   AF 2E                  STX    $0E,Y
+        030B   ED 0E                  STD    $0E,X
+        030D   A6 0D                  LDA    $0D,X
+        030F   8A      40             ORA    #$40
+        0311   A7 0D                  STA    $0D,X
+        0313   AE 0E                  LDX    $0E,X
+        0315   27      23 033A        BEQ    ZF33B
+        0317   A6 0D                  LDA    $0D,X
+        0319   85      40             BITA   #$40
+        031B   27      1D 033A        BEQ    ZF33B
+        031D   AE 04                  LDX    $04,X
+        031F   EC 04                  LDD    $04,X
+        0321   A3 44                  SUBD   $04,U
+        0323   ED 04                  STD    $04,X
+        0325   20      13 033A        BRA    ZF33B
+
+        0327   A6 0D           ZF328  LDA    $0D,X
+        0329   84      BF             ANDA   #$BF
+        032B   A7 0D                  STA    $0D,X
+        032D   CC    0043             LDD    #$0043
+
+        0330   1F      02      ZF331  TFR    D,Y
+        0332   EC 2E                  LDD    $0E,Y
+        0334   26      FA 0330        BNE    ZF331
+        0336   AF 2E                  STX    $0E,Y
+        0338   ED 0E                  STD    $0E,X
+
+        033A   31 8D 0011 034F ZF33B  LEAY   ZF34F,PCR
+        033E   34      20             PSHS   Y
+        0340 109E      4B             LDY    Z004B
+        0343   EC 24                  LDD    $04,Y
+        0345   AE 44                  LDX    $04,U
+        0347   34      7F             PSHS   U,Y,X,DP,B,A,CC
+        0349 10EF 24                  STS    $04,Y
+        034C 103F      2D             OS9    F$NPRC
+
+        034F   ED 24           ZF34F  STD    $04,Y
+        0351   AF 44                  STX    $04,U
+        0353   5F                     CLRB               
+        0354   39                     RTS                
+
+        0355   9E      4B      ZF355  LDX    Z004B
+        0357   EC 44                  LDD    $04,U
+        0359   ED 88   37             STD    $37,X
+        035C   EC 48                  LDD    $08,U
+        035E   ED 88   39             STD    $39,X
+        0361   5F                     CLRB               
+        0362   39                     RTS                
+
+        0363   A6 41           ZF363  LDA    $01,U
+        0365   9E      49             LDX    Z0049
+        0367 103F      2F             OS9    F$F64
+        036A   25      0E 037A        BCS    ZF37A
+        036C   9E      4B             LDX    Z004B
+        036E   EC 09                  LDD    $09,X
+        0370 10A3 29                  CMPD   $09,Y
+        0373   26      05 037A        BNE    ZF37A
+        0375   A6 42                  LDA    $02,U
+        0377   A7 2B                  STA    $0B,Y
+        0379   39                     RTS                
+
+        037A   53              ZF37A  COMB               
+        037B   C6      E0             LDB    #$E0
+        037D   39                     RTS                
+
+        037E   9E      4B      ZF37E  LDX    Z004B
+        0380   A6 84                  LDA    ,X
+        0382   A7 41                  STA    $01,U
+        0384   EC 09                  LDD    $09,X
+        0386   ED 46                  STD    $06,U
+        0388   5F                     CLRB               
+        0389   39                     RTS                
+
+        038A   9E      4B      ZF38A  LDX    Z004B
+        038C   31 88   14             LEAY   $14,X
+        038F   E6 41                  LDB    $01,U
+        0391   5A                     DECB               
+        0392   C1      03             CMPB   #$03
+        0394   24      06 039C        BCC    ZF39C
+        0396   58                     ASLB               
+        0397   AE 44                  LDX    $04,U
+        0399   AF A5                  STX    B,Y
+        039B   39                     RTS                
+
+        039C   53              ZF39C  COMB               
+        039D   C6      E3             LDB    #$E3
+        039F   39                     RTS                
+
+      C 03A0 43 6C 6F 63       ZF3A0  FCS    "Clock"
+        03A4 EB
+        03A5   AE 44           ZF3A5  LDX    $04,U
+        03A7   EC 84                  LDD    ,X
+        03A9   DD      53             STD    Z0053
+        03AB   EC 02                  LDD    $02,X
+        03AD   DD      55             STD    Z0055
+        03AF   EC 04                  LDD    $04,X
+        03B1   DD      57             STD    Z0057
+        03B3   86      C1             LDA    #$C1
+        03B5   30 8C   E8 03A0        LEAX   ZF3A0,PCR
+        03B8 103F      00             OS9    F$LINK
+        03BB   25      03 03C0        BCS    ZF3C0
+        03BD   6E A4                  JMP    ,Y
+        03BF   5F                     CLRB               
+
+        03C0   39              ZF3C0  RTS                
+
+        03C1   A6 41           ZF3C1  LDA    $01,U
+        03C3   AE 44                  LDX    $04,U
+        03C5   8D      06 03CD        BSR    ZF3CD
+        03C7   25      03 03CC        BCS    ZF3CC
+        03C9 10AF 46                  STY    $06,U
+
+        03CC   39              ZF3CC  RTS                
+
+        03CD   34      06      ZF3CD  PSHS   B,A
+        03CF   4D                     TSTA               
+        03D0   27      0F 03E1        BEQ    ZF3E1
+        03D2   5F                     CLRB               
+        03D3   44                     LSRA               
+        03D4   56                     RORB               
+        03D5   44                     LSRA               
+        03D6   56                     RORB               
+        03D7   A6 86                  LDA    A,X
+        03D9   1F      02             TFR    D,Y
+        03DB   27      04 03E1        BEQ    ZF3E1
+        03DD   6D A4                  TST    ,Y
+        03DF   26      01 03E2        BNE    ZF3E2
+
+        03E1   43              ZF3E1  COMA               
+
+        03E2   35      86      ZF3E2  PULS   PC,B,A
+
+        03E4   AE 44           ZF3E4  LDX    $04,U
+        03E6   26      08 03F0        BNE    ZF3F0
+        03E8   8D      10 03FA        BSR    ZF3FA
+        03EA   25      0D 03F9        BCS    ZF3F9
+        03EC   AF 84                  STX    ,X
+        03EE   AF 44                  STX    $04,U
+
+        03F0   8D      1E 0410 ZF3F0  BSR    ZF410
+        03F2   25      05 03F9        BCS    ZF3F9
+        03F4   A7 41                  STA    $01,U
+        03F6 10AF 46                  STY    $06,U
+
+        03F9   39              ZF3F9  RTS                
+
+        03FA   34      40      ZF3FA  PSHS   U
+        03FC   CC    0100             LDD    #$0100
+        03FF 103F      28             OS9    F$SRQM
+        0402   30 C4                  LEAX   ,U
+        0404   35      40             PULS   U
+        0406   25      07 040F        BCS    ZF40F
+        0408   4F                     CLRA               
+        0409   5F                     CLRB               
+
+        040A   A7 8B           ZF40A  STA    D,X
+        040C   5C                     INCB               
+        040D   26      FB 040A        BNE    ZF40A
+
+        040F   39              ZF40F  RTS                
+
+        0410   34      50      ZF410  PSHS   U,X
+        0412   4F                     CLRA               
+
+        0413   34      02      ZF413  PSHS   A
+        0415   5F                     CLRB               
+        0416   A6 86                  LDA    A,X
+        0418   27      0B 0425        BEQ    ZF425
+        041A   1F      02             TFR    D,Y
+        041C   4F                     CLRA               
+
+        041D   6D AB           ZF41D  TST    D,Y
+        041F   27      06 0427        BEQ    ZF427
+        0421   CB      40             ADDB   #$40
+        0423   24      F8 041D        BCC    ZF41D
+
+        0425   1A      01      ZF425  ORCC   #$01
+
+        0427   31 AB           ZF427  LEAY   D,Y
+        0429   35      02             PULS   A
+        042B   24      25 0452        BCC    ZF452
+        042D   4C                     INCA               
+        042E   81      40             CMPA   #$40
+        0430   25      E1 0413        BCS    ZF413
+        0432   4F                     CLRA               
+
+        0433   6D 86           ZF433  TST    A,X
+        0435   27      0A 0441        BEQ    ZF441
+        0437   4C                     INCA               
+        0438   81      40             CMPA   #$40
+        043A   25      F7 0433        BCS    ZF433
+        043C   C6      C8             LDB    #$C8
+        043E   43                     COMA               
+        043F   20      1E 045F        BRA    ZF45F
+
+        0441   34      12      ZF441  PSHS   X,A
+        0443   8D      B5 03FA        BSR    ZF3FA
+        0445   25      1A 0461        BCS    ZF461
+        0447   31 84                  LEAY   ,X
+        0449   1F      10             TFR    X,D
+        044B   1F      89             TFR    A,B
+        044D   35      12             PULS   X,A
+        044F   E7 86                  STB    A,X
+        0451   5F                     CLRB               
+
+        0452   58              ZF452  ASLB               
+        0453   49                     ROLA               
+        0454   58                     ASLB               
+        0455   49                     ROLA               
+        0456   C6      3F             LDB    #$3F
+
+        0458   6F A5           ZF458  CLR    B,Y
+        045A   5A                     DECB               
+        045B   26      FB 0458        BNE    ZF458
+        045D   A7 A4                  STA    ,Y
+
+        045F   35      D0      ZF45F  PULS   PC,U,X
+
+        0461   32 63           ZF461  LEAS   $03,S
+        0463   35      D0             PULS   PC,U,X
+
+        0465   A6 41           ZF465  LDA    $01,U
+        0467   AE 44                  LDX    $04,U
+        0469   34      76             PSHS   U,Y,X,B,A
+        046B   5F                     CLRB               
+        046C   44                     LSRA               
+        046D   56                     RORB               
+        046E   44                     LSRA               
+        046F   56                     RORB               
+        0470   34      02             PSHS   A
+        0472   A6 86                  LDA    A,X
+        0474   27      18 048E        BEQ    ZF48E
+        0476   1F      02             TFR    D,Y
+        0478   6F A4                  CLR    ,Y
+        047A   5F                     CLRB               
+        047B   1F      03             TFR    D,U
+        047D   4F                     CLRA               
+
+        047E   6D CB           ZF47E  TST    D,U
+        0480   26      0C 048E        BNE    ZF48E
+        0482   CB      40             ADDB   #$40
+        0484   26      F8 047E        BNE    ZF47E
+        0486   4C                     INCA               
+        0487 103F      29             OS9    F$SRTM
+        048A   A6 E4                  LDA    ,S
+        048C   6F 86                  CLR    A,X
+
+        048E   6F E0           ZF48E  CLR    ,S+
+        0490   35      F6             PULS   PC,U,Y,X,B,A
+
+      C 0492 49 4F 4D 41       ZF492  FCS    "IOMAN"
+        0496 CE
+        0497   34      76      ZF497  PSHS   U,Y,X,B,A
+        0499   DE      2A             LDU    Z002A
+        049B   8D      14 04B1        BSR    ZF4B1
+        049D   24      08 04A7        BCC    ZF4A7
+        049F   8D      19 04BA        BSR    ZF4BB
+        04A1   25      0C 04AF        BCS    ZF4AF
+        04A3   8D      0C 04B1        BSR    ZF4B1
+        04A5   25      08 04AF        BCS    ZF4AF
+
+        04A7   AD A4           ZF4A7  JSR    ,Y
+        04A9   35      76             PULS   U,Y,X,B,A
+        04AB   AE 3E                  LDX    -$02,Y
+        04AD   6E 84                  JMP    ,X
+
+        04AF   35      F6      ZF4AF  PULS   PC,U,Y,X,B,A
+
+        04B1   30 8C   DE 0492 ZF4B1  LEAX   ZF492,PCR
+        04B4   86      C1             LDA    #$C1
+        04B6 103F      00             OS9    F$LINK
+        04B9   39                     RTS                
+
+        04BA   34      40      ZF4BB  PSHS   U
+        04BC   53                     COMB               
+        04BD   0D      73             TST    Z0073
+        04BF   26      35 04F6        BNE    ZF4F7
+        04C1   0C      73             INC    Z0073
+        04C3   EC C8   14             LDD    $14,U
+        04C6   27      2E 04F6        BEQ    ZF4F7
+        04C8   30 CB                  LEAX   D,U
+        04CA   86      C1             LDA    #$C1
+        04CC 103F      00             OS9    F$LINK
+        04CF   25      25 04F6        BCS    ZF4F7
+        04D1   AD A4                  JSR    ,Y
+        04D3   25      21 04F6        BCS    ZF4F7
+        04D5   9F      24             STX    Z0024
+        04D7   9F      66             STX    Z0066
+        04D9   33 8B                  LEAU   D,X
+        04DB   DF      68             STU    Z0068
+
+        04DD   EC 84           ZF4DE  LDD    ,X
+        04DF 1083    87CD             CMPD   #MODHD
+        04E3   26      0B 04F0        BNE    ZF4F1
+        04E5 103F      2E             OS9    F$VMOD
+        04E8   25      06 04F0        BCS    ZF4F1
+        04EA   EC 02                  LDD    $02,X
+        04EC   30 8B                  LEAX   D,X
+        04EE   20      02 04F2        BRA    ZF4F3
+
+        04F0   30 01           ZF4F1  LEAX   $01,X
+
+        04F2   9C      68      ZF4F3  CMPX   Z0068
+        04F4   25      E7 04DD        BCS    ZF4DE
+
+        04F6   35      C0      ZF4F7  PULS   PC,U
+
+      S 04F8   70    6E0E             emod               
+
+      E 04FB                   ZF4FC  equ    *
+
+      S 0000 87 CD                    mod    ZF52A,ZF512,sys,reent+1
+        0002 00 2E
+        0004 00 16 
+        0006 C0 
+        0007 81 
+        0008 CC
+
+      C 0009 00                ZF405  FCB    $00
+      C 000A E000                     FDB    $E000
+      C 000C 0C                       FCB    12
+      C 000D 0C                       FCB    12
+      C 000E 001A                     FDB    ZF51A
+      C 0010 001F                     FDB    ZF51F
+      C 0012 0022                     FDB    ZF522
+      C 0014 0027                     FDB    ZF527
+
+      C 0016 49 6E 69 F4       ZF512  FCS    "Init"
+      C 001A 53 79 73 47       ZF51A  FCS    "SysGo"
+        001E EF
+      C 001F 2F 44 B0          ZF51F  FCS    "/D0"
+      C 0022 2F 54 65 72       ZF522  FCS    "/Term"
+        0026 ED
+      C 0027 42 6F 6F F4       ZF527  FCS    "Boot"
+
+      S 002B   16    2780             emod               
+
+      E 002E                   ZF52A  equ    *
+
+      S 0000 87 CD                    mod    ZF6E3,ZF537,sys+objct,reent+1,ZF53D,18
+        0002 01 B9
+        0004 00 0D 
+        0006 C1 
+        0007 81 
+        0008 40 
+        0009 00 13 
+        000B 00 12
+
+      C 000D 42 6F 6F F4       ZF537  FCS    "Boot"
+      C 0011 00                       FCB    $00
+      C 0012 00                ZF53C  FCB    $00
+
+        0013   4F              ZF53D  CLRA               
+        0014   C6      12             LDB    #18
+
+        0016   34      02      ZF540  PSHS   A
+        0018   5A                     DECB               
+        0019   26      FB 0016        BNE    ZF540
+        001B   1F      43             TFR    S,U
+        001D   8E    E014             LDX    #ZE014
+        0020   AF C4                  STX    ,U
+        0022   30 04                  LEAX   $04,X
+        0024   AF 42                  STX    $02,U
+        0026   86      D0             LDA    #$D0        
+        0028   A7 84                  STA    ,X
+        002A   17    0181 01AE        LBSR   ZF6D8
+        002D   A6 84                  LDA    ,X
+        002F   30 01                  LEAX   $01,X
+        0031   AF 44                  STX    $04,U
+        0033   30 01                  LEAX   $01,X
+        0035   AF 46                  STX    $06,U
+        0037   30 01                  LEAX   $01,X
+        0039   AF 48                  STX    $08,U
+        003B   86      FF             LDA    #$FF
+        003D   A7 4F                  STA    $0F,U
+        003F   34      56             PSHS   U,X,B,A
+        0041   4F                     CLRA               
+        0042   5F                     CLRB               
+        0043 108E    0001             LDY    #$0001
+        0047   9E      20             LDX    Z0020
+        0049   DE      22             LDU    Z0022
+        004B 103F      12             OS9    F$SBIT
+        004E   25      41 0091        BCS    ZF5BB
+        0050   1E      89             EXG    A,B
+        0052   EE 64                  LDU    $04,S
+        0054   ED 4D                  STD    $0D,U
+        0056   5F                     CLRB               
+        0057   8E    0000             LDX    #$0000
+        005A   8D      4C 00A8        BSR    ZF5D2
+        005C   25      33 0091        BCS    ZF5BB
+        005E   EC A8   18             LDD    $18,Y
+        0061   ED E4                  STD    ,S
+        0063 103F      28             OS9    F$SRQM
+        0066   25      29 0091        BCS    ZF5BB
+        0068   EF 62                  STU    $02,S
+        006A   EE 64                  LDU    $04,S
+        006C   AE 62                  LDX    $02,S
+        006E   AF 4D                  STX    $0D,U
+        0070   AE A8   16             LDX    $16,Y
+        0073   EC A8   18             LDD    $18,Y
+        0076   27      12 008A        BEQ    ZF5B4
+                                                         
+        0078   34      16      ZF5A2  PSHS   X,B,A
+        007A   5F                     CLRB               
+        007B   8D      2B 00A8        BSR    ZF5D2
+        007D   25      10 008F        BCS    ZF5B9
+        007F   35      16             PULS   X,B,A
+        0081   6C 4D                  INC    $0D,U
+        0083   30 01                  LEAX   $01,X
+        0085   83    0100             SUBD   #$0100
+        0088   22      EE 0078        BHI    ZF5A2
+
+        008A   4F              ZF5B4  CLRA               
+        008B   35      06             PULS   B,A
+        008D   20      04 0093        BRA    ZF5BD
+
+        008F   32 64           ZF5B9  LEAS   $04,S
+
+        0091   32 62           ZF5BB  LEAS   $02,S
+
+        0093   35      50      ZF5BD  PULS   U,X
+        0095   32 E8   12             LEAS   $12,S
+        0098   39                     RTS                
+
+        0099   6F C8   10      ZF5C3  CLR    $10,U
+        009C   6F 4F                  CLR    $0F,U
+        009E   C6      4B             LDB    #$4B
+        00A0   17    00F1 0194        LBSR   ZF6BE
+        00A3   C6      0B             LDB    #$0B
+        00A5   16    00EC 0194        LBRA   ZF6BE
+
+        00A8   86      91      ZF5D2  LDA    #$91
+        00AA   8C    0000             CMPX   #$0000
+        00AD   26      11 00C0        BNE    ZF5EA
+        00AF   8D      0F 00C0        BSR    ZF5EA
+        00B1   25      04 00B7        BCS    ZF5E1
+        00B3 10AE 4D                  LDY    $0D,U
+        00B6   5F                     CLRB               
+
+        00B7   39              ZF5E1  RTS                
+
+        00B8   24      06 00C0 ZF5E2  BCC    ZF5EA
+        00BA   34      16             PSHS   X,B,A
+        00BC   8D      DB 0099        BSR    ZF5C3
+        00BE   35      16             PULS   X,B,A
+
+        00C0   34      16      ZF5EA  PSHS   X,B,A
+        00C2   8D      07 00CB        BSR    ZF5F5
+        00C4   35      16             PULS   X,B,A
+        00C6   24      EF 00B7        BCC    ZF5E1
+        00C8   44                     LSRA               
+        00C9   26      ED 00B8        BNE    ZF5E2
+
+        00CB   8D      3A 0107 ZF5F5  BSR    ZF631
+        00CD   25      E8 00B7        BCS    ZF5E1
+        00CF   AE 4D                  LDX    $0D,U
+        00D1   1A      50             ORCC   #$50
+        00D3   C6      88             LDB    #$88
+        00D5   EA C8   11             ORB    $11,U
+        00D8   17    00C7 01A2        LBSR   ZF6CC
+        00DB   34      60             PSHS   U,Y
+        00DD 10AE 42                  LDY    $02,U
+        00E0   31 3C                  LEAY   -$04,Y
+        00E2   EE 48                  LDU    $08,U
+
+        00E4   A6 A4           ZF60E  LDA    ,Y
+        00E6   2B      04 00EC        BMI    ZF616
+        00E8   27      FA 00E4        BEQ    ZF60E
+        00EA   20      06 00F2        BRA    ZF61C
+
+        00EC   A6 C4           ZF616  LDA    ,U
+        00EE   A7 80                  STA    ,X+
+        00F0   20      F2 00E4        BRA    ZF60E
+
+        00F2   EE 62           ZF61C  LDU    $02,S
+        00F4   17    00A3 019A        LBSR   ZF6C4
+        00F7   35      60             PULS   U,Y
+        00F9   C5      04             BITB   #$04
+        00FB   26      02 00FF        BNE    ZF629
+        00FD   20      7B 017A        BRA    ZF6A4
+
+        00FF   53              ZF629  COMB               
+        0100   C6      F4             LDB    #$F4
+        0102   39                     RTS                
+
+        0103   53              ZF62D  COMB               
+        0104   C6      F1             LDB    #$F1
+        0106   39                     RTS                
+
+        0107   6F C8   10      ZF631  CLR    $10,U
+        010A   6F 4B                  CLR    $0B,U
+        010C   1F      10             TFR    X,D
+        010E 1083    0000             CMPD   #$0000
+        0112   27      40 0154        BEQ    ZF67E
+        0114 10A3 21                  CMPD   $01,Y
+        0117   24      EA 0103        BCC    ZF62D
+        0119   83    000A             SUBD   #$000A
+        011C   24      05 0123        BCC    ZF64D
+        011E   C3    000A             ADDD   #$000A
+        0121   20      31 0154        BRA    ZF67E
+
+        0123   E7 4C           ZF64D  STB    $0C,U
+        0125   5F                     CLRB               
+        0126   34      04             PSHS   B
+        0128   E6 A8   10             LDB    $10,Y
+        012B   54                     LSRB               
+        012C   E6 4C                  LDB    $0C,U
+        012E   24      0E 013E        BCC    ZF668
+
+        0130   63 4B           ZF65A  COM    $0B,U
+        0132   26      02 0136        BNE    ZF660
+        0134   6C E4                  INC    ,S
+
+        0136   E0 23           ZF660  SUBB   $03,Y
+        0138   82      00             SBCA   #$00
+        013A   24      F4 0130        BCC    ZF65A
+        013C   20      08 0146        BRA    ZF670
+
+        013E   6C E4           ZF668  INC    ,S
+        0140   E0 23                  SUBB   $03,Y
+        0142   82      00             SBCA   #$00
+        0144   24      F8 013E        BCC    ZF668
+
+        0146   A6 A8   10      ZF670  LDA    $10,Y
+        0149   84      02             ANDA   #$02
+        014B   27      03 0150        BEQ    ZF67A
+        014D   A7 C8   11             STA    $11,U
+
+        0150   35      02      ZF67A  PULS   A
+        0152   EB 23                  ADDB   $03,Y
+
+        0154   E7 D8   06      ZF67E  STB    [$06,U]
+        0157   5F                     CLRB               
+        0158   E6 4B                  LDB    $0B,U
+        015A   C4      40             ANDB   #$40
+        015C   EA C8   10             ORB    $10,U
+        015F   E7 C8   10             STB    $10,U
+        0162   E6 4F                  LDB    $0F,U
+        0164   E7 D8   04             STB    [$04,U]
+        0167   A1 4F                  CMPA   $0F,U
+        0169   27      0D 0178        BEQ    ZF6A2
+        016B   A7 4F                  STA    $0F,U
+        016D   A7 D8   08             STA    [$08,U]
+        0170   C6      1B             LDB    #$1B
+        0172   8D      20 0194        BSR    ZF6BE
+        0174   86      04             LDA    #$04
+        0176   A7 4A                  STA    $0A,U
+
+        0178   5F              ZF6A2  CLRB               
+        0179   39                     RTS                
+
+        017A   C5      80      ZF6A4  BITB   #$80
+        017C   26      0A 0188        BNE    ZF6B2
+        017E   C5      10             BITB   #$10
+        0180   26      0A 018C        BNE    ZF6B6
+        0182   C5      08             BITB   #$08
+        0184   26      0A 0190        BNE    ZF6BA
+        0186   5F                     CLRB               
+        0187   39                     RTS                
+
+        0188   53              ZF6B2  COMB               
+        0189   C6      F6             LDB    #$F6
+        018B   39                     RTS                
+
+        018C   53              ZF6B6  COMB               
+        018D   C6      F7             LDB    #$F7
+        018F   39                     RTS                
+
+        0190   53              ZF6BA  COMB               
+        0191   C6      F3             LDB    #$F3
+        0193   39                     RTS                
+
+        0194   E8 8D FE7A 0012 ZF6BE  EORB   ZF53C,PCR
+        0198   8D      08 01A2        BSR    ZF6CC
+
+        019A   E6 D8   02      ZF6C4  LDB    [$02,U]
+        019D   C5      01             BITB   #$01
+        019F   26      F9 019A        BNE    ZF6C4
+        01A1   39                     RTS                
+
+        01A2   A6 C8   10      ZF6CC  LDA    $10,U
+        01A5   A7 D4                  STA    [,U]
+        01A7   EA 4A                  ORB    $0A,U
+        01A9   6F 4A                  CLR    $0A,U
+        01AB   E7 D8   02             STB    [$02,U]
+
+        01AE   8D      00 01B0 ZF6D8  BSR    ZF6DA
+        01B0   8D      00 01B2 ZF6DA  BSR    ZF6DC
+        01B2   8D      00 01B4 ZF6DC  BSR    ZF6DE
+        01B4   12              ZF6DE  NOP                
+        01B5   39                     RTS                
+
+      S 01B6   A0    C02E             emod               
+
+      E 01B9                   ZF6E3  equ    *
+
+      S 0000 87 CD                    mod    ZFFD1,ZF80D,sys+objct,reent+1,ZF853,0
+        0002 07 D1
+        0004 00 0D 
+        0006 C1 
+        0007 81 
+        0008 2E 
+        0009 00 53 
+        000B 00 00
+
+      C 000D 4F 53 39 70       ZF80D  FCS    "OS9p1"
+        0011 B1
+      C 0012 0C                       FCB    $0C
+      C 0013 53 77 74 70              FCC    "Swtpc "
+        0017 63 20
+
+      C 0019 49 6E 69 F4       ZF819  FCS    "Init"
+
+      C 001D 4F 53 39 70       ZF81D  FCS    "OS9p2"
+        0021 B2
+
+      C 0022 00                ZF822  FCB    $00
+      C 0023 02B5                     FDB    ZFADA-ZF825 (02B5)
+      C 0025 03                ZF825  FCB    $03
+      C 0026 0451                     FDB    ZFC79-ZF828 (0451)
+      C 0028 05                ZF828  FCB    $05
+      C 0029 04B5                     FDB    ZFCE0-ZF82B (04B5)
+      C 002B 85                ZF82B  FCB    $85
+      C 002C 04C4                     FDB    ZFCF2-ZF82E (04C4)
+      C 002E 10                ZF82E  FCB    $10
+      C 002F 06D8                     FDB    ZFF09-ZF831 (06D8)
+      C 0031 11                ZF831  FCB    $11
+      C 0032 073B                     FDB    ZFF6F-ZF834 (073B)
+      C 0034 12                ZF834  FCB    $12
+      C 0035 0671                     FDB    ZFEA8-ZF837 (0671)
+      C 0037 13                ZF837  FCB    $13
+      C 0038 05E4                     FDB    ZFE1E-ZF83A (05E4)
+      C 003A 14                ZF83A  FCB    $14
+      C 003B 0634                     FDB    ZFE71-ZF83D (0634)
+      C 003D 17                ZF83D  FCB    $17
+      C 003E 0382                     FDB    ZFBC2-ZF840 (0382)
+      C 0040 A8                ZF840  FCB    $A8
+      C 0041 0570                     FDB    ZFDB3-ZF843 (0570)
+      C 0043 A9                ZF843  FCB    $A9
+      C 0044 05BD                     FDB    ZFE03-ZF846 (05BD)
+      C 0046 AC                ZF846  FCB    $AC
+      C 0047 01A0                     FDB    ZF9E9-ZF849 (01A0)
+      C 0049 AD                ZF849  FCB    $AD
+      C 004A 023F                     FDB    ZFA8B-ZF84C (023F)
+      C 004C AE                ZF84C  FCB    $AE
+      C 004D 02C1                     FDB    ZFB10-ZF84F (02C1)
+      C 004F 32                ZF84F  FCB    $32
+      C 0050 0743                     FDB    ZFF95-ZF852 (0743)
+      C 0052 80                ZF852  FCB    $80
+
+        0053   8E    0020      ZF853  LDX    #Z0020
+        0056 108E    02E0             LDY    #$02E0
+        005A   4F                     CLRA               
+
+        005B   5F              ZF85B  CLRB               
+
+        005C   ED 81           ZF85C  STD    ,X++
+        005E   31 3E                  LEAY   -$02,Y
+        0060   26      FA 005C        BNE    ZF85C
+        0062   4C                     INCA               
+        0063   DD      20             STD    <Z0020
+        0065   CB      20             ADDB   #$20
+        0067   DD      22             STD    <Z0022
+        0069   CB      02             ADDB   #$02
+        006B   DD      46             STD    <Z0046
+        006D   CB      70             ADDB   #$70
+        006F   DD      44             STD    <Z0044
+        0071   5F                     CLRB               
+        0072   4C                     INCA               
+        0073   DD      26             STD    <Z0026
+        0075   9F      28             STX    <Z0028
+        0077   32 89 0100             LEAS   $0100,X
+
+        007B   31 84           ZF87B  LEAY   ,X
+        007D   EC A4                  LDD    ,Y
+        007F   8E    00FF             LDX    #$00FF
+        0082   AF A4                  STX    ,Y
+        0084   AC A4                  CMPX   ,Y
+        0086   26      16 009E        BNE    ZF89E
+        0088   8E    FF00             LDX    #$FF00
+        008B   AF A4                  STX    ,Y
+        008D   AC A4                  CMPX   ,Y
+        008F   26      0D 009E        BNE    ZF89E
+        0091   ED A4                  STD    ,Y
+        0093   30 A9 0100             LEAX   $0100,Y
+        0097   8C    E000             CMPX   #$E000
+        009A   25      DF 007B        BCS    ZF87B
+        009C   31 84                  LEAY   ,X
+
+        009E   30 A4           ZF89E  LEAX   ,Y
+        00A0   9F      24             STX    <Z0024
+
+        00A2   17    0276 031B ZF8A2  LBSR   ZFB1B
+        00A5   25      06 00AD        BCS    ZF8AD
+        00A7   EC 02                  LDD    $02,X
+        00A9   30 8B                  LEAX   D,X
+        00AB   20      06 00B3        BRA    ZF8B3
+
+        00AD   C1      E7      ZF8AD  CMPB   #$E7
+        00AF   27      04 00B5        BEQ    ZF8B5
+        00B1   30 01                  LEAX   $01,X
+
+        00B3   26      ED 00A2 ZF8B3  BNE    ZF8A2
+
+        00B5   31 8D 0729 07E2 ZF8B5  LEAY   >ZFFE2,PCR
+        00B9   30 8D 0743 0800        LEAX   >Z0800,PCR
+        00BD   34      10             PSHS   X
+        00BF   8E    002C             LDX    #Z002C
+
+        00C2   EC A1           ZF8C2  LDD    ,Y++
+        00C4   E3 E4                  ADDD   ,S
+        00C6   ED 81                  STD    ,X++
+        00C8   8C    0036             CMPX   #Z0036
+        00CB   23      F5 00C2        BLS    ZF8C2
+        00CD   32 62                  LEAS   $02,S
+        00CF   30 8D 0093 0166        LEAX   >ZF966,PCR
+        00D3   9F      3C             STX    <Z003C
+        00D5   30 8D 013E 0217        LEAX   >ZFA17,PCR
+        00D9   9F      40             STX    <Z0040
+        00DB   30 8D 00B2 0191        LEAX   >ZF991,PCR
+        00DF   9F      3E             STX    <Z003E
+        00E1   9F      38             STX    <Z0038
+        00E3   30 8D 0157 023E        LEAX   >ZFA3E,PCR
+        00E7   9F      42             STX    <Z0042
+        00E9   9F      2E             STX    <Z002E
+        00EB   30 8D 00B2 01A1        LEAX   >ZF9A1,PCR
+        00EF   9F      3A             STX    <Z003A
+        00F1   31 8D FF2D 0022        LEAY   >ZF822,PCR
+        00F5   17    06C2 07BA        LBSR   ZFFBA
+        00F8   86      C0             LDA    #$C0
+        00FA   30 8D FF1B 0019        LEAX   >ZF819,PCR
+        00FE 103F      00             OS9    F$LINK
+        0101 1025    FF4E 0053        LBCS   ZF853
+        0105   DF      2A             STU    <Z002A
+        0107   EC 4A                  LDD    $0A,U
+        0109   5F                     CLRB               
+        010A 1093      24             CMPD   <Z0024
+        010D   24      02 0111        BCC    ZF911
+        010F   DD      24             STD    <Z0024
+
+        0111   9E      20      ZF911  LDX    <Z0020
+        0113   C6      F0             LDB    #$F0
+        0115   E7 84                  STB    ,X
+        0117   4F                     CLRA               
+        0118   D6      24             LDB    <Z0024
+        011A   50                     NEGB               
+        011B   1F      02             TFR    D,Y
+        011D   50                     NEGB               
+        011E   17    0503 0624        LBSR   ZFE24
+        0121   30 8D FEF8 001D        LEAX   >ZF81D,PCR
+        0125   86      C1             LDA    #$C1
+        0127 103F      00             OS9    F$LINK
+        012A 1025    FF25 0053        LBCS   ZF853
+        012E   6E A4                  JMP    ,Y
+
+      W 0130   6E 9F 002C      ZF930  JMP    [Z002C]     SWI3
+      W 0134   6E 9F 002E      ZF934  JMP    [Z002E]     SWI2
+      W 0138   6E 9F 0030      ZF938  JMP    [Z0030]     FIRQ
+      W 013C   6E 9F 0032      ZF93C  JMP    [Z0032]     IRQ
+      W 0140   6E 9F 0034      ZF940  JMP    [Z0034]     SWI
+      W 0144   6E 9F 0036      ZF944  JMP    [Z0036]     NMI
+
+        0148   34      94      ZF948  PSHS   PC,X,B
+        014A   C6      18             LDB    #$18
+        014C   20      0F 015D        BRA    ZF95D
+
+        014E   34      94      ZF94E  PSHS   PC,X,B
+        0150   C6      16             LDB    #$16
+        0152   20      09 015D        BRA    ZF95D
+
+        0154   3B              ZF954  RTI                
+
+      W 0155   6E 9F 0038      ZF955  JMP    [Z0038]
+
+        0159   34      94      ZF959  PSHS   PC,X,B
+        015B   C6      14             LDB    #$14
+
+      W 015D   BE    004B      ZF95D  LDX    >Z004B
+        0160   AE 85                  LDX    B,X
+        0162   AF 63                  STX    $03,S
+        0164   35      94             PULS   PC,X,B
+
+        0166   31 8C   19 0182 ZF966  LEAY   <ZF982,PCR
+
+        0169   4F              ZF969  CLRA               
+        016A   1F      8B             TFR    A,DP
+        016C   9E      4B             LDX    <Z004B
+        016E   DC      42             LDD    <Z0042
+        0170   DD      2E             STD    <Z002E
+        0172   DC      3E             LDD    <Z003E
+        0174   DD      38             STD    <Z0038
+        0176   33 E4                  LEAU   ,S
+        0178   EF 04                  STU    $04,X
+        017A   A6 0D                  LDA    $0D,X
+        017C   8A      80             ORA    #$80
+        017E   A7 0D                  STA    $0D,X
+        0180   6E A4                  JMP    ,Y
+
+      W 0182   AD 9F 003A      ZF982  JSR    [Z003A]
+        0186   24      06 018E        BCC    ZF98E
+        0188   E6 E4                  LDB    ,S
+        018A   CA      10             ORB    #$10
+        018C   E7 E4                  STB    ,S
+
+        018E   16    0095 0226 ZF98E  LBRA   ZFA26
+
+        0191   4F              ZF991  CLRA               
+        0192   1F      8B             TFR    A,DP
+      W 0194   AD 9F 003A             JSR    [Z003A]
+        0198   24      06 01A0        BCC    ZF9A0
+        019A   E6 E4                  LDB    ,S
+        019C   CA      10             ORB    #$10
+        019E   E7 E4                  STB    ,S
+
+        01A0   3B              ZF9A0  RTI                
+
+        01A1   53              ZF9A1  COMB               
+        01A2   39                     RTS                
+
+        01A3   9E      51      ZF9A3  LDX    <Z0051
+        01A5   27      27 01CE        BEQ    ZF9CE
+        01A7   A6 0D                  LDA    $0D,X
+        01A9   85      40             BITA   #$40
+        01AB   27      21 01CE        BEQ    ZF9CE
+        01AD   EE 04                  LDU    $04,X
+        01AF   EC 44                  LDD    $04,U
+        01B1   83    0001             SUBD   #$0001
+        01B4   ED 44                  STD    $04,U
+        01B6   26      16 01CE        BNE    ZF9CE
+
+        01B8   EE 0E           ZF9B8  LDU    $0E,X
+        01BA   8D      2F 01EB        BSR    ZF9EB
+        01BC   30 C4                  LEAX   ,U
+        01BE   27      0C 01CC        BEQ    ZF9CC
+        01C0   A6 0D                  LDA    $0D,X
+        01C2   85      40             BITA   #$40
+        01C4   27      06 01CC        BEQ    ZF9CC
+        01C6   EE 04                  LDU    $04,X
+        01C8   EC 44                  LDD    $04,U
+        01CA   27      EC 01B8        BEQ    ZF9B8
+
+        01CC   9F      51      ZF9CC  STX    <Z0051
+
+        01CE   0A      48      ZF9CE  DEC    <Z0048
+        01D0   26      10 01E2        BNE    ZF9E2
+        01D2   96      5B             LDA    <Z005B
+        01D4   97      48             STA    <Z0048
+        01D6   9E      4B             LDX    <Z004B
+        01D8   27      08 01E2        BEQ    ZF9E2
+        01DA   A6 0D                  LDA    $0D,X
+        01DC   8A      20             ORA    #$20
+        01DE   A7 0D                  STA    $0D,X
+        01E0   2A      01 01E3        BPL    ZF9E3
+
+        01E2   3B              ZF9E2  RTI                
+
+        01E3   31 8D 003F 0226 ZF9E3  LEAY   >ZFA26,PCR
+        01E7   20      80 0169        BRA    ZF969
+
+        01E9   AE 44           ZF9E9  LDX    $04,U
+
+        01EB   34      60      ZF9EB  PSHS   U,Y
+        01ED   CE    003F             LDU    #Z003F
+        01F0   20      07 01F9        BRA    ZF9F9
+
+        01F2   E6 4C           ZF9F2  LDB    $0C,U
+        01F4   5C                     INCB               
+        01F5   27      02 01F9        BEQ    ZF9F9
+        01F7   E7 4C                  STB    $0C,U
+
+        01F9   EE 4E           ZF9F9  LDU    $0E,U
+        01FB   26      F5 01F2        BNE    ZF9F2
+        01FD   CE    003F             LDU    #Z003F
+        0200   A6 0B                  LDA    $0B,X
+        0202   A7 0C                  STA    $0C,X
+        0204   1A      50             ORCC   #$50
+
+        0206   31 C4           ZFA06  LEAY   ,U
+        0208   EE 4E                  LDU    $0E,U
+        020A   27      04 0210        BEQ    ZFA10
+        020C   A1 4C                  CMPA   $0C,U
+        020E   23      F6 0206        BLS    ZFA06
+
+        0210   EF 0E           ZFA10  STU    $0E,X
+        0212   AF 2E                  STX    $0E,Y
+        0214   5F                     CLRB               
+        0215   35      E0             PULS   PC,U,Y
+
+        0217   31 8C   05 021F ZFA17  LEAY   <ZFA1F,PCR
+        021A   1A      50             ORCC   #$50
+        021C   16    FF4A 0169        LBRA   ZF969
+
+        021F   1C      AF      ZFA1F  ANDCC  #$AF
+        0221 109E      44             LDY    <Z0044
+        0224   8D      23 0249        BSR    ZFA49
+
+        0226   9E      4B      ZFA26  LDX    <Z004B
+        0228   27      61 028B        BEQ    ZFA8B
+        022A   1A      50             ORCC   #$50
+        022C   E6 0D                  LDB    $0D,X
+        022E   C4      7F             ANDB   #$7F
+        0230   E7 0D                  STB    $0D,X
+        0232   C5      20             BITB   #$20
+        0234   27      6C 02A2        BEQ    ZFAA2
+        0236   C4      DF             ANDB   #$DF
+        0238   E7 0D                  STB    $0D,X
+        023A   8D      AF 01EB        BSR    ZF9EB
+        023C   20      4D 028B        BRA    ZFA8B
+
+        023E   4F              ZFA3E  CLRA               
+        023F   1F      8B             TFR    A,DP
+        0241   33 E4                  LEAU   ,S
+        0243 109E      46             LDY    <Z0046
+        0246   8D      01 0249        BSR    ZFA49
+        0248   3B                     RTI                
+
+        0249   34      40      ZFA49  PSHS   U
+        024B   AE 4A                  LDX    $0A,U
+        024D   E6 80                  LDB    ,X+
+        024F   AF 4A                  STX    $0A,U
+        0251   58                     ASLB               
+        0252   24      05 0259        BCC    ZFA59
+        0254   56                     RORB               
+        0255   AE 3E                  LDX    -$02,Y
+        0257   20      08 0261        BRA    ZFA61
+
+        0259   C1      6E      ZFA59  CMPB   #$6E
+        025B   24      1B 0278        BCC    ZFA78
+        025D   AE A5                  LDX    B,Y
+        025F   27      17 0278        BEQ    ZFA78
+
+        0261   AD 84           ZFA61  JSR    ,X
+
+        0263   35      40      ZFA63  PULS   U
+        0265   1F      A8             TFR    CC,A
+        0267   24      02 026B        BCC    ZFA6B
+        0269   E7 42                  STB    $02,U
+
+        026B   E6 C4           ZFA6B  LDB    ,U
+        026D   C4      F0             ANDB   #$F0
+        026F   E7 C4                  STB    ,U
+        0271   84      0F             ANDA   #$0F
+        0273   AA C4                  ORA    ,U
+        0275   A7 C4                  STA    ,U
+        0277   39                     RTS                
+
+        0278   53              ZFA78  COMB               
+        0279   C6      D0             LDB    #$D0
+        027B   20      E6 0263        BRA    ZFA63
+
+        027D   E6 0D           ZFA7D  LDB    $0D,X
+        027F   CA      80             ORB    #$80
+        0281   E7 0D                  STB    $0D,X
+        0283   E6 88   36             LDB    $36,X
+        0286   1C      AF             ANDCC  #$AF
+        0288 103F      06             OS9    F$EXIT
+
+        028B   4F              ZFA8B  CLRA               
+        028C   5F                     CLRB               
+        028D   DD      4B             STD    <Z004B
+        028F   20      02 0293        BRA    ZFA93
+
+        0291   3C      AF      ZFA91  CWAI   #$AF
+
+        0293   1A      50      ZFA93  ORCC   #$50
+        0295   9E      4D             LDX    <Z004D
+        0297   27      F8 0291        BEQ    ZFA91
+        0299   EC 0E                  LDD    $0E,X
+        029B   DD      4D             STD    <Z004D
+        029D   9F      4B             STX    <Z004B
+        029F 10EE 04                  LDS    $04,X
+
+        02A2   E6 0D           ZFAA2  LDB    $0D,X
+        02A4   2B      33 02D9        BMI    ZFAD9
+        02A6   C5      02             BITB   #$02
+        02A8   26      D3 027D        BNE    ZFA7D
+        02AA   E6 88   36             LDB    $36,X
+        02AD   27      21 02D0        BEQ    ZFAD0
+        02AF   5A                     DECB               
+        02B0   27      1B 02CD        BEQ    ZFACD
+        02B2   EE 88   37             LDU    $37,X
+        02B5   27      C6 027D        BEQ    ZFA7D
+        02B7 10AE 88   39             LDY    $39,X
+        02BB   EC 66                  LDD    $06,S
+        02BD   34      66             PSHS   U,Y,B,A
+        02BF   EE 6A                  LDU    $0A,S
+        02C1   A6 88   36             LDA    $36,X
+        02C4   E6 69                  LDB    $09,S
+        02C6   1F      02             TFR    D,Y
+        02C8   EC 66                  LDD    $06,S
+        02CA   34      66             PSHS   U,Y,B,A
+        02CC   5F                     CLRB               
+
+        02CD   E7 88   36      ZFACD  STB    $36,X
+
+        02D0   EC 88   16      ZFAD0  LDD    $16,X
+        02D3   DD      2E             STD    <Z002E
+        02D5   DC      3C             LDD    <Z003C
+        02D7   DD      38             STD    <Z0038
+
+        02D9   3B              ZFAD9  RTI                
+
+        02DA   34      40      ZFADA  PSHS   U
+        02DC   EC 41                  LDD    $01,U
+        02DE   AE 44                  LDX    $04,U
+
+        02E0   17    0131 0414 ZFAE0  LBSR   ZFC14
+        02E3   24      04 02E9        BCC    ZFAE9
+        02E5   C6      DD             LDB    #$DD
+        02E7   20      25 030E        BRA    ZFB0E
+
+        02E9 10AE C4           ZFAE9  LDY    ,U
+        02EC   E6 27                  LDB    $07,Y
+        02EE   C5      80             BITB   #$80
+        02F0   26      09 02FB        BNE    ZFAFB
+        02F2   6D 42                  TST    $02,U
+        02F4   27      05 02FB        BEQ    ZFAFB
+        02F6   53                     COMB               
+        02F7   C6      D1             LDB    #$D1
+        02F9   20      13 030E        BRA    ZFB0E
+
+        02FB   6C 42           ZFAFB  INC    $02,U
+        02FD   EE E4                  LDU    ,S
+        02FF   AF 44                  STX    $04,U
+        0301 10AF 48                  STY    $08,U
+        0304   EC 26                  LDD    $06,Y
+        0306   ED 41                  STD    $01,U
+        0308   EC 29                  LDD    $09,Y
+        030A   30 AB                  LEAX   D,Y
+        030C   AF 46                  STX    $06,U
+
+        030E   35      C0      ZFB0E  PULS   PC,U
+
+        0310   34      40      ZFB10  PSHS   U
+        0312   AE 44                  LDX    $04,U
+        0314   8D      05 031B        BSR    ZFB1B
+        0316   35      20             PULS   Y
+        0318   EF 28                  STU    $08,Y
+        031A   39                     RTS                
+
+        031B   8D      57 0374 ZFB1B  BSR    ZFB74
+        031D   25      4C 036B        BCS    ZFB6B
+        031F   A6 06                  LDA    $06,X
+        0321   34      12             PSHS   X,A
+        0323   EC 04                  LDD    $04,X
+        0325   30 8B                  LEAX   D,X
+        0327   35      02             PULS   A
+        0329   17    00E8 0414        LBSR   ZFC14
+        032C   35      10             PULS   X
+        032E   25      3C 036C        BCS    ZFB6C
+        0330   C6      E7             LDB    #$E7
+        0332   AC C4                  CMPX   ,U
+        0334   27      3C 0372        BEQ    ZFB72
+        0336   A6 07                  LDA    $07,X
+        0338   84      0F             ANDA   #$0F
+        033A   34      02             PSHS   A
+        033C 10AE C4                  LDY    ,U
+        033F   A6 27                  LDA    $07,Y
+        0341   84      0F             ANDA   #$0F
+        0343   A1 E0                  CMPA   ,S+
+        0345   24      2B 0372        BCC    ZFB72
+        0347   34      30             PSHS   Y,X
+        0349   E6 42                  LDB    $02,U
+        034B   26      19 0366        BNE    ZFB66
+        034D   AE C4                  LDX    ,U
+        034F   9C      66             CMPX   <Z0066
+        0351   24      13 0366        BCC    ZFB66
+        0353   EC 02                  LDD    $02,X
+        0355   C3    00FF             ADDD   #$00FF
+        0358   1F      89             TFR    A,B
+        035A   4F                     CLRA               
+        035B   1F      02             TFR    D,Y
+        035D   E6 C4                  LDB    ,U
+        035F   9E      20             LDX    <Z0020
+        0361 103F      14             OS9    F$DBIT
+        0364   6F 42                  CLR    $02,U
+
+        0366   35      30      ZFB66  PULS   Y,X
+
+        0368   AF C4           ZFB68  STX    ,U
+        036A   5F                     CLRB               
+
+        036B   39              ZFB6B  RTS                
+
+        036C   31 C4           ZFB6C  LEAY   ,U
+        036E   26      F8 0368        BNE    ZFB68
+        0370   C6      CE             LDB    #$CE
+
+        0372   43              ZFB72  COMA               
+        0373   39                     RTS                
+
+        0374   EC 84           ZFB74  LDD    ,X
+        0376 1083    87CD             CMPD   #MODHD
+        037A   26      06 0382        BNE    ZFB82
+        037C   31 08                  LEAY   $08,X
+        037E   8D      0F 038F        BSR    ZFB8F
+        0380   24      04 0386        BCC    ZFB86
+
+        0382   53              ZFB82  COMB               
+        0383   C6      CD             LDB    #$CD
+        0385   39                     RTS                
+
+        0386   34      10      ZFB86  PSHS   X
+        0388 10AE 02                  LDY    $02,X
+        038B   8D      0F 039C        BSR    ZFB9C
+        038D   35      90             PULS   PC,X
+
+        038F   34      30      ZFB8F  PSHS   Y,X
+        0391   4F                     CLRA               
+
+        0392   A8 80           ZFB92  EORA   ,X+
+        0394   AC 62                  CMPX   $02,S
+        0396   23      FA 0392        BLS    ZFB92
+        0398   81      FF             CMPA   #$FF
+        039A   35      B0             PULS   PC,Y,X
+
+        039C   CC    FFFF      ZFB9C  LDD    #$FFFF
+        039F   34      06             PSHS   B,A
+        03A1   34      06             PSHS   B,A
+        03A3   33 61                  LEAU   $01,S
+
+        03A5   A6 80           ZFBA5  LDA    ,X+
+        03A7   8D      2C 03D5        BSR    ZFBD5
+        03A9   31 3F                  LEAY   -$01,Y
+        03AB   26      F8 03A5        BNE    ZFBA5
+        03AD   6F 5F                  CLR    -$01,U
+        03AF   A6 C4                  LDA    ,U
+        03B1   81      80             CMPA   #$80
+        03B3   26      08 03BD        BNE    ZFBBD
+        03B5   EC 41                  LDD    $01,U
+        03B7 1083    0FE3             CMPD   #$0FE3
+        03BB   27      03 03C0        BEQ    ZFBC0
+
+        03BD   53              ZFBBD  COMB               
+        03BE   C6      E8             LDB    #$E8
+
+        03C0   35      B0      ZFBC0  PULS   PC,Y,X
+
+        03C2   AE 44           ZFBC2  LDX    $04,U
+        03C4 10AE 46                  LDY    $06,U
+        03C7   27      0A 03D3        BEQ    ZFBD3
+        03C9   EE 48                  LDU    $08,U
+
+        03CB   A6 80           ZFBCB  LDA    ,X+
+        03CD   8D      06 03D5        BSR    ZFBD5
+        03CF   31 3F                  LEAY   -$01,Y
+        03D1   26      F8 03CB        BNE    ZFBCB
+
+        03D3   5F              ZFBD3  CLRB               
+        03D4   39                     RTS                
+
+        03D5   A8 C4           ZFBD5  EORA   ,U
+        03D7   34      02             PSHS   A
+        03D9   EC 41                  LDD    $01,U
+        03DB   ED C4                  STD    ,U
+        03DD   4F                     CLRA               
+        03DE   E6 E4                  LDB    ,S
+        03E0   58                     ASLB               
+        03E1   49                     ROLA               
+        03E2   A8 41                  EORA   $01,U
+        03E4   ED 41                  STD    $01,U
+        03E6   5F                     CLRB               
+        03E7   A6 E4                  LDA    ,S
+        03E9   44                     LSRA               
+        03EA   56                     RORB               
+        03EB   44                     LSRA               
+        03EC   56                     RORB               
+        03ED   A8 41                  EORA   $01,U
+        03EF   E8 42                  EORB   $02,U
+        03F1   ED 41                  STD    $01,U
+        03F3   A6 E4                  LDA    ,S
+        03F5   48                     ASLA               
+        03F6   A8 E4                  EORA   ,S
+        03F8   A7 E4                  STA    ,S
+        03FA   48                     ASLA               
+        03FB   48                     ASLA               
+        03FC   A8 E4                  EORA   ,S
+        03FE   A7 E4                  STA    ,S
+        0400   48                     ASLA               
+        0401   48                     ASLA               
+        0402   48                     ASLA               
+        0403   48                     ASLA               
+        0404   A8 E0                  EORA   ,S+
+        0406   2A      0B 0413        BPL    ZFC13
+        0408   CC    8021             LDD    #$8021
+        040B   A8 C4                  EORA   ,U
+        040D   A7 C4                  STA    ,U
+        040F   E8 42                  EORB   $02,U
+        0411   E7 42                  STB    $02,U
+
+        0413   39              ZFC13  RTS                
+
+        0414   CE    0000      ZFC14  LDU    #0000
+        0417   1F      89             TFR    A,B
+        0419   84      F0             ANDA   #$F0
+        041B   C4      0F             ANDB   #$0F
+        041D   34      76             PSHS   U,Y,X,B,A
+        041F   8D      4F 0470        BSR    ZFC70
+        0421   81      2F             CMPA   #$2F
+        0423   27      48 046D        BEQ    ZFC6D
+        0425   17    02EF 0717        LBSR   ZFF17
+        0428   25      44 046E        BCS    ZFC6E
+        042A   DE      26             LDU    <Z0026
+
+        042C   34      64      ZFC2C  PSHS   U,Y,B
+        042E   EE C4                  LDU    ,U
+        0430   27      2A 045C        BEQ    ZFC5C
+        0432   EC 44                  LDD    $04,U
+        0434   31 CB                  LEAY   D,U
+        0436   E6 E4                  LDB    ,S
+        0438   17    033A 0775        LBSR   ZFF75
+        043B   25      27 0464        BCS    ZFC64
+        043D   A6 65                  LDA    $05,S
+        043F   27      06 0447        BEQ    ZFC47
+        0441   A8 46                  EORA   $06,U
+        0443   84      F0             ANDA   #$F0
+        0445   26      1D 0464        BNE    ZFC64
+
+        0447   A6 66           ZFC47  LDA    $06,S
+        0449   27      06 0451        BEQ    ZFC51
+        044B   A8 46                  EORA   $06,U
+        044D   84      0F             ANDA   #$0F
+        044F   26      13 0464        BNE    ZFC64
+
+        0451   35      54      ZFC51  PULS   U,X,B
+        0453   EF 66                  STU    $06,S
+        0455   8D      19 0470        BSR    ZFC70
+        0457   AF 62                  STX    $02,S
+        0459   4F                     CLRA               
+        045A   20      12 046E        BRA    ZFC6E
+
+        045C   EC 6B           ZFC5C  LDD    $0B,S
+        045E   26      04 0464        BNE    ZFC64
+        0460   EC 63                  LDD    $03,S
+        0462   ED 6B                  STD    $0B,S
+
+        0464   35      64      ZFC64  PULS   U,Y,B
+        0466   33 44                  LEAU   $04,U
+        0468 1193      28             CMPU   <Z0028
+        046B   25      BF 042C        BCS    ZFC2C
+
+        046D   53              ZFC6D  COMB               
+
+        046E   35      F6      ZFC6E  PULS   PC,U,Y,X,B,A
+
+        0470   86      20      ZFC70  LDA    #$20
+
+        0472   A1 80           ZFC72  CMPA   ,X+
+        0474   27      FC 0472        BEQ    ZFC72
+        0476   A6 82                  LDA    ,-X
+        0478   39                     RTS                
+
+        0479   9E      49      ZFC79  LDX    <Z0049
+        047B 103F      30             OS9    F$A64
+        047E   25      5C 04DC        BCS    ZFCDC
+        0480   9E      4B             LDX    <Z004B
+        0482   34      10             PSHS   X
+        0484   EC 09                  LDD    $09,X
+        0486   ED 29                  STD    $09,Y
+        0488   A6 0B                  LDA    $0B,X
+        048A   5F                     CLRB               
+        048B   ED 2B                  STD    $0B,Y
+        048D   C6      80             LDB    #$80
+        048F   E7 2D                  STB    $0D,Y
+        0491 109F      4B             STY    <Z004B
+        0494   30 88   1A             LEAX   $1A,X
+        0497   31 A8   1A             LEAY   $1A,Y
+        049A   C6      0C             LDB    #$0C
+
+        049C   A6 80           ZFC9C  LDA    ,X+
+        049E   A7 A0                  STA    ,Y+
+        04A0   5A                     DECB               
+        04A1   26      F9 049C        BNE    ZFC9C
+        04A3   C6      03             LDB    #$03
+
+        04A5   A6 80           ZFCA5  LDA    ,X+
+        04A7 103F      82             OS9    I$DUP
+        04AA   24      01 04AD        BCC    ZFCAD
+        04AC   4F                     CLRA               
+
+        04AD   A7 A0           ZFCAD  STA    ,Y+
+        04AF   5A                     DECB               
+        04B0   26      F3 04A5        BNE    ZFCA5
+        04B2   8D      64 0518        BSR    ZFD18
+        04B4   25      1B 04D1        BCS    ZFCD1
+        04B6   35      20             PULS   Y
+        04B8 109F      4B             STY    <Z004B
+        04BB   A6 84                  LDA    ,X
+        04BD   A7 41                  STA    $01,U
+        04BF   E6 23                  LDB    $03,Y
+        04C1   A7 23                  STA    $03,Y
+        04C3   A6 A4                  LDA    ,Y
+        04C5   ED 01                  STD    $01,X
+        04C7   E6 0D                  LDB    $0D,X
+        04C9   C4      7F             ANDB   #$7F
+        04CB   E7 0D                  STB    $0D,X
+        04CD 103F      2C             OS9    F$APRC
+        04D0   39                     RTS                
+
+        04D1   34      04      ZFCD1  PSHS   B
+        04D3 103F      06             OS9    F$EXIT
+        04D6   53                     COMB               
+        04D7   35      14             PULS   X,B
+        04D9   9F      4B             STX    <Z004B
+        04DB   39                     RTS                
+
+        04DC   53              ZFCDC  COMB               
+        04DD   C6      E5             LDB    #$E5
+        04DF   39                     RTS                
+
+        04E0   8D      26 0508 ZFCE0  BSR    ZFD08
+        04E2   25      12 04F6        BCS    ZFCF6
+        04E4   1A      50             ORCC   #$50
+        04E6   E6 0D                  LDB    $0D,X
+        04E8   C4      7F             ANDB   #$7F
+        04EA   E7 0D                  STB    $0D,X
+
+        04EC 103F      2C      ZFCEC  OS9    F$APRC
+        04EF 103F      2D             OS9    F$NPRC
+
+        04F2   8D      14 0508 ZFCF2  BSR    ZFD08
+        04F4   24      F6 04EC        BCC    ZFCEC
+
+        04F6   34      04      ZFCF6  PSHS   B
+        04F8   E7 88   36             STB    $36,X
+        04FB   E6 0D                  LDB    $0D,X
+        04FD   CA      02             ORB    #$02
+        04FF   E7 0D                  STB    $0D,X
+        0501   C6      FF             LDB    #$FF
+        0503   E7 0B                  STB    $0B,X
+        0505   53                     COMB               
+        0506   35      84             PULS   PC,B
+
+        0508   34      40      ZFD08  PSHS   U
+        050A   9E      4B             LDX    <Z004B
+        050C   EE 88   12             LDU    $12,X
+        050F 103F      02             OS9    F$UNLK
+        0512   EE E4                  LDU    ,S
+        0514   8D      02 0518        BSR    ZFD18
+        0516   35      C0             PULS   PC,U
+
+        0518   9E      4B      ZFD18  LDX    <Z004B
+        051A   34      50             PSHS   U,X
+        051C   DC      40             LDD    <Z0040
+        051E   ED 88   14             STD    $14,X
+        0521   ED 88   16             STD    $16,X
+        0524   ED 88   18             STD    $18,X
+        0527   4F                     CLRA               
+        0528   5F                     CLRB               
+        0529   A7 88   36             STA    $36,X
+        052C   ED 88   37             STD    $37,X
+        052F   A6 41                  LDA    $01,U
+        0531   AE 44                  LDX    $04,U
+        0533 103F                     SWI2               
+      C 0535 00                       FCB    $00
+        0536   24      05 053D        BCC    ZFD3D
+        0538 103F                     SWI2               
+      C 053A 01                       FCB    $01
+        053B   25      74 05B1        BCS    ZFDB1
+
+        053D 109E      4B      ZFD3D  LDY    <Z004B
+        0540   EF A8   12             STU    $12,Y
+        0543   81      11             CMPA   #$11
+        0545   27      09 0550        BEQ    ZFD50
+        0547   81      C1             CMPA   #$C1
+        0549   27      05 0550        BEQ    ZFD50
+        054B   53                     COMB               
+        054C   C6      EA             LDB    #$EA
+        054E   20      61 05B1        BRA    ZFDB1
+
+        0550   31 C4           ZFD50  LEAY   ,U
+        0552   EE 62                  LDU    $02,S
+        0554   AF 44                  STX    $04,U
+        0556   A6 42                  LDA    $02,U
+        0558   5F                     CLRB               
+        0559 10A3 2B                  CMPD   $0B,Y
+        055C   24      02 0560        BCC    ZFD60
+        055E   EC 2B                  LDD    $0B,Y
+
+        0560   C3    0000      ZFD60  ADDD   #$0000
+        0563   26      05 056A        BNE    ZFD6A
+        0565   53                     COMB               
+        0566   C6      DF             LDB    #$DF
+        0568   20      47 05B1        BRA    ZFDB1
+
+        056A 103F              ZFD6A  SWI2               
+      C 056C 07                       FCB    $07
+        056D   25      42 05B1        BCS    ZFDB1
+        056F   83    000C             SUBD   #$000C
+        0572   A3 46                  SUBD   $06,U
+        0574   25      39 05AF        BCS    ZFDAF
+        0576   AE 48                  LDX    $08,U
+        0578   EC 46                  LDD    $06,U
+        057A   34      06             PSHS   B,A
+        057C   27      0A 0588        BEQ    ZFD88
+        057E   30 8B                  LEAX   D,X
+
+        0580   A6 82           ZFD80  LDA    ,-X
+        0582   A7 A2                  STA    ,-Y
+        0584   AC 48                  CMPX   $08,U
+        0586   22      F8 0580        BHI    ZFD80
+
+        0588   9E      4B      ZFD88  LDX    <Z004B
+        058A 10AF 38                  STY    -$08,Y
+        058D   31 34                  LEAY   -$0C,Y
+        058F 10AF 04                  STY    $04,X
+        0592   A6 07                  LDA    $07,X
+        0594   5F                     CLRB               
+        0595   ED 28                  STD    $08,Y
+        0597   A7 23                  STA    $03,Y
+        0599   AB 08                  ADDA   $08,X
+        059B   ED 26                  STD    $06,Y
+        059D   35      06             PULS   B,A
+        059F   ED 21                  STD    $01,Y
+        05A1   C6      80             LDB    #$80
+        05A3   E7 A4                  STB    ,Y
+        05A5   EE 88   12             LDU    $12,X
+        05A8   EC 49                  LDD    $09,U
+        05AA   33 CB                  LEAU   D,U
+        05AC   EF 2A                  STU    $0A,Y
+        05AE   5F                     CLRB               
+
+        05AF   C6      E6      ZFDAF  LDB    #$E6
+
+        05B1   35      D0      ZFDB1  PULS   PC,U,X
+
+        05B3   EC 41           ZFDB3  LDD    $01,U
+        05B5   C3    00FF             ADDD   #$00FF
+        05B8   5F                     CLRB               
+        05B9   ED 41                  STD    $01,U
+        05BB   9E      22             LDX    <Z0022
+        05BD   CC    01FF             LDD    #$01FF
+        05C0   34      06             PSHS   B,A
+        05C2   20      0A 05CE        BRA    ZFDCE
+
+        05C4   6A 61           ZFDC4  DEC    $01,S
+        05C6   E6 61                  LDB    $01,S
+
+        05C8   68 E4           ZFDC8  ASL    ,S
+        05CA   24      08 05D4        BCC    ZFDD4
+        05CC   69 E4                  ROL    ,S
+
+        05CE   30 1F           ZFDCE  LEAX   -$01,X
+        05D0   9C      20             CMPX   <Z0020
+        05D2   25      16 05EA        BCS    ZFDEA
+
+        05D4   A6 84           ZFDD4  LDA    ,X
+        05D6   A4 E4                  ANDA   ,S
+        05D8   26      EA 05C4        BNE    ZFDC4
+        05DA   6A 61                  DEC    $01,S
+        05DC   E0 61                  SUBB   $01,S
+        05DE   E1 41                  CMPB   $01,U
+        05E0   46                     RORA               
+        05E1   EB 61                  ADDB   $01,S
+        05E3   49                     ROLA               
+        05E4   25      E2 05C8        BCS    ZFDC8
+        05E6   E6 61                  LDB    $01,S
+        05E8   4F                     CLRA               
+        05E9   5C                     INCB               
+
+        05EA   32 62           ZFDEA  LEAS   $02,S
+        05EC   25      11 05FF        BCS    ZFDFF
+        05EE   9E      20             LDX    <Z0020
+        05F0   1F      02             TFR    D,Y
+        05F2   E6 41                  LDB    $01,U
+        05F4   4F                     CLRA               
+        05F5   1E      02             EXG    D,Y
+        05F7   8D      2B 0624        BSR    ZFE24
+        05F9   1E      89             EXG    A,B
+        05FB   ED 48                  STD    $08,U
+
+        05FD   4F              ZFDFD  CLRA               
+        05FE   39                     RTS                
+
+        05FF   53              ZFDFF  COMB               
+        0600   C6      CF             LDB    #$CF
+        0602   39                     RTS                
+
+        0603   EC 41           ZFE03  LDD    $01,U
+        0605   C3    00FF             ADDD   #$00FF
+        0608   1F      89             TFR    A,B
+        060A   4F                     CLRA               
+        060B   1F      02             TFR    D,Y
+        060D   EC 48                  LDD    $08,U
+        060F   27      EC 05FD        BEQ    ZFDFD
+        0611   5D                     TSTB               
+        0612   27      04 0618        BEQ    ZFE18
+        0614   53                     COMB               
+        0615   C6      D2             LDB    #$D2
+        0617   39                     RTS                
+
+        0618   1E      89      ZFE18  EXG    A,B
+        061A   9E      20             LDX    <Z0020
+        061C   20      59 0677        BRA    ZFE77
+
+        061E   EC 41           ZFE1E  LDD    $01,U
+        0620   33 44                  LEAU   $04,U
+        0622   37      30             PULU   Y,X
+
+        0624   34      36      ZFE24  PSHS   Y,X,B,A
+        0626   8D      32 065A        BSR    ZFE5A
+        0628   4D                     TSTA               
+        0629   34      02             PSHS   A
+        062B   2B      0E 063B        BMI    ZFE3B
+        062D   A6 84                  LDA    ,X
+
+        062F   AA E4           ZFE2F  ORA    ,S
+        0631   31 3F                  LEAY   -$01,Y
+
+      E 0634                   ZFE34  EQU    *+1
+
+        0633   27      1E 0653        BEQ    ZFE53
+        0635   64 E4                  LSR    ,S
+        0637   24      F6 062F        BCC    ZFE2F
+        0639   A7 80                  STA    ,X+
+
+        063B   1F      20      ZFE3B  TFR    Y,D
+        063D   A7 E4                  STA    ,S
+        063F   86      FF             LDA    #$FF
+        0641   20      02 0645        BRA    ZFE45
+
+        0643   A7 80           ZFE43  STA    ,X+
+
+        0645   C0      08      ZFE45  SUBB   #$08
+        0647   24      FA 0643        BCC    ZFE43
+        0649   6A E4                  DEC    ,S
+        064B   2A      F6 0643        BPL    ZFE43
+
+        064D   48              ZFE4D  ASLA               
+        064E   5C                     INCB               
+        064F   26      FC 064D        BNE    ZFE4D
+        0651   AA 84                  ORA    ,X
+
+        0653   A7 84           ZFE53  STA    ,X
+        0655   4F                     CLRA               
+        0656   32 61                  LEAS   $01,S
+        0658   35      B6             PULS   PC,Y,X,B,A
+
+        065A   34      04      ZFE5A  PSHS   B
+        065C   44                     LSRA               
+        065D   56                     RORB               
+        065E   44                     LSRA               
+        065F   56                     RORB               
+        0660   44                     LSRA               
+        0661   56                     RORB               
+        0662   30 8B                  LEAX   D,X
+        0664   35      04             PULS   B
+        0666   86      80             LDA    #$80
+        0668   C4      07             ANDB   #$07
+        066A   27      04 0670        BEQ    ZFE70
+
+        066C   44              ZFE6C  LSRA               
+        066D   5A                     DECB               
+        066E   26      FC 066C        BNE    ZFE6C
+
+        0670   39              ZFE70  RTS                
+
+        0671   EC 41           ZFE71  LDD    $01,U
+        0673   33 44                  LEAU   $04,U
+        0675   37      30             PULU   Y,X
+
+        0677   34      36      ZFE77  PSHS   Y,X,B,A
+        0679   8D      DF 065A        BSR    ZFE5A
+        067B   43                     COMA               
+        067C   34      02             PSHS   A
+        067E   2A      0E 068E        BPL    ZFE8E
+        0680   A6 84                  LDA    ,X
+
+        0682   A4 E4           ZFE82  ANDA   ,S
+        0684   31 3F                  LEAY   -$01,Y
+        0686   27      1A 06A2        BEQ    ZFEA2
+        0688   67 E4                  ASR    ,S
+        068A   25      F6 0682        BCS    ZFE82
+        068C   A7 80                  STA    ,X+
+
+        068E   1F      20      ZFE8E  TFR    Y,D
+        0690   20      02 0694        BRA    ZFE94
+
+        0692   6F 80           ZFE92  CLR    ,X+
+
+        0694   83    0008      ZFE94  SUBD   #$0008
+        0697   22      F9 0692        BHI    ZFE92
+        0699   27      07 06A2        BEQ    ZFEA2
+
+        069B   48              ZFE9B  ASLA               
+        069C   5C                     INCB               
+        069D   26      FC 069B        BNE    ZFE9B
+        069F   43                     COMA               
+        06A0   A4 84                  ANDA   ,X
+
+        06A2   A7 84           ZFEA2  STA    ,X
+        06A4   6F E0                  CLR    ,S+
+        06A6   35      B6             PULS   PC,Y,X,B,A
+
+        06A8   34      40      ZFEA8  PSHS   U
+        06AA   EC 41                  LDD    $01,U
+        06AC   AE 44                  LDX    $04,U
+        06AE 10AE 46                  LDY    $06,U
+        06B1   EE 48                  LDU    $08,U
+        06B3   8D      08 06BD        BSR    ZFEBD
+        06B5   35      40             PULS   U
+        06B7   ED 41                  STD    $01,U
+        06B9 10AF 46                  STY    $06,U
+        06BC   39                     RTS                
+
+        06BD   34      76      ZFEBD  PSHS   U,Y,X,B,A
+        06BF   34      26             PSHS   Y,B,A
+        06C1   6F 68                  CLR    $08,S
+        06C3   6F 69                  CLR    $09,S
+        06C5   1F      02             TFR    D,Y
+        06C7   8D      91 065A        BSR    ZFE5A
+        06C9   34      02             PSHS   A
+        06CB   20      0D 06DA        BRA    ZFEDA
+
+        06CD   31 21           ZFECD  LEAY   $01,Y
+        06CF 10AF 65                  STY    $05,S
+
+        06D2   64 E4           ZFED2  LSR    ,S
+        06D4   24      08 06DE        BCC    ZFEDE
+        06D6   66 E4                  ROR    ,S
+        06D8   30 01                  LEAX   $01,X
+
+        06DA   AC 6B           ZFEDA  CMPX   $0B,S
+        06DC   24      1E 06FC        BCC    ZFEFC
+
+        06DE   A6 84           ZFEDE  LDA    ,X
+        06E0   A4 E4                  ANDA   ,S
+        06E2   26      E9 06CD        BNE    ZFECD
+        06E4   31 21                  LEAY   $01,Y
+        06E6   1F      20             TFR    Y,D
+        06E8   A3 65                  SUBD   $05,S
+        06EA 10A3 63                  CMPD   $03,S
+        06ED   24      14 0703        BCC    ZFF03
+        06EF 10A3 69                  CMPD   $09,S
+        06F2   23      DE 06D2        BLS    ZFED2
+        06F4   ED 69                  STD    $09,S
+        06F6   EC 65                  LDD    $05,S
+        06F8   ED 61                  STD    $01,S
+        06FA   20      D6 06D2        BRA    ZFED2
+
+        06FC   EC 61           ZFEFC  LDD    $01,S
+        06FE   ED 65                  STD    $05,S
+        0700   43                     COMA               
+        0701   20      02 0705        BRA    ZFF05
+
+        0703   ED 69           ZFF03  STD    $09,S
+
+        0705   32 65           ZFF05  LEAS   $05,S
+        0707   35      F6             PULS   PC,U,Y,X,B,A
+
+        0709   AE 44           ZFF09  LDX    $04,U
+        070B   8D      0A 0717        BSR    ZFF17
+        070D   ED 41                  STD    $01,U
+        070F   25      02 0713        BCS    ZFF13
+        0711   AF 44                  STX    $04,U
+
+        0713 10AF 46           ZFF13  STY    $06,U
+        0716   39                     RTS                
+
+        0717   A6 84           ZFF17  LDA    ,X
+        0719   81      2F             CMPA   #$2F
+        071B   26      02 071F        BNE    ZFF1F
+        071D   30 01                  LEAX   $01,X
+
+        071F   31 84           ZFF1F  LEAY   ,X
+        0721   5F                     CLRB               
+        0722   A6 A0                  LDA    ,Y+
+        0724   84      7F             ANDA   #$7F
+        0726   8D      34 075C        BSR    ZFF5C
+        0728   25      12 073C        BCS    ZFF3C
+
+        072A   5C              ZFF2A  INCB               
+        072B   A6 3F                  LDA    -$01,Y
+        072D   2B      0A 0739        BMI    ZFF39
+        072F   A6 A0                  LDA    ,Y+
+        0731   84      7F             ANDA   #$7F
+        0733   8D      17 074C        BSR    ZFF4C
+        0735   24      F3 072A        BCC    ZFF2A
+        0737   A6 A2                  LDA    ,-Y
+
+        0739   1C      FE      ZFF39  ANDCC  #$FE
+        073B   39                     RTS                
+
+        073C   81      2C      ZFF3C  CMPA   #$2C
+        073E   26      02 0742        BNE    ZFF42
+
+        0740   A6 A0           ZFF40  LDA    ,Y+
+        0742   81      20      ZFF42  CMPA   #$20
+        0744   27      FA 0740        BEQ    ZFF40
+        0746   A6 A2                  LDA    ,-Y
+        0748   53                     COMB               
+        0749   C6      EB             LDB    #$EB
+        074B   39                     RTS                
+
+        074C   81      2E      ZFF4C  CMPA   #$2E
+        074E   27      42 0792        BEQ    ZFF92
+        0750   81      30             CMPA   #$30
+        0752   25      18 076C        BCS    ZFF6C
+        0754   81      39             CMPA   #$39
+        0756   23      3A 0792        BLS    ZFF92
+        0758   81      5F             CMPA   #$5F
+        075A   27      36 0792        BEQ    ZFF92
+
+        075C   81      41      ZFF5C  CMPA   #$41
+        075E   25      0C 076C        BCS    ZFF6C
+        0760   81      5A             CMPA   #$5A
+        0762   23      2E 0792        BLS    ZFF92
+        0764   81      61             CMPA   #$61
+        0766   25      04 076C        BCS    ZFF6C
+        0768   81      7A             CMPA   #$7A
+        076A   23      26 0792        BLS    ZFF92
+
+        076C   1A      01      ZFF6C  ORCC   #$01
+        076E   39                     RTS                
+
+        076F   E6 42           ZFF6F  LDB    $02,U
+        0771   33 44                  LEAU   $04,U
+        0773   37      30             PULU   Y,X
+
+        0775   34      36      ZFF75  PSHS   Y,X,B,A
+
+        0777   A6 A0           ZFF77  LDA    ,Y+
+        0779   2B      0C 0787        BMI    ZFF87
+        077B   5A                     DECB               
+        077C   27      06 0784        BEQ    ZFF84
+        077E   A8 80                  EORA   ,X+
+        0780   84      DF             ANDA   #$DF
+        0782   27      F3 0777        BEQ    ZFF77
+
+        0784   53              ZFF84  COMB               
+        0785   35      B6             PULS   PC,Y,X,B,A
+
+        0787   5A              ZFF87  DECB               
+        0788   26      FA 0784        BNE    ZFF84
+        078A   A8 84                  EORA   ,X
+        078C   84      5F             ANDA   #$5F
+        078E   26      F4 0784        BNE    ZFF84
+        0790   35      36             PULS   Y,X,B,A
+
+        0792   1C      FE      ZFF92  ANDCC  #$FE
+        0794   39                     RTS                
+
+        0795 10AE 46           ZFF95  LDY    $06,U
+        0798   20      20 07BA        BRA    ZFFBA
+
+        079A   1F      98      ZFF9A  TFR    B,A
+        079C   84      7F             ANDA   #$7F
+        079E   81      7F             CMPA   #$7F
+        07A0   27      08 07AA        BEQ    ZFFAA
+        07A2   81      37             CMPA   #$37
+        07A4   25      04 07AA        BCS    ZFFAA
+        07A6   53                     COMB               
+        07A7   C6      E3             LDB    #$E3
+        07A9   39                     RTS                
+
+        07AA   58              ZFFAA  ASLB               
+        07AB   DE      46             LDU    <Z0046
+        07AD   33 C5                  LEAU   B,U
+        07AF   EC A1                  LDD    ,Y++
+        07B1   30 AB                  LEAX   D,Y
+        07B3   AF C4                  STX    ,U
+        07B5   25      03 07BA        BCS    ZFFBA
+        07B7   AF C8   70             STX    $70,U
+
+        07BA   E6 A0           ZFFBA  LDB    ,Y+
+        07BC   C1      80             CMPB   #$80
+        07BE   26      DA 079A        BNE    ZFF9A
+        07C0   39                     RTS                
+
+        07C1   8E    FFF0      ZFFC1  LDX    #$FFF0
+        07C4   C6      0F             LDB    #$0F
+
+        07C6   E7 80           ZFFC6  STB    ,X+
+        07C8   5A                     DECB               
+        07C9   2A      FB 07C6        BPL    ZFFC6
+        07CB   16    F885 0053        LBRA   ZF853
+
+      S 07CE   CB    7973             emod               
+
+      E 07D1                   ZFFD1  EQU    *
+        07D1                          RPT    $07E0-ZFFD1
+        07D1   39                     RTS                
+        07D2   39                     RTS                
+        07D3   39                     RTS                
+        07D4   39                     RTS                
+        07D5   39                     RTS                
+        07D6   39                     RTS                
+        07D7   39                     RTS                
+        07D8   39                     RTS                
+        07D9   39                     RTS                
+        07DA   39                     RTS                
+        07DB   39                     RTS                
+        07DC   39                     RTS                
+        07DD   39                     RTS                
+        07DE   39                     RTS                
+        07DF   39                     RTS                
+
+      C 07E0 F9A3              ZFFE0  FDB    ZF9A3+P1base
+      C 07E2 F948              ZFFE2  FDB    ZF948+P1base
+      C 07E4 F94E                     FDB    ZF94E+P1base
+      C 07E6 F954                     FDB    ZF954+P1base
+      C 07E8 F955                     FDB    ZF955+P1base
+      C 07EA F959                     FDB    ZF959+P1base
+      C 07EC F954                     FDB    ZF954+P1base
+      C 07EE 0000                     FDB    $0000
+
+      C 07F0 0000              ZFFF0  FDB    $0000
+      C 07F2 F930                     FDB    ZF930+P1base
+      C 07F4 F934                     FDB    ZF934+P1base
+      C 07F6 F938                     FDB    ZF938+P1base
+      C 07F8 F93C                     FDB    ZF93C+P1base
+      C 07FA F940                     FDB    ZF940+P1base
+      C 07FC F944                     FDB    ZF944+P1base
+      C 07FE FFC1                     FDB    ZFFC1+P1base
+
+        F853                          END    ZF853+P1base

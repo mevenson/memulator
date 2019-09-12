@@ -1,0 +1,66 @@
+    FDB CRDLTB    -     A       Cursor Defined LEFT TAB
+    FDB DELETE    -     B       "              DELETE LINE(S)
+    FDB CRDWN     -     C       "              DOWN
+    FDB CRDBT     -     D       "              HOME DOWN
+    FDB CRDUP     -     E       "              UP
+    FDB CRDRTA    -     F       "              RIGHT
+    FDB CRDRTB    -     G       "              RIGHT TAB
+    FDB DESBKS    -     H       Destructive Backspace
+    FDB ARGKEY    -     I       Cause Editor to expect a function ARGument
+    FDB CLEARL    -     J       Clear to End-of-Line (cleared text is NOT recoverable)
+    FDB JOIN      -     K       Bring next line UP to CURSOR position at END of present line
+    FDB PUSHLN    -     L       Cursor Defined PUSH lines (non-destructive)
+    FDB PPMODE    -     M       Toggle Into/Out of "Paragraph" mode
+    FDB HOMLIN    -     N       Home to Top / Bottom Left corner of screen
+    FDB POPLN     -     O       POP line(s) from PUSH stack
+    FDB CHRINS    -     P       Toggle into/out of character "I n s e r t m o d e"
+    FDB SCHBCK    -     Q       String search backwards through file
+    FDB UPPAGE    -     R       Scroll back one FULL Page
+    FDB CRDLFA    -     S       Cursor Defined LEFT arrow (CURSOR Left)
+    FDB GOTONN    -     T       GOTO line number defined by ARGument "(NN)"
+    FDB BOTOUT    -     U       Editor EXIT functions (Save, Load, Rewind, Append, Quit, etc......)
+    FDB DNPAGE    -     V       Scroll down one FULL Page
+    FDB SPLIT     -     W       Split line at CURSOR position - remainder to next line position (inserts line if required)
+    FDB REPLAC    -     X       STRING REPLACE function
+    FDB SCRNDN    -     Y       Scroll DOWN 2/3 page
+    FDB REPLAC    -     Z       Use first ARGument as "SEARCH" string
+    FDB setANSI   - <ESCAPE>    (Reserved for ANSI cursor movement)
+    FDB QUOTE     -     \       Cause Control character to be "Embedded" in text
+    FDB APPEND    -     ]       Toggle from End to Start-of-Line (or other way, depends on where cursor started!)
+    FDB GLOBAL    -     ^       Cause STRING REPLACE function to affect ALL of the file
+    FDB SHIFT     -     _       Shift LOCK / unlock
+
+    FDB TABLST    -     A       Tab Left  to setpoint (increment value or parameter list driven)
+    FDB DELETE    -     B       Delete Line(s)
+    FDB DNARRO    -     C       Down  Arrow (CURSOR)
+    FDB HOME      -     D       Home Up (or Down)
+    FDB UPARRO    -     E       Up    Arrow (CURSOR)
+    FDB RTARRO    -     F       Right Arrow (CURSOR)
+    FDB TABRBL    -     G       Tab Right to setpoint
+    FDB DESBKS    -     H       Destructive Backspace
+    FDB ARGKEY    -     I       Invoke function ARGument passing MODE
+    FDB GOBBLE    -     J       Gobble up characters from cursor - pull from right of cursor
+    FDB PSHDEL    -     K       Push Line(s) on stack - Delete from screen
+    FDB PUSHLN    -     L       Push Line(s) on stack - NO Delete
+    FDB CRLFCM    -     M       Issue carraige return & Line feed command
+    FDB SCRNUP    -     N       Scroll screen UP 2/3 page
+    FDB POPLN     -     O       POP line(s) from PUSH stack at present cursor position
+    FDB CHRINS    -     P       Toggle character "I n s e r t m o d e"
+    FDB SCHBCK    -     Q       String Search (from present position to start of file buffer)
+    FDB UPPAGE    -     R       Scroll One FULL page backwards
+    FDB LFARRO    -     S       Left  Arrow (CURSOR)
+    FDB GOTONN    -     T       GOTO line (NN defines line #, no ARG - Top, NULL ARG - Bottom)
+    FDB BOTOUT    -     U       EXIT Editor, or cause File manipulation features to be envoked
+    FDB DNPAGE    -     V       Scroll One FULL page forwards
+    FDB INSERT    -     W       Insert at Cursor position
+    FDB REPLAC    -     X       String REPLACE function
+    FDB SCRNDN    -     Y       Scroll screen DOWN 2/3 page
+    FDB SCHFWD    -     Z       String SEARCH (from present position to end of file)
+    FDB setANSI   -  <ESCAPE>   (Reserved for ANSI cursor movement)
+    FDB QUOTE     -     \       Cause next printable character to be passed as a "Transparent" control character
+    FDB APPEND    -     ]       Toggle to End-of-Line or if already there, Toggle to Start-of-Line
+    FDB GLOBAL    -     ^       Defines String SEARCH & CHANGE as GLOBAL Range (entire buffer, all occourences)
+    FDB SHIFT     -     _       Cause "Shift Lock" feature to be Enabled/Disabled (toggles)
+    FDB INVALD    -     SPECIAL ENTRY for "BREAK" key
+    FDB INVALD    -     SPECIAL ENTRY for "ARG-ARG" sequences to expand Edit functions beyond present structure
+

@@ -1,0 +1,1475 @@
+SBUG18 MP-09 MONITOR                                  11-15-99 TSC ASSEMBLER   
+
+
+                     
+                     * MONITOR PROGRAM FOR THE SOUTHWEST TECHNICAL
+                     * PRODUCTS MP-09 CPU BOARD AS COMMENTED BY....
+                     
+                     * ALLEN CLARK            WALLACE WATSON
+                     * 2502 REGAL OAKS LANE   4815 EAST 97th AVE.
+                     * LUTZ, FLA. 33549       TEMPLE TERRACE, FLA. 33617
+                     * PH. 813-977-0347       PH. 813-985-1359
+                     
+                     * MODIFIED TO SBUG09 VER 1.8 BY:  RANDY JARRETT
+                     *                                 2561 NANTUCKET DR APT. E
+                     *                                 ATLANTA, GA  30345
+                     *                                 PH. 404-320-1043
+                     
+                     
+                     *       *** COMMANDS ***
+                     
+                     * CONTROL A   = ALTER THE "A" ACCUMULATOR
+                     * CONTROL B   = ALTER THE "B" ACCUMULATOR
+                     * CONTROL C   = ALTER THE CONDITION CODE REGISTER
+                     * CONTROL D   = ALTER THE DIRECT PAGE REGISTER
+                     * CONTROL P   = ALTER THE PROGRAM COUNTER
+                     * CONTROL U   = ALTER USER STACK POINTER
+                     * CONTROL X   = ALTER "X" INDEX REGISTER
+                     * CONTROL Y   = ALTER "Y" INDEX REGISTER
+                     * B hhhh      = SET BREAKPOINT AT LOCATION $hhhh
+                     * D           = BOOT A SWTPC 8 INCH FLOPPY SYSTEM
+                     * U           = BOOT A SWTPC 5 INCH FLOPPY SYSTEM
+                     * E ssss-eeee = EXAMINE MEMORY FROM STARTING ADDRESS ssss
+                     *              -TO ENDING ADDRESS eeee.
+                     * G           = CONTINUE EXECUTION FROM BREAKPOINT OR SWI
+                     * L           = LOAD TAPE
+                     * M hhhh      = EXAMINE AND CHANGE MEMORY LOCATION hhhh
+                     * P ssss-eeee = PUNCH TAPE, START ssss TO END eeee ADDR.
+                     * Q ssss-eeee = TEST MEMORY FROM ssss TO eeee
+                     * R           = DISPLAY REGISTER CONTENTS
+                     * S           = DISPLAY STACK FROM ssss TO $DFC0
+                     * X           = REMOVE ALL BREAKPOINTS
+                     
+                     
+               55AA  TSTPAT  EQU    $55AA     TEST PATTERN
+                     
+                     
+                     
+  DFC0                       ORG    $DFC0
+  DFC0               STACK   RMB    2         TOP OF INTERNAL STACK / USER VECTOR
+  DFC2               SWI3    RMB    2         SOFTWARE INTERRUPT VECTOR #3
+  DFC4               SWI2    RMB    2         SOFTWARE INTERRUPT VECTOR #2
+  DFC6               FIRQ    RMB    2         FAST INTERRUPT VECTOR
+  DFC8               IRQ     RMB    2         INTERRUPT VECTOR
+  DFCA               SWI     RMB    2         SOFTWARE INTERRUPT VECTOR
+  DFCC               SVCVO   RMB    2         SUPERVISOR CALL VECTOR ORGIN
+  DFCE               SVCVL   RMB    2         SUPERVISOR CALL VECTOR LIMIT
+  DFD0               LRARAM  RMB    16        LRA ADDRESSES
+  DFE0               CPORT   RMB    2         RE-VECTORABLE CONTROL PORT
+  DFE2               ECHO    RMB    1         ECHO FLAG
+  DFE3               BPTBL   RMB    24        BREAKPOINT TABLE BASE ADDR
+               E004  ACIAS   EQU    $E004     CONTROL PORT
+               E018  Comreg  EQU    $E018     COMMAND REGISTER
+               E014  Drvreg  EQU    $E014     DRIVE REGISTER
+               E01A  Secreg  EQU    $E01A     SECTOR REGISTER
+               E01B  Datreg  EQU    $E01B     DATA REGISTER
+                     
+               F000  ADDREG  EQU    $F000     ADDRESS REGISTER
+               F002  CNTREG  EQU    $F002     COUNT REGISTER
+               F010  CCREG   EQU    $F010     CHANNEL CONTROL REGISTER
+               F014  PRIREG  EQU    $F014     DMA PRIORITY REGISTER
+               F015  AAAREG  EQU    $F015     ???
+               F016  BBBREG  EQU    $F016     ???
+               F020  COMREG  EQU    $F020     1791 COMMAND REGISTER
+               F022  SECREG  EQU    $F022     SECTOR REGISTER
+               F024  DRVREG  EQU    $F024     DRIVE SELECT LATCH
+               F040  CCCREG  EQU    $F040     ???
+                     
+               FFF0  IC11    EQU    $FFF0     DAT RAM CHIP
+                     
+  F800                       ORG    $F800
+  F800 F814                  FDB    MONITOR
+  F802 F861                  FDB    NEXTCMD
+  F804 FDD2                  FDB    INCH
+  F806 FDCC                  FDB    INCHE
+  F808 FDE2                  FDB    INCHEK
+  F80A FDF1                  FDB    OUTCH
+  F80C FDC0                  FDB    PDATA
+  F80E FDB4                  FDB    PCRLF
+  F810 FDB0                  FDB    PSTRNG
+  F812 FB84                  FDB    LRA
+                     
+                     * MONITOR
+                     
+                     * VECTOR ADDRESS STRING IS.....
+                     * $F8A1-$F8A1-$F8A1-$F8A1-$F8A1-$FAB0-$FFFF-$FFFF
+                     
+  F814 8E   FE52     MONITOR LDX    #RAMVEC   POINT TO VECTOR ADDR. STRING
+  F817 108E DFC0             LDY    #STACK    POINT TO RAM VECTOR LOCATION
+  F81B C6   10               LDB    #$10      BYTES TO MOVE = 16
+  F81D A6   80       LOOPA   LDA    ,X+       GET VECTOR BYTE
+  F81F A7   A0               STA    ,Y+       PUT VECTORS IN RAM / $DFC0-$DFCF
+  F821 5A                    DECB             SUBTRACT 1 FROM NUMBER OF BYTES TO MOVE
+  F822 26   F9               BNE    LOOPA     CONTINUE UNTIL ALL VECTORS MOVED
+                     
+                     * CONTENTS     FROM         TO      FUNCTION
+                     *  $F8A1       $FE40      $DFC0     USER-V
+                     *  $F8A1       $FE42      $DFC2     SWI3-V
+                     *  $F8A1       $FE44      $DFC4     SWI2-V
+                     *  $F8A1       $FE46      $DFC6     FIRQ-V
+                     *  $F8A1       $FE48      $DFC8     IRQ-V
+                     *  $FAB0       $FE4A      $DFCA     SWI-V
+                     *  $FFFF       $FE4C      $DFCC     SVC-VO
+                     *  $FFFF       $FE4E      $DFCE     SVC-VL
+                     
+  F824 8E   E004             LDX    #ACIAS    GET CONTROL PORT ADDR.
+  F827 BF   DFE0             STX    CPORT     STORE ADDR. IN RAM
+  F82A 17   027D             LBSR   XBKPNT    CLEAR OUTSTANDING BREAKPOINTS
+  F82D C6   0C               LDB    #12       CLEAR 12 BYTES ON STACK
+  F82F 6F   E2       CLRSTK  CLR    ,-S
+  F831 5A                    DECB
+  F832 26   FB               BNE    CLRSTK
+  F834 30   8C DD            LEAX   MONITOR,PCR SET PC TO SBUG-E ENTRY
+  F837 AF   6A               STX    10,S      ON STACK
+  F839 86   D0               LDA    #$D0      PRESET CONDITION CODES ON STACK
+  F83B A7   E4               STA    ,S
+  F83D 1F   43               TFR    S,U
+  F83F 17   05C1             LBSR   ACINIZ    INITIALIZE CONTROL PORT
+  F842 8E   FE62             LDX    #MSG1     POINT TO 'SBUG 1.8' MESSAGE
+  F845 17   0578             LBSR   PDATA     PRINT MSG
+  F848 8E   DFD0             LDX    #LRARAM   POINT TO LRA RAM STORAGE AREA
+  F84B 4F                    CLRA             START TOTAL AT ZERO
+  F84C C6   0D               LDB    #13       TOTAL UP ALL ACTIVE RAM MEMORY
+  F84E 6D   85       FNDREL  TST    B,X       TEST FOR RAM AT NEXT LOC.
+  F850 27   03               BEQ    RELPAS    IF NO RAM GO TO NEXT LOC.
+  F852 8B   04               ADDA   #4        ELSE ADD 4K TO TOTAL
+  F854 19                    DAA              ADJ. TOTAL FOR DECIMAL
+  F855 5A            RELPAS  DECB             SUB. 1 FROM LOCS. TO TEST
+  F856 2A   F6               BPL    FNDREL    PRINT TOTAL OF RAM
+  F858 17   0529             LBSR   OUT2H     OUTPUT HEX BYTE AS ASCII
+  F85B 8E   FE77             LDX    #MSG2     POINT TO MSG 'K' CR/LF + 3 NULS
+  F85E 17   055F             LBSR   PDATA     PRINT MSG
+                     
+                     ***** NEXTCMD *****
+                     
+  F861 8E   FE7E     NEXTCMD LDX    #MSG3     POINT TO MSG ">"
+  F864 17   0549             LBSR   PSTRNG    PRINT MSG
+  F867 17   0568             LBSR   INCH      GET ONE CHAR. FROM TERMINAL
+  F86A 84   7F               ANDA   #$7F      STRIP PARITY FROM CHAR.
+  F86C 81   0D               CMPA   #$0D      IS IT CARRIAGE RETURN ?
+  F86E 27   F1               BEQ    NEXTCMD   IF CR THEN GET ANOTHER CHAR.
+  F870 1F   89               TFR    A,B       PUT CHAR. IN "B" ACCUM.
+  F872 81   20               CMPA   #$20      IS IT CONTROL OR DATA CHAR ?
+  F874 2C   09               BGE    PRTCMD    IF CMD CHAR IS DATA, PRNT IT
+  F876 86   5E               LDA    #'^       ELSE CNTRL CHAR CMD SO...
+  F878 17   0576             LBSR   OUTCH     PRINT "^"
+  F87B 1F   98               TFR    B,A       RECALL CNTRL CMD CHAR
+  F87D 8B   40               ADDA   #$40      CONVERT IT TO ASCII LETTER
+  F87F 17   056F     PRTCMD  LBSR   OUTCH     PRNT CMD CHAR
+  F882 17   056A             LBSR   OUT1S     PRNT SPACE
+  F885 C1   60               CMPB   #$60
+  F887 2F   02               BLE    NXTCH0
+  F889 C0   20               SUBB   #$20
+                     
+                     ***** DO TABLE LOOKUP *****
+                     *   FOR COMMAND FUNCTIONS
+                     
+                     
+  F88B 8E   FE16     NXTCH0  LDX    #JMPTAB   POINT TO JUMP TABLE
+  F88E E1   80       NXTCHR  CMPB   ,X+       DOES COMMAND MATCH TABLE ENTRY ?
+  F890 27   0F               BEQ    JMPCMD    BRANCH IF MATCH FOUND
+  F892 30   02               LEAX   2,X       POINT TO NEXT ENTRY IN TABLE
+  F894 8C   FE52             CMPX   #TABEND   REACHED END OF TABLE YET ?
+  F897 26   F5               BNE    NXTCHR    IF NOT END, CHECK NEXT ENTRY
+  F899 8E   FE80             LDX    #MSG4     POINT TO MSG "WHAT?"
+  F89C 17   0521             LBSR   PDATA     PRINT MSG
+  F89F 20   C0               BRA    NEXTCMD   IF NO MATCH, PRMPT FOR NEW CMD
+  F8A1 AD   94       JMPCMD  JSR    [,X]      JUMP TO COMMAND ROUTINE
+  F8A3 20   BC               BRA    NEXTCMD   PROMPT FOR NEW COMMAND
+                     *
+                     * "G" GO OR CONTINUE
+                     
+  F8A5 1F   34       GO      TFR    U,S
+  F8A7 3B            RTI     RTI
+                     
+                     * "R" DISPLAY REGISTERS
+                     
+  F8A8 8E   FE86     REGSTR  LDX    #MSG5     POINT TO MSG " - "
+  F8AB 17   0502             LBSR   PSTRNG    PRINT MSG
+  F8AE 17   0414             LBSR   PRTSP     $FCBF
+  F8B1 17   041C             LBSR   PRTUS     $FCCA
+  F8B4 17   0424             LBSR   PRTDP     $FCD5
+  F8B7 17   042C             LBSR   PRTIX     $FCE0
+  F8BA 17   0434             LBSR   PRTIY     $FCEB
+  F8BD 8E   FE86             LDX    #MSG5     POINT TO MSG " - "
+  F8C0 17   04ED             LBSR   PSTRNG    PRINT MSG
+  F8C3 17   0436             LBSR   PRTPC     $FCF5
+  F8C6 17   043D             LBSR   PRTA      $FCFF
+  F8C9 17   0444             LBSR   PRTB      $FD09
+  F8CC 16   044B             LBRA   PRTCC     $FD13
+                     
+                     
+                     * ALTER "PC" PROGRAM COUNTER
+                     
+                     
+  F8CF 17   042A     ALTRPC  LBSR   PRTPC     $FCF5 PRINT MSG " PC = "
+  F8D2 17   051A             LBSR   OUT1S     OUTPUT SPACE
+  F8D5 17   045A             LBSR   IN1ADR    GET NEW CONTENTS FOR "PC"
+  F8D8 29   02               BVS    ALTPCD    EXIT IF INVALID HEX
+  F8DA AF   4A               STX    10,U      POKE IN NEW CONTENTS
+  F8DC 39            ALTPCD  RTS
+                     
+                     
+                     * ALTER "U" USER STACK POINTER
+                     
+                     
+  F8DD 17   03F0     ALTRU   LBSR   PRTUS     $FCCA PRINT MSG " US = "
+  F8E0 17   050C             LBSR   OUT1S     OUTPUT SPACE
+  F8E3 17   044C             LBSR   IN1ADR
+  F8E6 29   02               BVS    ALTUD
+  F8E8 AF   48               STX    8,U
+  F8EA 39            ALTUD   RTS
+                     
+                     *
+                     * ALTER "Y" INDEX REGISTER
+                     
+                     
+  F8EB 17   0403     ALTRY   LBSR   PRTIY     PRINT MSG " IY = "
+  F8EE 17   04FE             LBSR   OUT1S     OUTPUT SPACE
+  F8F1 17   043E             LBSR   IN1ADR
+  F8F4 29   02               BVS    ALTYD
+  F8F6 AF   46               STX    6,U       $F8F0
+  F8F8 39            ALTYD   RTS
+                     
+                     
+                     * ALTER "X" INDEX REGISTER
+                     
+                     
+  F8F9 17   03EA     ALTRX   LBSR   PRTIX     $FCE0 PRINT MSG " IX = "
+  F8FC 17   04F0             LBSR   OUT1S     OUTPUT SPACE
+  F8FF 17   0430             LBSR   IN1ADR
+  F902 29   02               BVS    ALTXD
+  F904 AF   44               STX    4,U
+  F906 39            ALTXD   RTS
+                     
+                     
+                     * ALTER "DP" DIRECT PAGE REGISTER
+                     
+                     
+  F907 17   03D1     ALTRDP  LBSR   PRTDP     $FCD5 PRINT MSG " DP = "
+  F90A 17   04E2             LBSR   OUT1S     OUTPUT SPACE
+  F90D 17   0433             LBSR   BYTE      INPUT BYTE (2 HEX CHAR)
+  F910 29   02               BVS    ALTDPD
+  F912 A7   43               STA    3,U
+  F914 39            ALTDPD  RTS
+                     
+                     
+                     * ALTER "B" ACCUMULATOR
+                     
+                     
+  F915 17   03F8     ALTRB   LBSR   PRTB      $FD09 PRINT MSG " B = "
+  F918 17   04D4             LBSR   OUT1S     OUTPUT SPACE
+  F91B 17   0425             LBSR   BYTE      INPUT BYTE (2 HEX CHAR)
+  F91E 29   02               BVS    ALTBD
+  F920 A7   42               STA    2,U
+  F922 39            ALTBD   RTS              $F91C
+                     
+                     
+                     * ALTER "A" ACCUMULATOR
+                     
+                     *
+  F923 17   03E0     ALTRA   LBSR   PRTA      $FCFF RINT MSG " A = "
+  F926 17   04C6             LBSR   OUT1S     OUTPUT SPACE
+  F929 17   0417             LBSR   BYTE      INPUT BYTE (2 HEX CHAR)
+  F92C 29   02               BVS    ALTAD
+  F92E A7   41               STA    1,U
+  F930 39            ALTAD   RTS
+                     
+                     
+                     * ALTER "CC" REGISTER
+                     
+                     
+  F931 17   03E6     ALTRCC  LBSR   PRTCC     $FD13 PRINT MSG " CC: "
+  F934 17   04B8             LBSR   OUT1S     OUTPUT SPACE
+  F937 17   0409             LBSR   BYTE      INPUT BYTE (2 HEX CHAR)
+  F93A 29   04               BVS    ALTCCD
+  F93C 8A   80               ORA    #$80      SETS "E" FLAG IN PRINT LIST
+  F93E A7   C4               STA    ,U
+  F940 39            ALTCCD  RTS
+                     
+                     ***** "M" MEMORY EXAMINE AND CHANGE *****
+                     
+  F941 17   03EE     MEMCHG  LBSR   IN1ADR    INPUT ADDRESS
+  F944 29   2D               BVS    CHRTN     IF NOT HEX, RETURN
+  F946 1F   12               TFR    X,Y       SAVE ADDR IN "Y"
+  F948 8E   FE86     MEMC2   LDX    #MSG5     POINT TO MSG " - "
+  F94B 17   0462             LBSR   PSTRNG    PRINT MSG
+  F94E 1F   21               TFR    Y,X       FETCH ADDRESS
+  F950 17   0429             LBSR   OUT4H     PRINT ADDR IN HEX
+  F953 17   0499             LBSR   OUT1S     OUTPUT SPACE
+  F956 A6   A4               LDA    ,Y        GET CONTENTS OF CURRENT ADDR.
+  F958 17   0429             LBSR   OUT2H     OUTPUT CONTENTS IN ASCII
+  F95B 17   0491             LBSR   OUT1S     OUTPUT SPACE
+  F95E 17   03E2             LBSR   BYTE      LOOP WAITING FOR OPERATOR INPUT
+  F961 28   11               BVC    CHANGE    IF VALID HEX GO CHANGE MEM. LOC.
+  F963 81   08               CMPA   #8        IS IT A BACKSPACE (CNTRL H)?
+  F965 27   E1               BEQ    MEMC2     PROMPT OPERATOR AGAIN
+  F967 81   18               CMPA   #$18      IS IT A CANCEL (CNTRL X)?
+  F969 27   DD               BEQ    MEMC2     PROMPT OPERATOR AGAIN
+  F96B 81   5E               CMPA   #'^       IS IT AN UP ARROW?
+  F96D 27   17               BEQ    BACK      DISPLAY PREVIOUS BYTE
+  F96F 81   0D               CMPA   #$D       IS IT A CR?
+  F971 26   0F               BNE    FORWRD    DISPLAY NEXT BYTE
+  F973 39            CHRTN   RTS              EXIT ROUTINE
+                     
+                     
+  F974 A7   A4       CHANGE  STA    ,Y        CHANGE BYTE IN MEMORY
+  F976 A1   A4               CMPA   ,Y        DID MEMORY BYTE CHANGE?
+  F978 27   08               BEQ    FORWRD    $F972
+  F97A 17   0472             LBSR   OUT1S     OUTPUT SPACE
+  F97D 86   3F               LDA    #'?       LOAD QUESTION MARK
+  F97F 17   046F             LBSR   OUTCH     PRINT IT
+  F982 31   21       FORWRD  LEAY   1,Y       POINT TO NEXT HIGHER MEM LOCATION
+  F984 20   C2               BRA    MEMC2     PRINT LOCATION & CONTENTS
+  F986 31   3F       BACK    LEAY   -1,Y      POINT TO LAST MEM LOCATION
+  F988 20   BE               BRA    MEMC2     PRINT LOCATION & CONTENTS
+                     
+                     * "S" DISPLAY STACK
+                     * HEX-ASCII DISPLAY OF CURRENT STACK CONTENTS FROM
+                     * CURRENT STACK POINTER TO INTERNAL STACK LIMIT.
+                     
+  F98A 17   0338     DISSTK  LBSR   PRTSP     PRINT CURRENT STACK POINTER
+  F98D 1F   32               TFR    U,Y
+  F98F 8E   DFC0             LDX    #STACK    LOAD INTERNAL STACK AS UPPER LIMIT
+  F992 30   1F               LEAX   -1,X      POINT TO CURRENT STACK
+  F994 20   05               BRA    MDUMP1    ENTER MEMORY DUMP OF STACK CONTENTS
+                     
+                     * "E" DUMP MEMORY FOR EXAMINE IN HEX AND ASCII
+                     * AFTER CALLING 'IN2ADR' LOWER ADDRESS IN Y-REG.
+                     *                        UPPER ADDRESS IN X-REG.
+                     * IF HEX ADDRESSES ARE INVALID (V)=1.
+                     
+  F996 17   038E     MEMDUMP LBSR   IN2ADR    INPUT ADDRESS BOUNDRIES
+  F999 29   06               BVS    EDPRTN    NEW COMMAND IF ILLEGAL HEX
+  F99B 34   20       MDUMP1  PSHS   Y         COMPARE LOWER TO UPPER BOUNDS
+  F99D AC   E1               CMPX   ,S++      LOWER BOUNDS > UPPER BOUNDS?
+  F99F 24   01               BCC    AJDUMP    IF NOT, DUMP HEX AND ASCII
+  F9A1 39            EDPRTN  RTS
+                     
+                     * ADJUST LOWER AND UPPER ADDRESS LIMITS
+                     * TO EVEN 16 BYTE BOUNDRIES.
+                     
+                     * IF LOWER ADDR = $4532
+                     * LOWER BOUNDS WILL BE ADJUSTED TO = $4530.
+                     
+                     * IF UPPER ADDR = $4567
+                     * UPPER BOUNDS WILL BE ADJUSTED TO = $4570.
+                     
+                     * ENTER WITH LOWER ADDRESS IN X-REG.
+                     *           -UPPER ADDRESS ON TOP OF STACK.
+                     
+  F9A2 1F   10       AJDUMP  TFR    X,D       GET UPPER ADDR IN D-REG
+  F9A4 C3   0010             ADDD   #$10      ADD 16 TO UPPER ADDRESS
+  F9A7 C4   F0               ANDB   #$F0      MASK TO EVEN 16 BYTE BOUNDRY
+  F9A9 34   06               PSHS   A,B       SAVE ON STACK AS UPPER DUMP LIMIT
+  F9AB 1F   20               TFR    Y,D       $F9A5 GET LOWER ADDRESS IN D-REG
+  F9AD C4   F0               ANDB   #$F0      MASK TO EVEN 16 BYTE BOUNDRY
+  F9AF 1F   01               TFR    D,X       PUT IN X-REG AS LOWER DUMP LIMIT
+  F9B1 AC   E4       NXTLIN  CMPX   ,S        COMPARE LOWER TO UPPER LIMIT
+  F9B3 27   05               BEQ    SKPDMP    IF EQUAL SKIP HEX-ASCII DUMP
+  F9B5 17   042A             LBSR   INCHEK    CHECK FOR INPUT FROM KEYBOARD
+  F9B8 27   03               BEQ    EDUMP     IF NONE, CONTINUE WITH DUMP
+  F9BA 32   62       SKPDMP  LEAS   2,S       READJUST STACK IF NOT DUMPING
+  F9BC 39                    RTS
+                     
+                     * PRINT 16 HEX BYTES FOLLOWED BY 16 ASCII CHARACTERS
+                     * FOR EACH LINE THROUGHOUT ADDRESS LIMITS.
+                     
+  F9BD 34   10       EDUMP   PSHS   X         PUSH LOWER ADDR LIMIT ON STACK
+  F9BF 8E   FE86             LDX    #MSG5     POINT TO MSG " - "
+  F9C2 17   03EB             LBSR   PSTRNG    PRINT MSG
+  F9C5 AE   E4               LDX    ,S        LOAD LOWER ADDR FROM TOP OF STACK
+  F9C7 17   03B2             LBSR   OUT4H     PRINT THE ADDRESS
+  F9CA 17   0420             LBSR   OUT2S     PRINT 2 SPACES
+  F9CD C6   10               LDB    #$10      LOAD COUNT OF 16 BYTES TO DUMP
+  F9CF A6   80       ELOOP   LDA    ,X+       GET FROM MEMORY HEX BYTE TO PRINT
+  F9D1 17   03B0             LBSR   OUT2H     OUTPUT HEX BYTE AS ASCII
+  F9D4 17   0418             LBSR   OUT1S     OUTPUT SPACE
+  F9D7 5A                    DECB             $F9D1 DECREMENT BYTE COUNT
+  F9D8 26   F5               BNE    ELOOP     CONTINUE TIL 16 HEX BYTES PRINTED
+                     
+                     * PRINT 16 ASCII CHARACTERS
+                     * IF NOT PRINTABLE OR NOT VALID
+                     * ASCII PRINT A PERIOD (.)
+  F9DA 17   0410             LBSR   OUT2S     2 SPACES
+  F9DD AE   E1               LDX    ,S++      GET LOW LIMIT FRM STACK - ADJ STACK
+  F9DF C6   10               LDB    #$10      SET ASCII CHAR TO PRINT = 16
+  F9E1 A6   80       EDPASC  LDA    ,X+       GET CHARACTER FROM MEMORY
+  F9E3 81   20               CMPA   #$20      IF LESS THAN $20, NON-PRINTABLE?
+  F9E5 25   04               BCS    PERIOD    IF SO, PRINT PERIOD INSTEAD
+  F9E7 81   7E               CMPA   #$7E      IS IT VALID ASCII?
+  F9E9 23   02               BLS    PRASC     IF SO PRINT IT
+  F9EB 86   2E       PERIOD  LDA    #'.       LOAD A PERIOD (.)
+  F9ED 17   0401     PRASC   LBSR   OUTCH     PRINT ASCII CHARACTER
+  F9F0 5A                    DECB             DECREMENT COUNT
+  F9F1 26   EE               BNE    EDPASC
+  F9F3 20   BC               BRA    NXTLIN
+                     
+                     ***** "Q" MEMORY TEST *****
+                     
+  F9F5 6F   E2       MEMTST  CLR    ,-S       CLEAR BYTE ON STACK
+  F9F7 6F   E2               CLR    ,-S       CLEAR ANOTHER BYTE
+  F9F9 17   032B             LBSR   IN2ADR    GET BEGIN(Y) & END(X) ADDR. LIMITS
+  F9FC 34   30               PSHS   X,Y       SAVE ADDRESSES ON STACK
+  F9FE 29   7B               BVS    ADJSK6    EXIT IF NOT VALID HEX
+  FA00 AC   62               CMPX   2,S       COMPARE BEGIN TO END ADDR.
+  FA02 25   77               BCS    ADJSK6    EXIT IF BEGIN > END ADDR.
+  FA04 17   03E8             LBSR   OUT1S     OUTPUT SPACE
+  FA07 1F   20       MEMSET  TFR    Y,D       PUT BEGIN ADDR. IN 'D'-ACCUM.
+  FA09 E3   64               ADDD   4,S       ADD PASS COUNT TO BEGIN ADDR
+  FA0B 34   04               PSHS   B         ADD LS BYTE TO MS BYTE OF BEGIN ADDR
+  FA0D AB   E0               ADDA   ,S+
+  FA0F A7   A0               STA    ,Y+       SAVE THIS DATA BYTE AT BEGIN ADDR
+  FA11 10AC E4               CMPY   ,S        COMPARE END TO BEGIN ADDR
+  FA14 25   F1               BCS    MEMSET    IF BEGIN LOWER, CONTINUE TO SET MEMORY
+  FA16 10AE 62               LDY    2,S       RELOAD BEGIN ADDRESS
+  FA19 1F   20       TEST1   TFR    Y,D       PUT BEGIN ADDR IN 'D'-ACC.
+  FA1B E3   64               ADDD   4,S       ADD PASS COUNT TO ADDRESS
+  FA1D 34   02               PSHS   A         ADD MS BYTE TO LS BYTE OF ADDRESS
+  FA1F EB   E0               ADDB   ,S+
+  FA21 E8   A0               EORB   ,Y+       EX-OR THIS DATA WITH DATA IN MEMORY LOC.
+  FA23 27   3C               BEQ    GUDPAS    IF (Z) SET, MEMORY BYTE OK
+  FA25 8E   FE86             LDX    #MSG5     POINT TO MSG " - "
+  FA28 17   0385             LBSR   PSTRNG    PRINT MSG
+  FA2B 30   3F               LEAX   -1,Y      GET ERROR ADDRESS IN X-REG
+  FA2D 17   034C             LBSR   OUT4H     OUTPUT IT
+  FA30 34   10               PSHS   X         PUSH ERROR ADDR ON STACK
+  FA32 8E   FEA4             LDX    #MSG8     POINT TO MSG " =>"
+  FA35 17   0388             LBSR   PDATA     PRINT MSG
+  FA38 35   10               PULS   X         POP ERROR ADDR FROM STACK
+  FA3A 17   0147             LBSR   LRA       GET PHYSICAL ADDR FROM LRA
+  FA3D 17   0350             LBSR   XASCII    OUTPUT EXTENDED 4 BITS OF PHYSICAL ADDR
+  FA40 17   0339             LBSR   OUT4H     OUTPUT LS 16 BITS OF PHYSICAL ADDR
+  FA43 8E   FE8A             LDX    #MSG6     POINT TO MSG ", PASS "
+  FA46 17   0377             LBSR   PDATA     PRINT MSG
+  FA49 AE   64               LDX    4,S       LOAD PASS COUNT
+  FA4B 17   032E             LBSR   OUT4H     OUTPUT IT
+  FA4E 8E   FE92             LDX    #MSG7     POINT TO MSG ", BITS IN ERROR
+  FA51 17   036C             LBSR   PDATA     PRINT MSG
+  FA54 1F   98               TFR    B,A       GET ERROR BYTE INTO A-ACC
+  FA56 8E   FEA9             LDX    #MSG9     POINT TO MSG "76543210"
+  FA59 17   033E             LBSR   BIASCI    OUTPUT IN BINARY/ASCII FORMAT
+  FA5C 17   0383             LBSR   INCHEK    CHECK FOR INPUT FROM KEYBOARD $FA56
+  FA5F 26   1A               BNE    ADJSK6    IF SO, EXIT MEMORY TEST
+  FA61 10AC E4       GUDPAS  CMPY   ,S        COMPARE END ADDR TO BEGIN ADDR
+  FA64 25   B3               BCS    TEST1
+  FA66 86   2B               LDA    #'+       GET "PASS" SYMBOL IF MEMORY PASS OK
+  FA68 17   0386             LBSR   OUTCH     OUTPUT SYMBOL TO TERMINAL
+  FA6B 17   0374             LBSR   INCHEK    INPUT FROM KEYBOARD?
+  FA6E 26   0B               BNE    ADJSK6    IF SO, EXIT MEMORY TEST
+  FA70 10AE 62               LDY    2,S       LOAD BEGIN ADDRESS
+  FA73 6C   65               INC    5,S       INCREMENT LS BYTE OF PASS COUNT
+  FA75 26   90               BNE    MEMSET    IF NOT ZERO, SET NEXT MEMORY BYTE
+  FA77 6C   64               INC    4,S       INCREMENT MS BYTE OF PASS COUNT
+  FA79 26   8C               BNE    MEMSET    DONE WITH 65,535 PASSES OF MEMORY?
+  FA7B 32   66       ADJSK6  LEAS   6,S       ADJ STACK POINTER BY 6
+  FA7D 39                    RTS
+                     
+                     ***** "B" SET BREAKPOINT *****
+                     
+  FA7E 17   02B1     BRKPNT  LBSR   IN1ADR    GET BREAKPOINT ADDRESS
+  FA81 29   1E               BVS    EXITBP    EXIT IF INVALID HEX ADDR.
+  FA83 8C   DFC0             CMPX   #STACK    ADDRESS ILLEGAL IF >=$DFC0
+  FA86 24   1A               BCC    BPERR     IF ERROR PRINT (?), EXIT
+  FA88 34   10               PSHS   X         $FA82 PUSH BP ADDRESS ON STACK
+  FA8A 8E   FFFF             LDX    #$FFFF    LOAD DUMMY ADDR TO TEST BP TABLE
+  FA8D 8D   55               BSR    BPTEST    TEST BP TABLE FOR FREE SPACE
+  FA8F 35   10               PULS   X         POP BP ADDRESS FROM STACK
+  FA91 27   0F               BEQ    BPERR     (Z) SET, OUT OF BP TABLE SPACE
+  FA93 A6   84               LDA    ,X        GET DATA AT BREAKPOINT ADDRESS
+  FA95 81   3F               CMPA   #$3F      IS IT A SWI?
+  FA97 27   09               BEQ    BPERR     IF SWI ALREADY, INDICATE ERROR
+  FA99 A7   A0               STA    ,Y+       SAVE DATA BYTE IN BP TABLE
+  FA9B AF   A4               STX    ,Y        SAVE BP ADDRESS IN BP TABLE
+  FA9D 86   3F               LDA    #$3F      LOAD A SWI ($3F)
+  FA9F A7   84               STA    ,X        SAVE SWI AT BREAKPOINT ADDRESS
+  FAA1 39            EXITBP  RTS
+
+                     *  INDICATE ERROR SETTING BREAKPOINT
+                     
+  FAA2 17   034A     BPERR   LBSR   OUT1S     OUTPUT SPACE
+  FAA5 86   3F               LDA    #'?       LOAD (?), INDICATE BREAKPOINT ERROR
+  FAA7 16   0347             LBRA   OUTCH     PRINT "?"
+                     
+                     *** "X" CLEAR OUTSTANDING BREAKPOINTS ***
+                     
+  FAAA 108E DFE3     XBKPNT  LDY    #BPTBL    POINT TO BREAKPOINT TABLE
+  FAAE C6   08               LDB    #8        LOAD BREAKPOINT COUNTER
+  FAB0 8D   18       XBPLP   BSR    RPLSWI    REMOVE USED ENTRY IN BP TABLE
+  FAB2 5A                    DECB             $FAAC DECREMENT BP COUNTER
+  FAB3 26   FB               BNE    XBPLP     END OF BREAKPOINT TABLE?
+  FAB5 39                    RTS
+                     
+                     ***** SWI ENTRY POINT *****
+                     
+  FAB6 1F   43       SWIE    TFR    S,U       TRANSFER STACK TO USER POINTER
+  FAB8 AE   4A               LDX    10,U      LOAD PC FROM STACK INTO X-REG
+  FABA 30   1F               LEAX   -1,X      ADJUST ADDR DOWN 1 BYTE.
+  FABC 8D   26               BSR    BPTEST    FIND BREAKPOINT IN BP TABLE
+  FABE 27   04               BEQ    REGPR     IF FOUND, REPLACE DATA AT BP ADDR
+  FAC0 AF   4A               STX    10,U      SAVE BREAKPOINT ADDR IN STACK
+  FAC2 8D   06               BSR    RPLSWI    GO REPLACE SWI WITH ORIGINAL DATA
+  FAC4 17   FDE1     REGPR   LBSR   REGSTR    GO PRINT REGISTERS
+  FAC7 16   FD97             LBRA   NEXTCMD   GET NEXT COMMAND
+  FACA AE   21       RPLSWI  LDX    1,Y       LOAD BP ADDRESS FROM BP TABLE
+  FACC 8C   DFC0             CMPX   #STACK    COMPARE TO TOP AVAILABLE USER MEMORY
+  FACF 24   0A               BCC    FFSTBL    GO RESET TABLE ENTRY TO $FF'S
+  FAD1 A6   84               LDA    ,X        GET DATA FROM BP ADDRESS
+  FAD3 81   3F               CMPA   #$3F      IS IT SWI?
+  FAD5 26   04               BNE    FFSTBL    IF NOT, RESET TABLE ENTRY TO $FF'S
+  FAD7 A6   A4               LDA    ,Y        GET ORIGINAL DATA FROM BP TABLE
+  FAD9 A7   84               STA    ,X        $FAD3 RESTORE DATA AT BP ADDRESS
+  FADB 86   FF       FFSTBL  LDA    #$FF      LOAD $FF IN A-ACC
+  FADD A7   A0               STA    ,Y+       RESET BREAKPOINT TABLE DATA TO $FF'S
+  FADF A7   A0               STA    ,Y+       RESET BREAKPOINT TABLE ADDR TO $FF'S
+  FAE1 A7   A0               STA    ,Y+
+  FAE3 39                    RTS
+                     
+                     ** SEARCH BREAKPOINT TABLE FOR MATCH **
+                     
+  FAE4 108E DFE3     BPTEST  LDY    #BPTBL    POINT TO BREAKPOINT TABLE
+  FAE8 C6   08               LDB    #8        LOAD BREAKPOINT COUNTER
+  FAEA A6   A0       FNDBP   LDA    ,Y+       LOAD DATA BYTE
+  FAEC AC   A1               CMPX   ,Y++      COMPARE ADDRESS, IS IT SAME?
+  FAEE 27   04               BEQ    BPADJ     IF SO, ADJUST POINTER FOR TABLE ENTRY
+  FAF0 5A                    DECB             IF NOT, DECREMENT BREAKPOINT COUNTER
+  FAF1 26   F7               BNE    FNDBP     AND LOOK FOR NEXT POSSIBLE MATCH
+  FAF3 39                    RTS
+                     
+                     
+  FAF4 31   3D       BPADJ   LEAY   -3,Y      MOVE POINTER TO BEGIN OF BP ENTRY
+  FAF6 39                    RTS
+
+                     *** "D" DISK BOOT FOR DMAF2 ***
+                     
+  FAF7 86   DE       DBOOT   LDA    #$DE
+  FAF9 B7   F024             STA    DRVREG
+  FAFC 86   FF               LDA    #$FF
+  FAFE B7   F014             STA    PRIREG    $FAF8
+  FB01 B7   F010             STA    CCREG
+  FB04 B7   F015             STA    AAAREG
+  FB07 B7   F016             STA    BBBREG
+  FB0A 7D   F010             TST    CCREG
+  FB0D 86   D8               LDA    #$D8
+  FB0F B7   F020             STA    COMREG
+  FB12 17   0097             LBSR   DLY
+  FB15 B6   F020     DBOOT0  LDA    COMREG
+  FB18 2B   FB               BMI    DBOOT0
+  FB1A 86   09               LDA    #$09
+  FB1C B7   F020             STA    COMREG
+  FB1F 17   008A             LBSR   DLY
+                     
+  FB22 B6   F020     DISKWT  LDA    COMREG    FETCH DRIVE STATUS
+  FB25 85   01               BITA   #1        TEST BUSY BIT
+  FB27 26   F9               BNE    DISKWT    LOOP UNTIL NOT BUSY
+                     
+  FB29 85   10               BITA   #$10
+  FB2B 26   CA               BNE    DBOOT
+                     
+  FB2D 8E   C000             LDX    #$C000    LOGICAL ADDR. = $C000
+  FB30 8D   52               BSR    LRA       GET 20 BIT PHYSICAL ADDR. OF LOG. ADDR.
+  FB32 8A   10               ORA    #$10
+  FB34 B7   F040             STA    CCCREG
+  FB37 1F   10               TFR    X,D
+  FB39 43                    COMA
+  FB3A 53                    COMB
+  FB3B FD   F000             STD    ADDREG
+  FB3E 8E   FEFF             LDX    #$FEFF    LOAD DMA BYTE COUNT = $100
+  FB41 BF   F002             STX    CNTREG    STORE IN COUNT REGISTER
+  FB44 86   FF               LDA    #$FF      LOAD THE CHANNEL REGISTER
+  FB46 B7   F010             STA    CCREG
+  FB49 86   FE               LDA    #$FE      SET CHANNEL 0
+  FB4B B7   F014             STA    PRIREG
+  FB4E 86   01               LDA    #1        SET SECTOR TO "1"
+  FB50 B7   F022             STA    SECREG    ISSUE COMMAND
+  FB53 86   8C               LDA    #$8C      SET SINGLE SECTOR READ
+  FB55 B7   F020             STA    COMREG    ISSUE COMMAND
+  FB58 8D   52               BSR    DLY
+                     
+                     * THE FOLLOWING CODE TESTS THE STATUS OF THE
+                     * CHANNEL CONTROL REGISTER. IF "D7" IS NOT
+                     * ZERO THEN IT WILL LOOP WAITING FOR "D7"
+                     * TO GO TO ZERO. IF AFTER 65,536 TRIES IT
+                     * IS STILL A ONE THE BOOT OPERATION WILL
+                     * BE STARTED OVER FROM THE BEGINING.
+                     
+  FB5A 5F                    CLRB
+  FB5B 34   04       DBOOT1  PSHS   B         $FB55
+  FB5D 5F                    CLRB
+  FB5E 7D   F010     DBOOT2  TST    CCREG
+  FB61 2A   0A               BPL    DBOOT3
+  FB63 5A                    DECB
+  FB64 26   F8               BNE    DBOOT2
+  FB66 35   04               PULS   B
+  FB68 5A                    DECB
+  FB69 26   F0               BNE    DBOOT1
+  FB6B 20   8A               BRA    DBOOT
+  FB6D 35   04       DBOOT3  PULS   B
+  FB6F B6   F020             LDA    COMREG
+  FB72 85   1C               BITA   #$1C
+  FB74 27   01               BEQ    DBOOT4
+  FB76 39                    RTS
+                     
+                     
+  FB77 C6   DE       DBOOT4  LDB    #$DE
+  FB79 F7   F024             STB    DRVREG
+  FB7C 8E   C000             LDX    #$C000
+  FB7F AF   4A               STX    10,U
+  FB81 1F   34               TFR    U,S       $FB7B
+  FB83 3B                    RTI
+                     
+                     ***** LRA LOAD REAL ADDRESS *****
+                     
+                     * THE FOLLOWING CODE LOADS THE 20-BIT
+                     * PHYSICAL ADDRESS OF A MEMORY BYTE
+                     * INTO THE "A" AND "X" REGISTERS. THIS
+                     * ROUTINE IS ENTERED WITH THE LOGICAL
+                     * ADDRESS OF A MEMORY BYTE IN THE "IX"
+                     * REGISTER. EXIT IS MADE WITH THE HIGH-
+                     * ORDER FOUR BITS OF THE 20-BIT PHYSICAL
+                     * ADDRESS IN THE "A" REGISTER, AND THE
+                     * LOW-ORDER 16-BITS OF THE 20-BIT
+                     * PHYSICAL ADDRESS IN THE "IX" REGISTER.
+                     * ALL OTHER REGISTERS ARE PRESERVED.
+                     * THIS ROUTINE IS REQUIRED SINCE THE
+                     * DMAF1 AND DMAF2 DISK CONTROLLERS MUST
+                     * PRESENT PHYSICAL ADDRESSES ON THE
+                     * SYSTEM BUS.
+                     
+  FB84 34   36       LRA     PSHS   A,B,X,Y   PUSH REGISTERS ON STACK
+  FB86 A6   62               LDA    2,S       GET MSB LOGICAL ADDR FRM X REG ON STACK
+  FB88 44                    LSRA
+  FB89 44                    LSRA             ADJ FOR INDEXED INTO
+  FB8A 44                    LSRA             CORRESPONDING LOCATION
+  FB8B 44                    LSRA             IN LRA TABLE
+  FB8C 108E DFD0             LDY    #LRARAM   LOAD LRA TABLE BASE ADDRESS
+  FB90 E6   A6               LDB    A,Y       GET PHYSICAL ADDR. DATA FROM LRA TABLE
+  FB92 54                    LSRB             ADJ. REAL ADDR. TO REFLECT EXTENDED
+  FB93 54                    LSRB             PHYSICAL ADDRESS.
+  FB94 54                    LSRB             EXTENDED MS 4-BITS ARE RETURNED
+  FB95 54                    LSRB             IN THE "A" ACCUMULATOR
+  FB96 E7   E4               STB    ,S        MS 4 BITS IN A ACCUM. STORED ON STACK
+  FB98 E6   A6               LDB    A,Y       LOAD REAL ADDRESS DATA FROM LRA TABLE
+  FB9A 53                    COMB             COMP TO ADJ FOR PHYSICAL ADDR. IN X REG
+  FB9B 58                    ASLB             ADJ DATA FOR RELOCATION IN X REG
+  FB9C 58                    ASLB
+  FB9D 58                    ASLB             $FB97
+  FB9E 58                    ASLB
+  FB9F A6   62               LDA    2,S       GET MS BYTE OF LOGICAL ADDR.
+  FBA1 84   0F               ANDA   #$0F      MASK MS NIBBLE OF LOGICAL ADDRESS
+  FBA3 A7   62               STA    2,S       SAVE IT IN X REG ON STACK
+  FBA5 EA   62               ORB    2,S       SET MS BYTE IN X REG TO ADJ PHY ADDR.
+                     
+                     * PLUS LS NIBBLE OF LOGICAL ADDRESS
+  FBA7 E7   62               STB    2,S       SAVE AS LS 16 BITS OF PHY ADDR IN X REG
+                     * ON STACK
+  FBA9 35   36               PULS   A,B,X,Y   POP REGS. FROM STACK
+  FBAB 39                    RTS
+                     
+                     * DELAY LOOP
+                     
+  FBAC 34   04       DLY     PSHS   B         SAVE CONTENTS OF "B"
+  FBAE C6   20               LDB    #$20      GET LOOP DELAY VALUE
+  FBB0 5A            SUB1    DECB             SUBTRACT ONE FROM VALUE
+  FBB1 26   FD               BNE    SUB1      LOOP UNTIL ZERO
+  FBB3 35   04               PULS   B         RESTORE CONTENTS OF "B"
+  FBB5 39                    RTS
+                     
+                     ***** "U" MINIDISK BOOT *****
+                     
+  FBB6 7D   E018     MINBOOT TST    Comreg
+  FBB9 7F   E014             CLR    Drvreg    SELECT DRIVE 0
+                     
+                     * DELAY BEFORE ISSUING RESTORE COMMAND
+  FBBC C6   03               LDB    #3
+  FBBE 8E   0000             LDX    #0
+  FBC1 30   01       LOOP    LEAX   1,X       $FBBB
+  FBC3 8C   0000             CMPX   #0
+  FBC6 26   F9               BNE    LOOP
+  FBC8 5A                    DECB             $FBC2
+  FBC9 26   F6               BNE    LOOP
+                     
+  FBCB 86   0F               LDA    #$0F      *LOAD HEAD, VERIFY, 20msec/step
+  FBCD B7   E018             STA    Comreg    ISSUE RESTORE COMMAND
+  FBD0 8D   37               BSR    DELAY
+  FBD2 F6   E018     LOOP1   LDB    Comreg    $FBCC
+  FBD5 C5   01               BITB   #1
+  FBD7 26   F9               BNE    LOOP1     LOOP UNTIL THRU
+  FBD9 86   01               LDA    #1
+  FBDB B7   E01A             STA    Secreg    SET SECTOR REGISTER TO ONE
+  FBDE 8D   29               BSR    DELAY
+  FBE0 86   8C               LDA    #$8C      LOAD HEAD, DELAY 10msec,
+  FBE2 B7   E018             STA    Comreg    AND READ SINGLE RECORD
+  FBE5 8D   22               BSR    DELAY
+  FBE7 8E   C000             LDX    #$C000
+  FBEA 20   09               BRA    LOOP3
+                     
+  FBEC C5   02       LOOP2   BITB   #2        $FBE6 DRQ?
+  FBEE 27   05               BEQ    LOOP3
+  FBF0 B6   E01B             LDA    Datreg
+  FBF3 A7   80               STA    ,X+
+                     
+  FBF5 F6   E018     LOOP3   LDB    Comreg    FETCH STATUS
+  FBF8 C5   01               BITB   #1        BUSY?
+  FBFA 26   F0               BNE    LOOP2
+  FBFC C5   2C               BITB   #$2C      CRC ERROR OR LOST DATA?
+  FBFE 27   01               BEQ    LOOP4
+  FC00 39                    RTS
+  FC01 8E   C000     LOOP4   LDX    #$C000    $FBFB
+  FC04 AF   4A               STX    10,U
+  FC06 1F   34               TFR    U,S
+  FC08 3B                    RTI
+                     
+                     * DELAY
+                     
+  FC09 C6   20       DELAY   LDB    #$20
+  FC0B 5A            LOOP5   DECB
+  FC0C 26   FD               BNE    LOOP5
+  FC0E 39                    RTS
+                     
+                     ***** "L" LOAD MIKBUG TAPE *****
+                     
+  FC0F 86   11       LOAD    LDA    #$11      LOAD 'DC1' CASS. READ ON CODE
+  FC11 17   01DD             LBSR   OUTCH     OUTPUT IT TO TERMINAL PORT
+  FC14 7F   DFE2             CLR    ECHO      TURN OFF ECHO FLAG
+  FC17 17   01AD     LOAD1   LBSR   ECHON     INPUT 8 BIT BYTE WITH NO ECHO
+  FC1A 81   53       LOAD2   CMPA   #'S       IS IT AN "S", START CHARACTER ?
+  FC1C 26   F9               BNE    LOAD1     IF NOT, DISCARD AND GET NEXT CHAR.
+  FC1E 17   01A6             LBSR   ECHON
+  FC21 81   39               CMPA   #'9       IS IT A "9" , END OF FILE CHAR ?
+  FC23 27   3D               BEQ    LOAD21    IF SO, EXIT LOAD
+  FC25 81   31               CMPA   #'1       IS IT A "1" , FILE LOAD CHAR ?
+  FC27 26   F1               BNE    LOAD2     IF NOT, LOOK FOR START CHAR.
+  FC29 17   0117             LBSR   BYTE      INPUT BYTE COUNT
+  FC2C 34   02               PSHS   A         PUSH COUNT ON STACK
+  FC2E 29   26               BVS    LODERR    (V) C-CODE SET, ILLEGAL HEX
+  FC30 17   00FF             LBSR   IN1ADR    INPUT LOAD ADDRESS
+  FC33 29   21               BVS    LODERR    (V) C-CODE SET, ADDR NOT HEX
+  FC35 34   10               PSHS   X         PUSH ADDR ON STACK
+  FC37 E6   E0               LDB    ,S+       LOAD MSB OF ADDR AS CHECKSUM BYTE
+  FC39 EB   E0               ADDB   ,S+       ADD LSB OF ADDR TO CHECKSUM
+  FC3B EB   E4               ADDB   ,S        ADD BYTE COUNT BYTE TO CHECKSUM
+  FC3D 6A   E4               DEC    ,S        $FC37 DECREMENT BYTE COUNT 2 TO BYPASS
+  FC3F 6A   E4               DEC    ,S        ADDRESS BYTES.
+  FC41 34   04       LOAD10  PSHS   B         PUSH CHECKSUM ON STACK
+  FC43 17   00FD             LBSR   BYTE      INPUT DATA BYTE (2 HEX CHAR)
+  FC46 35   04               PULS   B         POP CHECKSUM FROM STACK
+  FC48 29   0C               BVS    LODERR    (V) SET, DATA BYTE NOT HEX
+  FC4A 34   02               PSHS   A         PUSH DATA BYTE ON STACK
+  FC4C EB   E0               ADDB   ,S+       ADD DATA TO CHECKSUM, AUTO INC STACK
+  FC4E 6A   E4               DEC    ,S        DECREMENT BYTE COUNT 1
+  FC50 27   05               BEQ    LOAD16    IF BYTE COUNT ZERO, TEST CHECKSUM
+  FC52 A7   80               STA    ,X+       SAVE DATA BYTE IN MEMORY
+  FC54 20   EB               BRA    LOAD10    GET NEXT DATA BYTE
+  FC56 5F            LODERR  CLRB             ERROR CONDITION, ZERO CHECKSUM
+  FC57 35   02       LOAD16  PULS   A         ADJUST STACK (REMOVE BYTE COUNT)
+  FC59 C1   FF               CMPB   #$FF      CHECKSUM OK?
+  FC5B 27   B2               BEQ    LOAD      IF SO, LOAD NEXT LINE
+  FC5D 86   3F               LDA    #'?       LOAD (?) ERROR INDICATOR
+  FC5F 17   018F             LBSR   OUTCH     OUTPUT IT TO TERMINAL
+  FC62 73   DFE2     LOAD21  COM    ECHO      TURN ECHO ON
+  FC65 86   13               LDA    #$13      $FC5F LOAD 'DC3' CASS. READ OFF CODE
+  FC67 16   0187             LBRA   OUTCH     OUTPUT IT
+                     
+                     ***** "P" PUNCH MIKBUG TAPE *****
+                     
+  FC6A 6F   E2       PUNCH   CLR    ,-S       CLEAR RESERVED BYTE ON STACK
+  FC6C 17   00B8             LBSR   IN2ADR    GET BEGIN AND END ADDRESS
+  FC6F 34   30               PSHS   X,Y       SAVE ADDRESSES ON STACK
+  FC71 29   4A               BVS    PUNEXT    (V) C-CODE SET, EXIT PUNCH
+  FC73 AC   62               CMPX   2,S       COMPARE BEGIN TO END ADDR
+  FC75 25   46               BCS    PUNEXT    IF BEGIN GREATER THAN END, EXIT PUNCH
+  FC77 30   01               LEAX   1,X       INCREMENT END ADDRESS
+  FC79 AF   E4               STX    ,S        STORE END ADDR ON STACK
+  FC7B 86   12               LDA    #$12      LOAD 'DC2' PUNCH ON CODE
+  FC7D 17   0171             LBSR   OUTCH     OUTPUT IT TO TERMINAL
+  FC80 EC   E4       PUNCH2  LDD    ,S        LOAD END ADDR IN D-ACC
+  FC82 A3   62               SUBD   2,S       SUBTRACT BEGIN FROM END
+  FC84 27   06               BEQ    PUNCH3    SAME, PUNCH 32 BYTES DEFAULT
+  FC86 1083 0020             CMPD   #$20      LESS THAN 32 BYTES?
+  FC8A 23   02               BLS    PUNCH4    PUNCH THAT MANY BYTES
+  FC8C C6   20       PUNCH3  LDB    #$20      LOAD BYTE COUNT OF 32.
+  FC8E E7   64       PUNCH4  STB    4,S       STORE ON STACK AS BYTE COUNT
+  FC90 8E   FEEE             LDX    #MSG20    POINT TO MSG "S1"
+  FC93 17   011A             LBSR   PSTRNG    PRINT MSG
+  FC96 CB   03               ADDB   #3        ADD 3 BYTES TO BYTE COUNT
+  FC98 1F   98               TFR    B,A       GET BYTE COUNT IN A-ACC TO PUNCH
+  FC9A 17   00E7             LBSR   OUT2H     OUTPUT BYTE COUNT
+  FC9D AE   62               LDX    2,S       LOAD BEGIN ADDRESS
+  FC9F 17   00DA             LBSR   OUT4H     PUNCH ADDRESS
+  FCA2 EB   62               ADDB   2,S       ADD ADDR MSB TO CHECKSUM
+  FCA4 EB   63               ADDB   3,S       ADD ADDR LSB TO CHECKSUM
+  FCA6 EB   84       PUNCHL  ADDB   ,X        ADD DATA BYTE TO CHECKSUM
+  FCA8 A6   80               LDA    ,X+       LOAD DATA BYTE TO PUNCH
+  FCAA 17   00D7             LBSR   OUT2H     OUTPUT DATA BYTE
+  FCAD 6A   64               DEC    4,S       DECREMENT BYTE COUNT
+  FCAF 26   F5               BNE    PUNCHL    NOT DONE, PUNCH NEXT BYTE
+  FCB1 53                    COMB             1's COMPLIMENT CHECKSUM BYTE
+  FCB2 1F   98               TFR    B,A       GET IT IN A-ACC TO PUNCH
+  FCB4 17   00CD             LBSR   OUT2H     OUTPUT CHECKSUM BYTE
+  FCB7 AF   62               STX    2,S       SAVE X-REG IN STACK AS NEW PUNCH ADDR
+  FCB9 AC   E4               CMPX   ,S        COMPARE IT TO END ADDR
+  FCBB 26   C3               BNE    PUNCH2    $FCB5 PUNCH NOT DONE, CONT.
+  FCBD 86   14       PUNEXT  LDA    #$14      LOAD 'DC4' PUNCH OFF CODE
+  FCBF 17   012F             LBSR   OUTCH     OUTPUT IT
+  FCC2 32   65               LEAS   5,S       READJUST STACK POINTER
+  FCC4 39                    RTS
+                     
+                     
+  FCC5 8E   FEB1     PRTSP   LDX    #MSG10    POINT TO MSG "SP="
+  FCC8 17   00F5             LBSR   PDATA     PRINT MSG
+  FCCB 1F   31               TFR    U,X
+  FCCD 16   00AC             LBRA   OUT4H
+  FCD0 8E   FEBD     PRTUS   LDX    #MSG12    POINT TO MSG "US="
+  FCD3 17   00EA             LBSR   PDATA     PRINT MSG
+  FCD6 AE   48               LDX    8,U
+  FCD8 16   00A1             LBRA   OUT4H
+  FCDB 8E   FECF     PRTDP   LDX    #MSG15    POINT TO MSG "DP="
+  FCDE 17   00DF             LBSR   PDATA     PRINT MSG
+  FCE1 A6   43               LDA    3,U
+  FCE3 16   009E             LBRA   OUT2H     OUTPUT HEX BYTE AS ASCII
+  FCE6 8E   FEC9     PRTIX   LDX    #MSG14    POINT TO MSG "IX="
+  FCE9 17   00D4             LBSR   PDATA     PRINT MSG
+  FCEC AE   44               LDX    4,U       $FCE6
+  FCEE 16   008B             LBRA   OUT4H
+  FCF1 8E   FEC3     PRTIY   LDX    #MSG13    POINT TO MSG "IY="
+  FCF4 17   00C9             LBSR   PDATA     PRINT MSG
+  FCF7 AE   46               LDX    6,U
+  FCF9 16   0080             LBRA   OUT4H
+  FCFC 8E   FEB7     PRTPC   LDX    #MSG11    POINT TO MSG "PC="
+  FCFF 17   00BE             LBSR   PDATA     PRINT MSG
+  FD02 AE   4A               LDX    10,U
+  FD04 20   76               BRA    OUT4H
+  FD06 8E   FED5     PRTA    LDX    #MSG16    POINT TO MSG "A="
+  FD09 17   00B4             LBSR   PDATA     PRINT MSG
+  FD0C A6   41               LDA    1,U
+  FD0E 20   74               BRA    OUT2H     OUTPUT HEX BYTE AS ASCII
+  FD10 8E   FEDA     PRTB    LDX    #MSG17    POINT TO MSG "B="
+  FD13 17   00AA             LBSR   PDATA     PRINT MSG
+  FD16 A6   42               LDA    2,U
+  FD18 20   6A               BRA    OUT2H     OUTPUT HEX BYTE AS ASCII
+  FD1A 8E   FEDF     PRTCC   LDX    #MSG18    POINT TO MSG "CC:"
+  FD1D 17   00A0             LBSR   PDATA     PRINT MSG
+  FD20 A6   C4               LDA    ,U
+  FD22 8E   FEE6             LDX    #MSG19    POINT TO MSG "EFHINZVC"
+  FD25 20   73               BRA    BIASCI    OUTPUT IN BINARY/ASCII FORMAT
+                     
+                     * THE FOLLOWING ROUTINE LOOPS WAITING FOR THE
+                     * OPERATOR TO INPUT TWO VALID HEX ADDRESSES.
+                     * THE FIRST ADDRESS INPUT IS RETURNED IN "IY".
+                     * THE SECOND IS RETURNED IN "IX". THE "V" BIT
+                     * IN THE C-CODE REG. IS SET IF AN INVALID HEX
+                     * ADDRESS IS INPUT.
+                     
+  FD27 8D   09       IN2ADR  BSR    IN1ADR    GET FIRST ADDRESS
+  FD29 29   4E               BVS    NOTHEX    EXIT IF NOT VALID HEX
+  FD2B 1F   12               TFR    X,Y       SAVE FIRST ADDR. IN "IY"
+  FD2D 86   2D               LDA    #'-
+  FD2F 17   00BF             LBSR   OUTCH     PRINT " - "
+                     
+                     * THE FOLLOWING ROUTINE LOOPS WAITING FOR THE
+                     * OPERATOR TO INPUT ONE VALID HEX ADDRESS. THE
+                     * ADDRESS IS RETURNED IN THE "X" REGISTER.
+                     
+  FD32 8D   0F       IN1ADR  BSR    BYTE      INPUT BYTE (2 HEX CHAR)
+  FD34 29   43               BVS    NOTHEX    EXIT IF NOT VALID HEX
+  FD36 1F   01               TFR    D,X
+  FD38 8D   09               BSR    BYTE      INPUT BYTE (2 HEX CHAR)
+  FD3A 29   3D               BVS    NOTHEX
+  FD3C 34   10               PSHS   X
+  FD3E A7   61               STA    1,S
+  FD40 35   10               PULS   X
+  FD42 39                    RTS
+                     
+                     ***** INPUT BYTE (2 HEX CHAR.) *****
+                     
+  FD43 8D   11       BYTE    BSR    INHEX     GET HEX LEFT
+  FD45 29   32               BVS    NOTHEX    EXIT IF NOT VALID HEX
+  FD47 48                    ASLA
+  FD48 48                    ASLA
+  FD49 48                    ASLA             SHIFT INTO LEFT NIBBLE
+  FD4A 48                    ASLA
+  FD4B 1F   89               TFR    A,B       PUT HEXL IN "B"
+  FD4D 8D   07               BSR    INHEX     GET HEX RIGHT
+  FD4F 29   28               BVS    NOTHEX    EXIT IF NOT VALID HEX
+  FD51 34   04               PSHS   B         PUSH HEXL ON STACK
+  FD53 AB   E0               ADDA   ,S+       ADD HEXL TO HEXR AND ADJ. STK
+  FD55 39                    RTS              RETURN WITH HEX L&R IN "A"
+                     
+                     
+  FD56 8D   6F       INHEX   BSR    ECHON     INPUT ASCII CHAR.
+  FD58 81   30               CMPA   #'0       IS IT > OR = "0" ?
+  FD5A 25   1D               BCS    NOTHEX    IF LESS IT AIN'T HEX
+  FD5C 81   39               CMPA   #'9       IS IT < OR = "9" ?
+  FD5E 22   03               BHI    INHEXA    IF > MAYBE IT'S ALPHA
+  FD60 80   30               SUBA   #$30      ASCII ADJ. NUMERIC
+  FD62 39                    RTS
+                     
+                     
+  FD63 81   41       INHEXA  CMPA   #'A       IS IT > OR = "A"
+  FD65 25   12               BCS    NOTHEX    IF LESS IT AIN'T HEX
+  FD67 81   46               CMPA   #'F       IS IT < OR = "F" ?
+  FD69 22   03               BHI    INHEXL    IF > IT AIN'T HEX
+  FD6B 80   37               SUBA   #$37      ASCII ADJ. ALPHA
+  FD6D 39                    RTS
+                     
+  FD6E 81   61       INHEXL  CMPA   #'a       IS IT > OR = "a"
+  FD70 25   07               BCS    NOTHEX    IF LESS IT AIN'T HEX
+  FD72 81   66               CMPA   #'f       IS IT < "f"
+  FD74 22   03               BHI    NOTHEX    IF > IT AIN'T HEX
+  FD76 80   57               SUBA   #$57      ADJUST TO LOWER CASE
+  FD78 39                    RTS
+                     
+                     
+  FD79 1A   02       NOTHEX  ORCC   #2        SET (V) FLAG IN C-CODES REGISTER
+  FD7B 39                    RTS
+                     
+                     
+  FD7C 34   10       OUT4H   PSHS   X         PUSH X-REG. ON THE STACK
+  FD7E 35   02               PULS   A         POP MS BYTE OF X-REG INTO A-ACC.
+  FD80 8D   02               BSR    OUTHL     OUTPUT HEX LEFT
+  FD82 35   02               PULS   A         POP LS BYTE OF X-REG INTO A-ACC.
+               FD84  OUTHL   EQU    *
+  FD84 34   02       OUT2H   PSHS   A         SAVE IT BACK ON STACK
+  FD86 44                    LSRA             CONVERT UPPER HEX NIBBLE TO ASCII
+  FD87 44                    LSRA
+  FD88 44                    LSRA
+  FD89 44                    LSRA
+  FD8A 8D   04               BSR    XASCII    PRINT HEX NIBBLE AS ASCII
+  FD8C 35   02       OUTHR   PULS   A         CONVERT LOWER HEX NIBBLE TO ASCII
+  FD8E 84   0F               ANDA   #$0F      STRIP LEFT NIBBLE
+  FD90 8B   30       XASCII  ADDA   #$30      ASCII ADJ
+  FD92 81   39               CMPA   #$39      IS IT < OR = "9" ?
+  FD94 2F   02               BLE    OUTC      IF LESS, OUTPUT IT
+  FD96 8B   07               ADDA   #7        IF > MAKE ASCII LETTER
+  FD98 20   57       OUTC    BRA    OUTCH     OUTPUT CHAR
+                     
+                     * BINARY / ASCII --- THIS ROUTINE
+                     * OUTPUTS A BYTE IN ENHANCED
+                     * BINARY FORMAT. THE ENHANCEMENT
+                     * IS DONE BY SUBSTITUTING ASCII
+                     * LETTERS FOR THE ONES IN THE BYTE.
+                     * THE ASCII ENHANCEMENT LETTERS
+                     * ARE OBTAINED FROM THE STRING
+                     * POINTED TO BY THE INDEX REG. "X".
+                     
+  FD9A 34   02       BIASCI  PSHS   A         SAVE "A" ON STACK
+  FD9C C6   08               LDB    #8        PRESET LOOP# TO BITS PER BYTE
+  FD9E A6   80       OUTBA   LDA    ,X+       GET LETTER FROM STRING
+  FDA0 68   E4               ASL    ,S        TEST BYTE FOR "1" IN B7
+  FDA2 25   02               BCS    PRTBA     IF ONE PRINT LETTER
+  FDA4 86   2D               LDA    #'-       IF ZERO PRINT "-"
+  FDA6 8D   49       PRTBA   BSR    OUTCH     PRINT IT
+  FDA8 8D   45               BSR    OUT1S     PRINT SPACE
+  FDAA 5A                    DECB             SUB 1 FROM #BITS YET TO PRINT
+  FDAB 26   F1               BNE    OUTBA
+  FDAD 35   02               PULS   A
+  FDAF 39                    RTS
+                     
+                     * PRINT STRING PRECEEDED BY A CR & LF.
+                     
+  FDB0 8D   02       PSTRNG  BSR    PCRLF     PRINT CR/LF
+  FDB2 20   0C               BRA    PDATA     PRINT STRING POINTED TO BY IX
+                     
+                     * PCRLF
+                     
+  FDB4 34   10       PCRLF   PSHS   X         SAVE IX
+  FDB6 8E   FE78             LDX    #MSG2+1   POINT TO MSG CR/LF + 3 NULS
+  FDB9 8D   05               BSR    PDATA     PRINT MSG
+  FDBB 35   10               PULS   X         RESTORE IX
+  FDBD 39                    RTS
+  FDBE 8D   31       PRINT   BSR    OUTCH
+                     
+                     * PDATA
+                     
+  FDC0 A6   80       PDATA   LDA    ,X+       GET 1st CHAR. TO PRINT
+  FDC2 81   04               CMPA   #4        IS IT EOT?
+  FDC4 26   F8               BNE    PRINT     IF NOT EOT PRINT IT
+  FDC6 39                    RTS
+                     
+                     
+  FDC7 7D   DFE2     ECHON   TST    ECHO      IS ECHO REQUIRED ?
+  FDCA 27   06               BEQ    INCH      ECHO NOT REQ. IF CLEAR
+                     
+                     * INCHE
+                     
+                     * ---GETS CHARACTER FROM TERMINAL AND
+                     * ECHOS SAME. THE CHARACTER IS RETURNED
+                     * IN THE "A" ACCUMULATOR WITH THE PARITY
+                     * BIT MASKED OFF. ALL OTHER REGISTERS
+                     * ARE PRESERVED.
+                     
+  FDCC 8D   04       INCHE   BSR    INCH      GET CHAR FROM TERMINAL
+  FDCE 84   7F               ANDA   #$7F      STRIP PARITY FROM CHAR.
+  FDD0 20   1F               BRA    OUTCH     ECHO CHAR TO TERMINAL
+                     
+                     * INCH
+                     
+                     * GET CHARACTER FROM TERMINAL. RETURN
+                     * CHARACTER IN "A" ACCUMULATOR AND PRESERVE
+                     * ALL OTHER REGISTERS. THE INPUT CHARACTER
+                     * IS 8 BITS AND IS NOT ECHOED.
+                     
+                     
+  FDD2 34   10       INCH    PSHS   X         SAVE IX
+  FDD4 BE   DFE0             LDX    CPORT     POINT TO TERMINAL PORT
+  FDD7 A6   84       GETSTA  LDA    ,X        FETCH PORT STATUS
+  FDD9 85   01               BITA   #1        TEST READY BIT, RDRF ?
+  FDDB 27   FA               BEQ    GETSTA    IF NOT RDY, THEN TRY AGAIN
+  FDDD A6   01               LDA    1,X       FETCH CHAR
+  FDDF 35   10               PULS   X         RESTORE IX
+  FDE1 39                    RTS
+                     
+                     * INCHEK
+                     
+                     * CHECK FOR A CHARACTER AVAILABLE FROM
+                     * THE TERMINAL. THE SERIAL PORT IS CHECKED
+                     * FOR READ READY. ALL REGISTERS ARE
+                     * PRESERVED, AND THE "Z" BIT WILL BE
+                     * CLEAR IF A CHARACTER CAN BE READ.
+                     
+                     
+  FDE2 34   02       INCHEK  PSHS   A         SAVE A ACCUM.
+  FDE4 A6   9F DFE0          LDA    [CPORT]   FETCH PORT STATUS
+  FDE8 85   01               BITA   #1        TEST READY BIT, RDRF ?
+  FDEA 35   02               PULS   A         RESTORE A ACCUM.
+  FDEC 39                    RTS
+                     
+  FDED 8D   00       OUT2S   BSR    OUT1S     OUTPUT 2 SPACES
+  FDEF 86   20       OUT1S   LDA    #$20      OUTPUT 1 SPACE
+                     
+                     
+                     * OUTCH
+                     
+                     * OUTPUT CHARACTER TO TERMINAL.
+                     * THE CHAR. TO BE OUTPUT IS
+                     * PASSED IN THE A REGISTER.
+                     * ALL REGISTERS ARE PRESERVED.
+                     
+  FDF1 34   12       OUTCH   PSHS   A,X       SAVE A ACCUM AND IX
+  FDF3 BE   DFE0             LDX    CPORT     GET ADDR. OF TERMINAL
+  FDF6 A6   84       FETSTA  LDA    ,X        FETCH PORT STATUS
+  FDF8 85   02               BITA   #2        TEST TDRE, OK TO XMIT ?
+  FDFA 27   FA               BEQ    FETSTA    IF NOT LOOP UNTIL RDY
+  FDFC 35   02               PULS   A         GET CHAR. FOR XMIT
+  FDFE A7   01               STA    1,X       XMIT CHAR.
+  FE00 35   10               PULS   X         RESTORE IX
+  FE02 39                    RTS
+                     
+                     
+  FE03 BE   DFE0     ACINIZ  LDX    CPORT     POINT TO CONTROL PORT ADDRESS
+  FE06 86   03               LDA    #3        RESET ACIA PORT CODE
+  FE08 A7   84               STA    ,X        STORE IN CONTROL REGISTER
+  FE0A 86   11               LDA    #$11      SET 8 DATA, 2 STOP AN 0 PARITY
+  FE0C A7   84               STA    ,X        STORE IN CONTROL REGISTER
+  FE0E 6D   01               TST    1,X       ANYTHING IN DATA REGISTER?
+  FE10 86   FF               LDA    #$FF      TURN ON ECHO FLAG
+  FE12 B7   DFE2             STA    ECHO
+  FE15 39                    RTS
+                     
+                     
+                     * MONITOR KEYBOARD COMMAND JUMP TABLE
+                     
+                     
+               FE16  JMPTAB  EQU    *
+  FE16 01                    FCB    1         " ^A "  $F91D
+  FE17 F923                  FDB    ALTRA
+  FE19 02                    FCB    2         " ^B "  $F90F
+  FE1A F915                  FDB    ALTRB
+  FE1C 03                    FCB    3         " ^C "  $F92B
+  FE1D F931                  FDB    ALTRCC
+  FE1F 04                    FCB    4         " ^D "  $F901
+  FE20 F907                  FDB    ALTRDP
+  FE22 10                    FCB    $10       " ^P "  $F8C9
+  FE23 F8CF                  FDB    ALTRPC
+  FE25 15                    FCB    $15       " ^U "  $F8D7
+  FE26 F8DD                  FDB    ALTRU
+  FE28 18                    FCB    $18       " ^X "  $F8F3
+  FE29 F8F9                  FDB    ALTRX
+  FE2B 19                    FCB    $19       " ^Y "  $F8E5
+  FE2C F8EB                  FDB    ALTRY
+                     
+  FE2E 42                    FCC    'B'
+  FE2F FA7E                  FDB    BRKPNT    *$FA78
+  FE31 44                    FCC    'D'
+  FE32 FAF7                  FDB    DBOOT     *$FAF1
+  FE34 45                    FCC    'E'
+  FE35 F996                  FDB    MEMDUMP   *$F990
+  FE37 47                    FCC    'G'
+  FE38 F8A5                  FDB    GO        *$F89F
+  FE3A 4C                    FCC    'L'
+  FE3B FC0F                  FDB    LOAD      *$FC09
+  FE3D 4D                    FCC    'M'
+  FE3E F941                  FDB    MEMCHG    *$F93B
+  FE40 50                    FCC    'P'
+  FE41 FC6A                  FDB    PUNCH     *$FC64
+  FE43 51                    FCC    'Q'
+  FE44 F9F5                  FDB    MEMTST    *$F9EF
+  FE46 52                    FCC    'R'
+  FE47 F8A8                  FDB    REGSTR    *$F8A2
+  FE49 53                    FCC    'S'
+  FE4A F98A                  FDB    DISSTK    *$F984
+  FE4C 55                    FCC    'U'
+  FE4D FBB6                  FDB    MINBOOT   *$FBB0
+  FE4F 58                    FCC    'X'
+  FE50 FAAA                  FDB    XBKPNT    *$FAA4
+                     
+               FE52  TABEND  EQU    *
+                     
+                     * ** 6809 VECTOR ADDRESSES **
+                     
+                     * FOLLOWING ARE THE ADDRESSES OF THE VECTOR ROUTINES
+                     * FOR THE 6809 PROCESSOR. DURING INITIALIZATION THEY
+                     * ARE RELOCATED TO RAM FROM $DFC0 TO $DFCF. THEY ARE
+                     * RELOCATED TO RAM SO THAT THE USER MAY REVECTOR TO
+                     * HIS OWN ROUTINES IF HE SO DESIRES.
+                     
+                     
+  FE52 FAB6          RAMVEC  FDB    SWIE      USER-V
+  FE54 F8A7                  FDB    RTI       SWI3-V
+  FE56 F8A7                  FDB    RTI       SWI2-V
+  FE58 F8A7                  FDB    RTI       FIRQ-V
+  FE5A F8A7                  FDB    RTI       IRQ-V
+  FE5C FAB6                  FDB    SWIE      SWI-V
+  FE5E FFFF                  FDB    $FFFF     SVC-VO
+  FE60 FFFF                  FDB    $FFFF     SVC-VL
+                     
+                     * PRINTABLE MESSAGE STRINGS
+                     
+  FE62 00 00 00 0D   MSG1    FCB    $0,$0,$0,$D,$A,$0,$0,$0 * 0, CR/LF, 0
+  FE66 0A 00 00 00   
+  FE6A 53 2D 42 55           FCC    'S-BUG 1.8 - '
+  FE6E 47 20 31 2E   
+  FE72 38 20 2D 20   
+  FE76 04                    FCB    4
+  FE77 4B 0D 0A 00   MSG2    FCB    'K,$D,$A,$0,$0,$0,4 K, * CR/LF + 3 NULS
+  FE7B 00 00 04      
+  FE7E 3E            MSG3    FCC    '>'
+  FE7F 04                    FCB    4
+  FE80 57 48 41 54   MSG4    FCC    'WHAT?'
+  FE84 3F            
+  FE85 04                    FCB    4
+  FE86 20 2D 20      MSG5    FCC    ' - '
+  FE89 04                    FCB    4
+  FE8A 2C 20 50 41   MSG6    FCC    ', PASS '
+  FE8E 53 53 20      
+  FE91 04                    FCB    4
+  FE92 2C 20 42 49   MSG7    FCC    ', BITS IN ERROR: '
+  FE96 54 53 20 49   
+  FE9A 4E 20 45 52   
+  FE9E 52 4F 52 3A   
+  FEA2 20            
+  FEA3 04                    FCB    4
+  FEA4 20 3D 3E 20   MSG8    FCC    ' => '
+  FEA8 04                    FCB    4
+  FEA9 37 36 35 34   MSG9    FCC    '76543210'
+  FEAD 33 32 31 30   
+  FEB1 20 20 53 50   MSG10   FCC    '  SP='
+  FEB5 3D            
+  FEB6 04                    FCB    4
+  FEB7 20 20 50 43   MSG11   FCC    '  PC='
+  FEBB 3D            
+  FEBC 04                    FCB    4
+  FEBD 20 20 55 53   MSG12   FCC    '  US='
+  FEC1 3D            
+  FEC2 04                    FCB    4
+  FEC3 20 20 49 59   MSG13   FCC    '  IY='
+  FEC7 3D            
+  FEC8 04                    FCB    4
+  FEC9 20 20 49 58   MSG14   FCC    '  IX='
+  FECD 3D            
+  FECE 04                    FCB    4
+  FECF 20 20 44 50   MSG15   FCC    '  DP='
+  FED3 3D            
+  FED4 04                    FCB    4
+  FED5 20 20 41 3D   MSG16   FCC    '  A='
+  FED9 04                    FCB    4
+  FEDA 20 20 42 3D   MSG17   FCC    '  B='
+  FEDE 04                    FCB    4
+  FEDF 20 20 43 43   MSG18   FCC    '  CC: '
+  FEE3 3A 20         
+  FEE5 04                    FCB    4
+  FEE6 45 46 48 49   MSG19   FCC    'EFHINZVC'
+  FEEA 4E 5A 56 43   
+  FEEE 53 31         MSG20   FCC    'S1'
+  FEF0 04                    FCB    4
+                     
+                     * MESSAGE EXPANSION AREA
+                     
+  FEF1 FF FF FF FF           FCB    $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+  FEF5 FF FF FF FF   
+  FEF9 FF FF FF FF           FCB    $FF,$FF,$FF,$FF,$FF,$FF,$FF
+  FEFD FF FF FF      
+                     
+                     * POWER UP/ RESET/ NMI ENTRY POINT
+                     
+  FF00                       ORG    $FF00
+                     
+                     
+  FF00 8E   FFF0     START   LDX    #IC11     POINT TO DAT RAM IC11
+  FF03 86   0F               LDA    #$F       GET COMPLIMENT OF ZERO
+                     
+                     
+                     * INITIALIZE DAT RAM --- LOADS $F-$0 IN LOCATIONS $0-$F
+                     * OF DAT RAM, THUS STORING COMPLEMENT OF MSB OF ADDRESS
+                     * IN THE DAT RAM. THE COMPLEMENT IS REQUIRED BECAUSE THE
+                     * OUTPUT OF IC11, A 74S189, IS THE INVERSE OF THE DATA
+                     * STORED IN IT.
+                     
+                     
+  FF05 A7   80       DATLP   STA    ,X+       STORE & POINT TO NEXT RAM LOCATION
+  FF07 4A                    DECA             GET COMP. VALUE FOR NEXT LOCATION
+  FF08 26   FB               BNE    DATLP     ALL 16 LOCATIONS INITIALIZED ?
+                     
+                     * NOTE: IX NOW CONTAINS $0000, DAT RAM IS NO LONGER
+                     *       ADDRESSED, AND LOGICAL ADDRESSES NOW EQUAL
+                     *       PHYSICAL ADDRESSES.
+                     
+  FF0A 86   F0               LDA    #$F0
+  FF0C A7   84               STA    ,X        STORE $F0 AT $FFFF
+  FF0E 8E   D0A0             LDX    #$D0A0    ASSUME RAM TO BE AT $D000-$DFFF
+  FF11 108E 55AA             LDY    #TSTPAT   LOAD TEST DATA PATTERN INTO "Y"
+  FF15 EE   84       TSTRAM  LDU    ,X        SAVE DATA FROM TEST LOCATION
+  FF17 10AF 84               STY    ,X        STORE TEST PATTERN AT $D0A0
+  FF1A 10AC 84               CMPY   ,X        IS THERE RAM AT THIS LOCATION ?
+  FF1D 27   0B               BEQ    CNVADR    IF MATCH THERE'S RAM, SO SKIP
+  FF1F 30   89 F000          LEAX   -$1000,X  ELSE POINT 4K LOWER
+  FF23 8C   F0A0             CMPX   #$F0A0    DECREMENTED PAST ZER0 YET ?
+  FF26 26   ED               BNE    TSTRAM    IF NOT CONTINUE TESTING FOR RAM
+  FF28 20   D6               BRA    START     ELSE START ALL OVER AGAIN
+                     
+                     
+                     * THE FOLLOWING CODE STORES THE COMPLEMENT OF
+                     * THE MS CHARACTER OF THE FOUR CHARACTER HEX
+                     * ADDRESS OF THE FIRST 4K BLOCK OF RAM LOCATED
+                     * BY THE ROUTINE "TSTRAM" INTO THE DAT RAM. IT
+                     * IS STORED IN RAM IN THE LOCATION THAT IS
+                     * ADDRESSED WHEN THE PROCESSOR ADDRESS IS $D---,
+                     * THUS IF THE FIRST 4K BLOCK OF RAM IS FOUND
+                     * WHEN TESTING LOCATION $70A0, MEANING THERE
+                     * IS NO RAM PHYSICALLY ADDRESSED IN THE RANGE
+                     * $8000-$DFFF, THEN THE COMPLEMENT OF THE
+                     * "7" IN THE $70A0 WILL BE STORED IN
+                     * THE DAT RAM. THUS WHEN THE PROCESSOR OUTPUTS
+                     * AN ADDRESS OF $D---, THE DAT RAM WILL RESPOND
+                     * BY RECOMPLEMENTING THE "7" AND OUTPUTTING THE
+                     * 7 ONTO THE A12-A15 ADDRESS LINES. THUS THE
+                     * RAM THAT IS PHYSICALLY ADDRESSED AT $7---
+                     * WILL RESPOND AND APPEAR TO THE 6809 THAT IT
+                     * IS AT $D--- SINCE THAT IS THE ADDRESS THE
+                     * 6809 WILL BE OUTPUTING WHEN THAT 4K BLOCK
+                     * OF RAM RESPONDS.
+                     
+                     
+  FF2A EF   84       CNVADR  STU    ,X        RESTORE DATA AT TEST LOCATION
+  FF2C 1F   10               TFR    X,D       PUT ADDR. OF PRESENT 4K BLOCK IN D
+  FF2E 43                    COMA             COMPLEMENT MSB OF THAT ADDRESS
+  FF2F 44                    LSRA             PUT MS 4 BITS OF ADDRESS IN
+  FF30 44                    LSRA             LOCATION D0-D3 TO ALLOW STORING
+  FF31 44                    LSRA             IT IN THE DYNAMIC ADDRESS
+  FF32 44                    LSRA             TRANSLATION RAM.
+  FF33 B7   FFFD             STA    $FFFD     STORE XLATION FACTOR IN DAT "D"
+                     
+  FF36 10CE DFC0             LDS    #STACK    INITIALIZE STACK POINTER
+                     
+                     
+                     * THE FOLLOWING CHECKS TO FIND THE REAL PHYSICAL ADDRESSES
+                     * OF ALL 4K BLKS OF RAM IN THE SYSTEM. WHEN EACH 4K BLK
+                     * OF RAM IS LOCATED, THE COMPLEMENT OF IT'S REAL ADDRESS
+                     * IS THEN STORED IN A "LOGICAL" TO "REAL" ADDRESS XLATION
+                     * TABLE THAT IS BUILT FROM $DFD0 TO $DFDF. FOR EXAMPLE IF
+                     * THE SYSTEM HAS RAM THAT IS PHYSICALLY LOCATED (WIRED TO
+                     * RESPOND) AT THE HEX LOCATIONS $0--- THRU $F---....
+                     
+                     *  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+                     * 4K 4K 4K 4K 4K 4K 4K 4K -- 4K 4K 4K 4K -- -- --
+                     
+                     * ....FOR A TOTAL OF 48K OF RAM, THEN THE TRANSLATION TABLE
+                     * CREATED FROM $DFD0 TO $DFDF WILL CONSIST OF THE FOLLOWING
+....
+                     
+                     *  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+                     * 0F 0E 0D 0C 0B 0A 09 08 06 05 00 00 04 03 F1 F0
+                     
+                     
+                     * HERE WE SEE THE LOGICAL ADDRESSES OF MEMORY FROM $0000-$7FFF
+                     * HAVE NOT BEEN SELECTED FOR RELOCATION SO THAT THEIR PHYSICAL
+                     * ADDRESS WILL = THEIR LOGICAL ADDRESS; HOWEVER, THE 4K BLOCK
+                     * PHYSICALLY AT $9000 WILL HAVE ITS ADDRESS TRANSLATED SO THAT
+                     * IT WILL LOGICALLY RESPOND AT $8000. LIKEWISE $A,$B, AND $C000
+                     * WILL BE TRANSLATED TO RESPOND TO $9000,$C000, AND $D000
+                     * RESPECTIVELY. THE USER SYSTEM WILL LOGICALLY APPEAR TO HAVE
+                     * MEMORY ADDRESSED AS FOLLOWS....
+                     
+                     *  0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+                     * 4K 4K 4K 4K 4K 4K 4K 4K 4K 4K -- -- 4K 4K -- --
+                     
+                     
+  FF3A 108E DFD0             LDY    #LRARAM   POINT TO LOGICAL/REAL ADDR. TABLE
+  FF3E A7   2D               STA    13,Y      STORE $D--- XLATION FACTOR AT $DFDD
+  FF40 6F   2E               CLR    14,Y      CLEAR $DFDE
+  FF42 86   F0               LDA    #$F0      DESTINED FOR IC8 AN MEM EXPANSION ?
+  FF44 A7   2F               STA    15,Y      STORE AT $DFDF
+  FF46 86   0C               LDA    #$0C      PRESET NUMBER OF BYTES TO CLEAR
+  FF48 6F   A6       CLRLRT  CLR    A,Y       CLEAR $DFDC THRU $DFD0
+  FF4A 4A                    DECA             SUB. 1 FROM BYTES LEFT TO CLEAR
+  FF4B 2A   FB               BPL    CLRLRT    CONTINUE IF NOT DONE CLEARING
+  FF4D 30   89 F000  FNDRAM  LEAX   -$1000,X  POINT TO NEXT LOWER 4K OF RAM
+  FF51 8C   F0A0             CMPX   #$F0A0    TEST FOR DECREMENT PAST ZERO
+  FF54 27   22               BEQ    FINTAB    SKIP IF FINISHED
+  FF56 EE   84               LDU    ,X        SAVE DATA AT CURRENT TEST LOCATION
+  FF58 108E 55AA             LDY    #TSTPAT   LOAD TEST DATA PATTERN INTO Y REG.
+  FF5C 10AF 84               STY    ,X        STORE TEST PATT. INTO RAM TEST LOC
+.
+  FF5F 10AC 84               CMPY   ,X        VERIFY RAM AT TEST LOCATION
+  FF62 26   E9               BNE    FNDRAM    IF NO RAM GO LOOK 4K LOWER
+  FF64 EF   84               STU    ,X        ELSE RESTORE DATA TO TEST LOCATION
+  FF66 108E DFD0             LDY    #LRARAM   POINT TO LOGICAL/REAL ADDR. TABLE
+  FF6A 1F   10               TFR    X,D       PUT ADDR. OF PRESENT 4K BLOCK IN D
+  FF6C 44                    LSRA             PUT MS 4 BITS OF ADDR. IN LOC. D0-D3
+  FF6D 44                    LSRA             TO ALLOW STORING IT IN THE DAT RAM
+.
+  FF6E 44                    LSRA
+  FF6F 44                    LSRA
+  FF70 1F   89               TFR    A,B       SAVE OFFSET INTO LRARAM TABLE
+  FF72 88   0F               EORA   #$0F      INVERT MSB OF ADDR. OF CURRENT 4K BLK
+  FF74 A7   A5               STA    B,Y       SAVE TRANSLATION FACTOR IN LRARAM TABLE
+  FF76 20   D5               BRA    FNDRAM    GO TRANSLATE ADDR. OF NEXT 4K BLK
+  FF78 86   F1       FINTAB  LDA    #$F1      DESTINED FOR IC8 AND MEM EXPANSION ?
+  FF7A 108E DFD0             LDY    #LRARAM   POINT TO LRARAM TABLE
+  FF7E A7   2E               STA    14,Y      STORE $F1 AT $DFCE
+                     
+                     * THE FOLLOWING CHECKS TO SEE IF THERE IS A 4K BLK OF
+                     * RAM LOCATED AT $C000-$CFFF. IF NONE THERE IT LOCATES
+                     * THE NEXT LOWER 4K BLK AN XLATES ITS ADDR SO IT
+                     * LOGICALLY RESPONDS TO THE ADDRESS $C---.
+                     
+                     
+  FF80 86   0C               LDA    #$0C      PRESET NUMBER HEX "C"
+  FF82 E6   A6       FINDC   LDB    A,Y       GET ENTRY FROM LRARAM TABLE
+  FF84 26   05               BNE    FOUNDC    BRANCH IF RAM THIS PHYSICAL ADDR.
+  FF86 4A                    DECA             ELSE POINT 4K LOWER
+  FF87 2A   F9               BPL    FINDC     GO TRY AGAIN
+  FF89 20   14               BRA    XFERTF
+  FF8B 6F   A6       FOUNDC  CLR    A,Y       CLR XLATION FACTOR OF 4K BLOCK FOUND
+  FF8D E7   2C               STB    $C,Y      GIVE IT XLATION FACTOR MOVING IT TO $C---
+                     
+                     * THE FOLLOWING CODE ADJUSTS THE TRANSLATION
+                     * FACTORS SUCH THAT ALL REMAINING RAM WILL
+                     * RESPOND TO A CONTIGUOUS BLOCK OF LOGICAL
+                     * ADDRESSES FROM $0000 AND UP....
+                     
+  FF8F 4F                    CLRA             START AT ZERO
+  FF90 1F   21               TFR    Y,X       START POINTER "X" START OF "LRARAM" TABLE.
+  FF92 E6   A6       COMPRS  LDB    A,Y       GET ENTRY FROM "LRARAM" TABLE
+  FF94 27   04               BEQ    PNTNXT    IF IT'S ZER0 SKIP
+  FF96 6F   A6               CLR    A,Y       ELSE ERASE FROM TABLE
+  FF98 E7   80               STB    ,X+       AND ENTER ABOVE LAST ENTRY- BUMP
+  FF9A 4C            PNTNXT  INCA             GET OFFSET TO NEXT ENTRY
+  FF9B 81   0C               CMPA   #$0C      LAST ENTRY YET ?
+  FF9D 2D   F3               BLT    COMPRS
+                     
+                     * THE FOLLOWING CODE TRANSFER THE TRANSLATION
+                     * FACTORS FROM THE LRARAM TABLE TO IC11 ON
+                     * THE MP-09 CPU CARD.
+                     
+  FF9F 8E   FFF0     XFERTF  LDX    #IC11     POINT TO DAT RAM IC11
+  FFA2 C6   10               LDB    #$10      GET NO. OF BYTES TO MOVE
+  FFA4 A6   A0       FETCH   LDA    ,Y+       GET BYTE AND POINT TO NEXT
+  FFA6 A7   80               STA    ,X+       POKE XLATION FACTOR IN IC11
+  FFA8 5A                    DECB             SUB 1 FROM BYTES TO MOVE
+  FFA9 26   F9               BNE    FETCH     CONTINUE UNTIL 16 MOVED
+  FFAB 53                    COMB             SET "B" NON-ZERO
+  FFAC F7   DFE2             STB    ECHO      TURN ON ECHO FLAG
+  FFAF 16   F862             LBRA   MONITOR   INITIALIZATION IS COMPLETE
+                     
+                     
+  FFB2 6E   9F DFC0  V1      JMP    [STACK]
+  FFB6 6E   9F DFC4  V2      JMP    [SWI2]
+  FFBA 6E   9F DFC6  V3      JMP    [FIRQ]
+  FFBE 6E   9F DFC8  V4      JMP    [IRQ]
+  FFC2 6E   9F DFCA  V5      JMP    [SWI]
+                     
+                     * SWI3 ENTRY POINT
+                     
+  FFC6 1F   43       SWI3E   TFR    S,U
+  FFC8 AE   4A               LDX    10,U      *$FFC8
+  FFCA E6   80               LDB    ,X+
+  FFCC AF   4A               STX    10,U
+  FFCE 4F                    CLRA
+  FFCF 58                    ASLB
+  FFD0 49                    ROLA
+  FFD1 BE   DFCC             LDX    SVCVO
+  FFD4 8C   FFFF             CMPX   #$FFFF
+  FFD7 27   0F               BEQ    SWI3Z
+  FFD9 30   8B               LEAX   D,X
+  FFDB BC   DFCE             CMPX   SVCVL
+  FFDE 22   08               BHI    SWI3Z
+  FFE0 34   10               PSHS   X
+  FFE2 EC   C4               LDD    ,U
+  FFE4 AE   44               LDX    4,U
+  FFE6 6E   F1               JMP    [,S++]
+  FFE8 37   1F       SWI3Z   PULU   A,B,X,CC,DP
+  FFEA EE   42               LDU    2,U
+  FFEC 6E   9F DFC2          JMP    [SWI3]
+                     
+                     * 6809 VECTORS
+                     
+  FFF0 FFB2                  FDB    V1        USER-V
+  FFF2 FFC6                  FDB    SWI3E     SWI3-V
+  FFF4 FFB6                  FDB    V2        SWI2-V
+  FFF6 FFBA                  FDB    V3        FIRQ-V
+  FFF8 FFBE                  FDB    V4        IRQ-V
+  FFFA FFC2                  FDB    V5        SWI-V
+  FFFC FFB2                  FDB    V1        NMI-V
+  FFFE FF00                  FDB    START     RESTART-V
+                     
+                             END
+
+0 ERROR(S) DETECTED
+
+SYMBOL TABLE:
+
+AAAREG F015   ACIAS  E004   ACINIZ FE03   ADDREG F000   ADJSK6 FA7B   
+AJDUMP F9A2   ALTAD  F930   ALTBD  F922   ALTCCD F940   ALTDPD F914   
+ALTPCD F8DC   ALTRA  F923   ALTRB  F915   ALTRCC F931   ALTRDP F907   
+ALTRPC F8CF   ALTRU  F8DD   ALTRX  F8F9   ALTRY  F8EB   ALTUD  F8EA   
+ALTXD  F906   ALTYD  F8F8   BACK   F986   BBBREG F016   BIASCI FD9A   
+BPADJ  FAF4   BPERR  FAA2   BPTBL  DFE3   BPTEST FAE4   BRKPNT FA7E   
+BYTE   FD43   CCCREG F040   CCREG  F010   CHANGE F974   CHRTN  F973   
+CLRLRT FF48   CLRSTK F82F   CNTREG F002   CNVADR FF2A   COMPRS FF92   
+COMREG F020   CPORT  DFE0   Comreg E018   DATLP  FF05   DBOOT  FAF7   
+DBOOT0 FB15   DBOOT1 FB5B   DBOOT2 FB5E   DBOOT3 FB6D   DBOOT4 FB77   
+DELAY  FC09   DISKWT FB22   DISSTK F98A   DLY    FBAC   DRVREG F024   
+Datreg E01B   Drvreg E014   ECHO   DFE2   ECHON  FDC7   EDPASC F9E1   
+EDPRTN F9A1   EDUMP  F9BD   ELOOP  F9CF   EXITBP FAA1   FETCH  FFA4   
+FETSTA FDF6   FFSTBL FADB   FINDC  FF82   FINTAB FF78   FIRQ   DFC6   
+FNDBP  FAEA   FNDRAM FF4D   FNDREL F84E   FORWRD F982   FOUNDC FF8B   
+GETSTA FDD7   GO     F8A5   GUDPAS FA61   IC11   FFF0   IN1ADR FD32   
+IN2ADR FD27   INCH   FDD2   INCHE  FDCC   INCHEK FDE2   INHEX  FD56   
+INHEXA FD63   INHEXL FD6E   IRQ    DFC8   JMPCMD F8A1   JMPTAB FE16   
+LOAD   FC0F   LOAD1  FC17   LOAD10 FC41   LOAD16 FC57   LOAD2  FC1A   
+LOAD21 FC62   LODERR FC56   LOOP   FBC1   LOOP1  FBD2   LOOP2  FBEC   
+LOOP3  FBF5   LOOP4  FC01   LOOP5  FC0B   LOOPA  F81D   LRA    FB84   
+LRARAM DFD0   MDUMP1 F99B   MEMC2  F948   MEMCHG F941   MEMDUM F996   
+MEMSET FA07   MEMTST F9F5   MINBOO FBB6   MONITO F814   MSG1   FE62   
+MSG10  FEB1   MSG11  FEB7   MSG12  FEBD   MSG13  FEC3   MSG14  FEC9   
+MSG15  FECF   MSG16  FED5   MSG17  FEDA   MSG18  FEDF   MSG19  FEE6   
+MSG2   FE77   MSG20  FEEE   MSG3   FE7E   MSG4   FE80   MSG5   FE86   
+MSG6   FE8A   MSG7   FE92   MSG8   FEA4   MSG9   FEA9   NEXTCM F861   
+NOTHEX FD79   NXTCH0 F88B   NXTCHR F88E   NXTLIN F9B1   OUT1S  FDEF   
+OUT2H  FD84   OUT2S  FDED   OUT4H  FD7C   OUTBA  FD9E   OUTC   FD98   
+OUTCH  FDF1   OUTHL  FD84   OUTHR  FD8C   PCRLF  FDB4   PDATA  FDC0   
+PERIOD F9EB   PNTNXT FF9A   PRASC  F9ED   PRINT  FDBE   PRIREG F014   
+PRTA   FD06   PRTB   FD10   PRTBA  FDA6   PRTCC  FD1A   PRTCMD F87F   
+PRTDP  FCDB   PRTIX  FCE6   PRTIY  FCF1   PRTPC  FCFC   PRTSP  FCC5   
+PRTUS  FCD0   PSTRNG FDB0   PUNCH  FC6A   PUNCH2 FC80   PUNCH3 FC8C   
+PUNCH4 FC8E   PUNCHL FCA6   PUNEXT FCBD   RAMVEC FE52   REGPR  FAC4   
+REGSTR F8A8   RELPAS F855   RPLSWI FACA   RTI    F8A7   SECREG F022   
+SKPDMP F9BA   STACK  DFC0   START  FF00   SUB1   FBB0   SVCVL  DFCE   
+SVCVO  DFCC   SWI    DFCA   SWI2   DFC4   SWI3   DFC2   SWI3E  FFC6   
+SWI3Z  FFE8   SWIE   FAB6   Secreg E01A   TABEND FE52   TEST1  FA19   
+TSTPAT 55AA   TSTRAM FF15   V1     FFB2   V2     FFB6   V3     FFBA   
+V4     FFBE   V5     FFC2   XASCII FD90   XBKPNT FAAA   XBPLP  FAB0   
+XFERTF FF9F   
+

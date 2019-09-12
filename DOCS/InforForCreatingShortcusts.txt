@@ -1,0 +1,13 @@
+﻿1.	Right Click on the memulator executable after you have unzipped the distribution zip file.
+2.	Select "Send To" from the context menu that pops up.
+3.	Right click the shortcut you just created on your desktop and select "Properties" from the context menu.
+4.	In the "Target" text box add the following to the command line (don't forget to put a space before the parameters):
+
+	-configfile="CONFIGFILES\FLEX2_config.xml"		if you want to emulate a 6800 running FLEX 2  with a Televideo Terminal, FD2 and MPT.
+	-configfile="CONFIGFILES\flex9_fd2_config.xml"	if you want to emulate a 6809 running FLEX 9  with a Televideo Terminal, FD2 and MPT.
+	-configfile="CONFIGFILES\OS9_config.xml"		if you want to emulate a 6809 running OS2LVL1 with a Televideo Terminal, FD2 and MPT.
+	-configfile="CONFIGFILES\UniFLEX_config.xml"	if you want to emulate a 6809 running UniFLEX with a Televideo Terminal, DMAF3 and MPID.
+
+5.	Set the working directory to the directory where the executable resides if it's not already there.
+
+Click OK and you should be able to run the desired emulation from the shortcut.

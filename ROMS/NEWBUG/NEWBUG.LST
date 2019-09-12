@@ -1,0 +1,1459 @@
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 1
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00001               *
+00002                        TTL     THEBUG           
+00003                        OPT     PAG              
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 2
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00004                        PAG                      
+00005               *
+00006               * DEBUG VARIABLE STORAGE
+00007               *
+00008         8000 IOADDR    EQU     $8000            
+00009         8004 CTLPORT   EQU     IOADDR+$4        
+00010         801C PIA       EQU     IOADDR+28        
+00011               *
+00012         A000 RAM       EQU     $A000            
+00013         F000 PROM      EQU     $F000            
+00014         E000 ROM       EQU     $E000            
+00015               *
+00016         8018 COMREG    EQU     IOADDR+24        
+00017         801B DATAREG   EQU     IOADDR+27        
+00018         801A SECREG    EQU     IOADDR+26        
+00019         8014 DRVREG    EQU     IOADDR+20        
+00020         003A PROMPT    EQU     ':               
+00021               *
+00022         A000           ORG     RAM              
+00023               *
+00024 A000         IRQ       RMB     2                
+00025 A002         BEGA      RMB     2                
+00026 A004         ENDA      RMB     2                
+00027 A006         NMI       RMB     2                
+00028 A008         SP        RMB     2                
+00029 A00A         PORTADR   RMB     2                
+00030 A00C         ECHFLG    RMB     1                
+00031 A00D         INXMSB    RMB     1                
+00032 A00E         INXLSB    RMB     1                
+00033 A00F         CHKSUM    RMB     1                
+00034 A010         TEMP16    RMB     2                
+00035 A012         SWI       RMB     2                
+00036 A014         CRC16     RMB     2                
+00037 A016         XTEMP     RMB     2                
+00038 A018         BREAKPT   RMB     15               
+00039         A027 BREAKND   EQU     *                
+00040 A027         PRNTFLG   RMB     1                
+00041 A028         PFLAG     RMB     1                
+00042               *
+00043         A047 BYTECT    EQU     RAM+$47          
+00044         A048 GOADDR    EQU     RAM+$48          
+00045               *
+00046         A0C0 STKORG    EQU     RAM+$C0          
+00047               *
+00048         A060           ORG     RAM+96           
+00049               *
+00050 A060         TSTACK    RMB     2                
+00051 A062         OPSAVE    RMB     1                
+00052 A063         PB1       RMB     1                
+00053 A064         PB2       RMB     1                
+00054 A065         PB3       RMB     1                
+00055 A066         PC1       RMB     1                
+00056 A067         PC2       RMB     1                
+00057 A068         BPOINT    RMB     4                
+00058 A06C         BKFLG     RMB     1                
+00059 A06D         BKFLG2    RMB     1                
+00060 A06E         MCONT     RMB     1                
+00061 A06F         TFLAG     RMB     1                
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 3
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00062 A070         BFLAG     RMB     1                
+00063 A071         MFLAG     RMB     1                
+00064 A072         XFLAG     RMB     1                
+00065 A073         BITE2     RMB     1                
+00066 A074         BITE3     RMB     1                
+00067 A075         XTEMP1    RMB     2                
+00068 A077         CRC0      RMB     2                
+00069 A079         TEMP      RMB     2                
+00070               *
+00071         A100 LDADDR    EQU     $A100            
+00072         0100 LOADCNT   EQU     $0100            
+00073               *
+00074               *
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 4
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00075                        PAG                      
+00076               *
+00077         E000           ORG     ROM              
+00078               *
+00079 E000 FE A000 IRQV      LDX     IRQ              
+00080 E003 6E 00             JMP     0,X              
+00081 E005 FE A012 SWIV      LDX     SWI              
+00082 E008 6E 00             JMP     0,X              
+00083 E00A FE A006 NMIV      LDX     NMI              
+00084 E00D 6E 00             JMP     0,X              
+00085               *
+00086 E00F B7 A0C1 PATCH     STA A   STKORG+1         
+00087 E012 CE E0A3           LDX     #RTIINS          
+00088 E015 FF A006           STX     NMI              
+00089 E018 FF A000           STX     IRQ              
+00090 E01B 7F A06F           CLR     TFLAG            
+00091 E01E 7F A06C           CLR     BKFLG            
+00092 E021 7F A06D           CLR     BKFLG2           
+00093 E024 7F A027           CLR     PRNTFLG          
+00094 E027 BD E200           JSR     PINIT            
+00095 E02A 39                RTS                      
+00096               *
+00097         E03F           ORG     ROM+$3F          
+00098 E03F 86 3F   LDABRT    LDA A   #$3F             
+00099 E041 8D 32             BSR     OUTCH            
+00100 E043 39                RTS                      
+00101               *
+00102         E047           ORG     ROM+$47          
+00103 E047 8D 0C   BADDR     BSR     BYTE             
+00104 E049 B7 A00D           STA A   INXMSB           
+00105 E04C 8D 07             BSR     BYTE             
+00106 E04E B7 A00E           STA A   INXLSB           
+00107 E051 FE A00D           LDX     INXMSB           
+00108 E054 39                RTS                      
+00109               *
+00110 E055 8D 53   BYTE      BSR     INHEX            
+00111 E057 48      BYTE1     ASL A                    
+00112 E058 48                ASL A                    
+00113 E059 48                ASL A                    
+00114 E05A 48                ASL A                    
+00115 E05B 16                TAB                      
+00116 E05C 8D 4C             BSR     INHEX            
+00117 E05E 1B                ABA                      
+00118 E05F 16                TAB                      
+00119 E060 FB A00F           ADD B   CHKSUM           
+00120 E063 F7 A00F           STA B   CHKSUM           
+00121 E066 39                RTS                      
+00122               *
+00123               *
+00124 E067 44      OUTHL     LSR A                    
+00125 E068 44                LSR A                    
+00126 E069 44                LSR A                    
+00127 E06A 44                LSR A                    
+00128 E06B 84 0F   OUTHR     AND A   #$0F             
+00129 E06D 8B 30             ADD A   #$30             
+00130 E06F 81 39             CMP A   #$39             
+00131 E071 23 02             BLS     OUTCH            
+00132 E073 8B 07             ADD A   #$07             
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 5
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00133               *
+00134 E075 7E E1D1 OUTCH     JMP     OUTEEE           
+00135 E078 7E E1AC INCH      JMP     INEEE            
+00136               *
+00137 E07B 8D F8   PDATA2    BSR     OUTCH            
+00138 E07D 08                INX                      
+00139 E07E A6 00   PDATA1    LDA A   0,X              
+00140 E080 81 04             CMP A   #4               
+00141 E082 26 F7             BNE     PDATA2           
+00142 E084 39                RTS                      
+00143               *
+00144         E08C           ORG     ROM+$8C          
+00145 E08C C6 15   ACIASET   LDA B   #$15             
+00146 E08E 86 03   ACIAS1    LDA A   #$03             
+00147 E090 A7 00             STA A   0,X              
+00148 E092 E7 00             STA B   0,X              
+00149 E094 39                RTS                      
+00150               *
+00151 E095 B6 A048 GO        LDA A   GOADDR           
+00152 E098 F6 A049           LDA B   GOADDR+1         
+00153 E09B BE A008           LDS     SP               
+00154 E09E 30                TSX                      
+00155 E09F A7 05             STA A   5,X              
+00156 E0A1 E7 06             STA B   6,X              
+00157 E0A3 3B      RTIINS    RTI                      
+00158               *
+00159 E0A4 31      JUMP      INS                      
+00160 E0A5 31                INS                      
+00161 E0A6 8D 9F   CALL      BSR     BADDR            
+00162 E0A8 6E 00             JMP     0,X              
+00163               *
+00164 E0AA 8D CC   INHEX     BSR     INCH             
+00165 E0AC 80 30   INHEX1    SUB A   #$30             
+00166 E0AE 2B 3F             BMI     ABORT            
+00167 E0B0 81 09             CMP A   #9               
+00168 E0B2 2F 0A             BLE     INHRET           
+00169 E0B4 81 11             CMP A   #$11             
+00170 E0B6 2B 37             BMI     ABORT            
+00171 E0B8 81 16             CMP A   #$16             
+00172 E0BA 2E 33             BGT     ABORT            
+00173 E0BC 80 07             SUB A   #7               
+00174 E0BE 39      INHRET    RTS                      
+00175               *
+00176 E0BF A6 00   OUT2H     LDA A   0,X              
+00177 E0C1 8D A4             BSR     OUTHL            
+00178 E0C3 A6 00             LDA A   0,X              
+00179 E0C5 08                INX                      
+00180 E0C6 20 A3             BRA     OUTHR            
+00181               *
+00182 E0C8 8D F5   OUT4HS    BSR     OUT2H            
+00183 E0CA 8D F3   OUT2HS    BSR     OUT2H            
+00184 E0CC 86 20   OUTS      LDA A   #$20             
+00185 E0CE 20 A5             BRA     OUTCH            
+00186               *
+00187 E0D0 8E A0C0 START     LDS     #STKORG          
+00188 E0D3 86 FF             LDA A   #$FF             
+00189 E0D5 BD E00F           JSR     PATCH            
+00190 E0D8 BD E2BA           JSR     SWICLR           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 6
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00191 E0DB BD E31D           JSR     SWISET           
+00192 E0DE CE 8004           LDX     #CTLPORT         
+00193 E0E1 8D A9             BSR     ACIASET          
+00194               *
+00195 E0E3 8E A0C0 MONITOR   LDS     #STKORG          
+00196 E0E6 BF A008           STS     SP               
+00197 E0E9 CE 8004 DEBUG     LDX     #CTLPORT         
+00198 E0EC FF A00A           STX     PORTADR          
+00199 E0EF BE A008 ABORT     LDS     SP               
+00200 E0F2 7F A00C           CLR     ECHFLG           
+00201 E0F5 8D 3C             BSR     PCRLFP           
+00202 E0F7 BD E1AC GETCMD    JSR     INEEE            
+00203               *
+00204               * LOOK UP COMMAND IN COMMAND TABLE
+00205               *
+00206 E0FA CE E36D           LDX     #CMDTBL          
+00207 E0FD A1 00   AGAIN     CMP A   0,X              
+00208 E0FF 27 0A             BEQ     FNDCMD           
+00209 E101 8C E409           CPX     #TBLEND          
+00210 E104 27 E9             BEQ     ABORT            
+00211               *
+00212 E106 08                INX                      
+00213 E107 08                INX                      
+00214 E108 08                INX                      
+00215 E109 20 F2             BRA     AGAIN            
+00216               *
+00217 E10B 8D BF   FNDCMD    BSR     OUTS             
+00218 E10D EE 01             LDX     1,X              
+00219 E10F AD 00             JSR     0,X              
+00220 E111 20 DC             BRA     ABORT            
+00221               *
+00222 E113 BF A008 SWIENT    STS     SP               
+00223 E116 30                TSX                      
+00224 E117 BD E2C7           JSR     SWISCL           
+00225 E11A 8D 02             BSR     REGS             
+00226 E11C 20 D1             BRA     ABORT            
+00227               *
+00228 E11E 8D 13   REGS      BSR     PCRLFP           
+00229 E120 FE A008           LDX     SP               
+00230 E123 08                INX                      
+00231 E124 8D A4             BSR     OUT2HS           
+00232 E126 8D A2             BSR     OUT2HS           
+00233 E128 8D A0             BSR     OUT2HS           
+00234 E12A 8D 9C             BSR     OUT4HS           
+00235 E12C 8D 9A             BSR     OUT4HS           
+00236 E12E CE A008           LDX     #SP              
+00237 E131 20 95             BRA     OUT4HS           
+00238               *
+00239 E133 CE E19C PCRLFP    LDX     #MCLOFF          
+00240 E136 7E E07E           JMP     PDATA1           
+00241               *
+00242 E139 BD E047 CHANGE    JSR     BADDR            
+00243 E13C BD E260 MEMLOC    JSR     PCRLF            
+00244 E13F CE A00D           LDX     #INXMSB          
+00245 E142 8D 84             BSR     OUT4HS           
+00246 E144 FE A00D           LDX     INXMSB           
+00247 E147 8D 81             BSR     OUT2HS           
+00248 E149 09                DEX                      
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 7
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00249 E14A 8D 60   EATLSP    BSR     INEEE            
+00250 E14C 8D 1A             BSR     ALTER            
+00251 E14E 24 FA             BCC     EATLSP           
+00252 E150 81 20             CMP A   #$20             
+00253 E152 27 0F             BEQ     NEXADX           
+00254 E154 81 3A             CMP A   #PROMPT          
+00255 E156 27 20             BEQ     NOTHEX           
+00256 E158 81 0D             CMP A   #$0D             
+00257 E15A 27 1C             BEQ     NOTHEX           
+00258 E15C 81 5E             CMP A   #$5E             
+00259 E15E 26 02             BNE     NEXADR           
+00260 E160 09                DEX                      
+00261 E161 09                DEX                      
+00262 E162 08      NEXADR    INX                      
+00263 E163 FF A00D NEXADX    STX     INXMSB           
+00264 E166 20 D4             BRA     MEMLOC           
+00265 E168 81 30   ALTER     CMP A   #$30             
+00266 E16A 25 0C             BCS     NOTHEX           
+00267 E16C 81 3A             CMP A   #$3A             
+00268 E16E 25 0A             BCS     ALTER1           
+00269 E170 81 41             CMP A   #$41             
+00270 E172 25 04             BCS     NOTHEX           
+00271 E174 81 47             CMP A   #$47             
+00272 E176 25 02             BCS     ALTER1           
+00273 E178 0D      NOTHEX    SEC                      
+00274 E179 39                RTS                      
+00275 E17A BD E0AC ALTER1    JSR     INHEX1           
+00276 E17D BD E057           JSR     BYTE1            
+00277 E180 A7 00             STA A   0,X              
+00278 E182 A1 00             CMP A   0,X              
+00279 E184 27 03             BEQ     ALTER2           
+00280 E186 7E E03F           JMP     LDABRT           
+00281 E189 08      ALTER2    INX                      
+00282 E18A BD E21F           JSR     OUTS1            
+00283 E18D 0C                CLC                      
+00284 E18E 39                RTS                      
+00285               *
+00286         E19C           ORG     ROM+$19C         
+00287               *
+00288 E19C    13   MCLOFF    FCB     $13              
+00289 E19D    0D0A MCL       FCB     $D,$A,$15,0,0,0  
+00290 E1A3    3A04           FCB     PROMPT,4         
+00291               *
+00292 E1A5 FF A016 SAVEGET   STX     XTEMP            
+00293 E1A8 FE A00A           LDX     PORTADR          
+00294 E1AB 39                RTS                      
+00295               *
+00296 E1AC 8D 03   INEEE     BSR     INCH8            
+00297 E1AE 84 7F             AND A   #$7F             
+00298 E1B0 39                RTS                      
+00299               *
+00300 E1B1 37      INCH8     PSH B                    
+00301 E1B2 8D F1             BSR     SAVEGET          
+00302 E1B4 A6 00   ACIAIN    LDA A   0,X              
+00303 E1B6 47                ASR A                    
+00304 E1B7 24 FB             BCC     ACIAIN           
+00305 E1B9 A6 01             LDA A   1,X              
+00306 E1BB F6 A00C           LDA B   ECHFLG           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 8
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00307 E1BE 26 08             BNE     RET              
+00308 E1C0 E6 00   ACIAOUT   LDA B   0,X              
+00309 E1C2 57                ASR B                    
+00310 E1C3 57                ASR B                    
+00311 E1C4 24 FA             BCC     ACIAOUT          
+00312 E1C6 A7 01             STA A   1,X              
+00313 E1C8 33      RET       PUL B                    
+00314 E1C9 FE A016           LDX     XTEMP            
+00315 E1CC 39                RTS                      
+00316               *
+00317         E1D1           ORG     ROM+$1D1         
+00318               *
+00319 E1D1 37      OUTEEE    PSHB                     
+00320 E1D2 8D D1             BSR     SAVEGET          
+00321 E1D4 7D A027           TST     PRNTFLG          
+00322 E1D7 27 E7             BEQ     ACIAOUT          
+00323               *
+00324 E1D9 8D 14   POUT      BSR     PCHK             
+00325 E1DB 2A FC             BPL     POUT             
+00326 E1DD 7F A028           CLR     PFLAG            
+00327 E1E0 B7 801C           STA A   PIA              
+00328 E1E3 C6 36             LDA B   #$36             
+00329 E1E5 F7 801D           STA B   PIA+1            
+00330 E1E8 C6 3E             LDA B   #$3E             
+00331 E1EA F7 801D           STA B   PIA+1            
+00332 E1ED 20 D1             BRA     ACIAOUT          
+00333               *
+00334 E1EF 7D A028 PCHK      TST     PFLAG            
+00335 E1F2 2B 0B             BMI     PEXIT            
+00336 E1F4 7D 801D           TST     PIA+1            
+00337 E1F7 2A 06             BPL     PEXIT            
+00338 E1F9 7D 801C PREADY    TST     PIA              
+00339 E1FC 73 A028           COM     PFLAG            
+00340 E1FF 39      PEXIT     RTS                      
+00341               *
+00342 E200 86 3A   PINIT     LDA A   #$3A             
+00343 E202 B7 801D           STA A   PIA+1            
+00344 E205 86 FF             LDA A   #$FF             
+00345 E207 B7 801C           STA A   PIA              
+00346 E20A 86 3E             LDA A   #$3E             
+00347 E20C B7 801D           STA A   PIA+1            
+00348 E20F 39                RTS                      
+00349               *
+00350 E210 BD E047 GETPAIR   JSR     BADDR            
+00351 E213 8D 0A             BSR     OUTS1            
+00352 E215 FF A002           STX     BEGA             
+00353 E218 BD E047           JSR     BADDR            
+00354 E21B 08                INX                      
+00355 E21C FF A004           STX     ENDA             
+00356 E21F 7E E0CC OUTS1     JMP     OUTS             
+00357               *
+00358 E222 8D EC   TESTMD    BSR     GETPAIR          
+00359 E224 7F A010           CLR     TEMP16           
+00360 E227 8D 43   TESTD1    BSR     TESTMR           
+00361 E229 8D 48   TESTD2    BSR     TESTMX           
+00362 E22B FB A010           ADD B   TEMP16           
+00363 E22E E7 00             STA B   0,X              
+00364 E230 8D 4D             BSR     INCADR           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 9
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00365 E232 26 F5             BNE     TESTD2           
+00366 E234 8D 36             BSR     TESTMR           
+00367 E236 8D 3B   TESTD3    BSR     TESTMX           
+00368 E238 FB A010           ADD B   TEMP16           
+00369 E23B E8 00             EOR B   0,X              
+00370 E23D 27 0B             BEQ     TESTD4           
+00371 E23F F7 A00F           STA B   CHKSUM           
+00372 E242 8D 13             BSR     TESTADR          
+00373 E244 BD E0CA           JSR     OUT2HS           
+00374 E247 BD E0CA           JSR     OUT2HS           
+00375 E24A 8D 33   TESTD4    BSR     INCADR           
+00376 E24C 26 E8             BNE     TESTD3           
+00377 E24E BD E28A           JSR     OUTPLUS          
+00378 E251 7C A010           INC     TEMP16           
+00379 E254 26 D1             BNE     TESTD1           
+00380 E256 39                RTS                      
+00381 E257 BD E260 TESTADR   JSR     PCRLF            
+00382 E25A CE A00D           LDX     #INXMSB          
+00383 E25D 7E E0C8           JMP     OUT4HS           
+00384               *
+00385 E260 CE EA8C PCRLF     LDX     #CRLF            
+00386 E263 7E E07E           JMP     PDATA1           
+00387               *
+00388 E266 7F A014 TESTMC    CLR     CRC16            
+00389 E269 7F A015           CLR     CRC16+1          
+00390 E26C FE A002 TESTMR    LDX     BEGA             
+00391 E26F FF A00D           STX     INXMSB           
+00392 E272 39      TESTMO    RTS                      
+00393               *
+00394 E273 F6 A00D TESTMX    LDA B   INXMSB           
+00395 E276 FB A00E           ADD B   INXLSB           
+00396 E279 FE A00D           LDX     INXMSB           
+00397 E27C A6 00             LDA A   0,X              
+00398 E27E 39                RTS                      
+00399               *
+00400 E27F FE A00D INCADR    LDX     INXMSB           
+00401 E282 08                INX                      
+00402 E283 FF A00D           STX     INXMSB           
+00403 E286 BC A004           CPX     ENDA             
+00404 E289 39                RTS                      
+00405               *
+00406 E28A 86 2B   OUTPLUS   LDA A   #'+              
+00407 E28C 7E E1D1           JMP     OUTEEE           
+00408               *
+00409 E28F BD E047 BREAK     JSR     BADDR            
+00410 E292 A6 00             LDA A   0,X              
+00411 E294 81 3F             CMP A   #$3F             
+00412 E296 27 1F             BEQ     NOBREAK          
+00413 E298 B7 A00F           STA A   CHKSUM           
+00414 E29B 4F                CLR A                    
+00415 E29C 5F                CLR B                    
+00416 E29D 8D 60             BSR     SWISRCH          
+00417 E29F 25 16             BCS     NOBREAK          
+00418 E2A1 B6 A00D           LDA A   INXMSB           
+00419 E2A4 F6 A00E           LDA B   INXLSB           
+00420 E2A7 A7 00             STA A   0,X              
+00421 E2A9 E7 01             STA B   1,X              
+00422 E2AB B6 A00F           LDA A   CHKSUM           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 10
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00423 E2AE A7 02             STA A   2,X              
+00424 E2B0 EE 00             LDX     0,X              
+00425 E2B2 86 3F             LDA A   #$3F             
+00426 E2B4 A7 00             STA A   0,X              
+00427 E2B6 39                RTS                      
+00428               *
+00429 E2B7 7E E03F NOBREAK   JMP     LDABRT           
+00430               *
+00431 E2BA CE A018 SWICLR    LDX     #BREAKPT         
+00432 E2BD FF A010 SWINXT    STX     TEMP16           
+00433 E2C0 8D 29             BSR     CLRSWI           
+00434 E2C2 8D 4F             BSR     SWINXA           
+00435 E2C4 26 F7             BNE     SWINXT           
+00436 E2C6 39                RTS                      
+00437 E2C7 EE 05   SWISCL    LDX     5,X              
+00438 E2C9 FF A048           STX     GOADDR           
+00439 E2CC 09                DEX                      
+00440 E2CD FF A00D           STX     INXMSB           
+00441 E2D0 B6 A00D           LDA A   INXMSB           
+00442 E2D3 F6 A00E           LDA B   INXLSB           
+00443 E2D6 8D 27             BSR     SWISRCH          
+00444 E2D8 25 38             BCS     SSRCH3           
+00445 E2DA FF A010           STX     TEMP16           
+00446 E2DD 30                TSX                      
+00447 E2DE A7 07             STA A   7,X              
+00448 E2E0 E7 08             STA B   8,X              
+00449 E2E2 B7 A048           STA A   GOADDR           
+00450 E2E5 F7 A049           STA B   GOADDR+1         
+00451 E2E8 FE A010           LDX     TEMP16           
+00452 E2EB E6 02   CLRSWI    LDA B   2,X              
+00453 E2ED EE 00             LDX     0,X              
+00454 E2EF A6 00             LDA A   0,X              
+00455 E2F1 81 3F             CMP A   #$3F             
+00456 E2F3 26 09             BNE     CLRED            
+00457 E2F5 E7 00             STA B   0,X              
+00458 E2F7 FE A010           LDX     TEMP16           
+00459 E2FA 6F 00             CLR     0,X              
+00460 E2FC 6F 01             CLR     1,X              
+00461 E2FE 39      CLRED     RTS                      
+00462               *
+00463 E2FF CE A018 SWISRCH   LDX     #BREAKPT         
+00464 E302 FF A010 SSRCH1    STX     TEMP16           
+00465 E305 A1 00             CMP A   0,X              
+00466 E307 26 04             BNE     SSRCH2           
+00467 E309 E1 01             CMP B   1,X              
+00468 E30B 27 05             BEQ     SSRCH3           
+00469 E30D 8D 04   SSRCH2    BSR     SWINXA           
+00470 E30F 26 F1             BNE     SSRCH1           
+00471 E311 0D                SEC                      
+00472 E312 39      SSRCH3    RTS                      
+00473               *
+00474 E313 FE A010 SWINXA    LDX     TEMP16           
+00475 E316 08                INX                      
+00476 E317 08                INX                      
+00477 E318 08                INX                      
+00478 E319 8C A027           CPX     #BREAKND         
+00479 E31C 39                RTS                      
+00480               *
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 11
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00481 E31D CE E113 SWISET    LDX     #SWIENT          
+00482 E320 FF A012           STX     SWI              
+00483 E323 CE A018           LDX     #BREAKPT         
+00484 E326 6F 00   SWISE1    CLR     0,X              
+00485 E328 08                INX                      
+00486 E329 8C A027           CPX     #BREAKND         
+00487 E32C 26 F8             BNE     SWISE1           
+00488 E32E 39                RTS                      
+00489               *
+00490 E32F 4F      BOOT      CLR A                    
+00491 E330 B7 8014           STA A   DRVREG           
+00492 E333 CE FFFF           LDX     #$FFFF           
+00493 E336 08      BOOT0     INX                      
+00494 E337 09                DEX                      
+00495 E338 09                DEX                      
+00496 E339 26 FB             BNE     BOOT0            
+00497 E33B C6 0B             LDA B   #$0B             
+00498 E33D F7 8018           STA B   COMREG           
+00499 E340 8D 2A             BSR     RETURN           
+00500 E342 F6 8018 BLOOP1    LDA B   COMREG           
+00501 E345 C5 01             BIT B   #1               
+00502 E347 26 F9             BNE     BLOOP1           
+00503 E349 7F 801A           CLR     SECREG           
+00504 E34C 8D 1E             BSR     RETURN           
+00505 E34E C6 9C             LDA B   #$9C             
+00506 E350 F7 8018           STA B   COMREG           
+00507 E353 8D 17             BSR     RETURN           
+00508 E355 CE A100           LDX     #LDADDR          
+00509 E358 C5 02   BLOOP2    BIT B   #2               
+00510 E35A 27 06             BEQ     BLOOP3           
+00511 E35C B6 801B           LDA A   DATAREG          
+00512 E35F A7 00             STA A   0,X              
+00513 E361 08                INX                      
+00514 E362 F6 8018 BLOOP3    LDA B   COMREG           
+00515 E365 C5 01             BIT B   #1               
+00516 E367 26 EF             BNE     BLOOP2           
+00517 E369 7E A100           JMP     LDADDR           
+00518 E36C 39      RETURN    RTS                      
+00519               *
+00520               * COMMAND TABLE
+00521               *
+00522 E36D    41   CMDTBL    FCB     'A               
+00523 E36E    E8D6           FDB     ASCII            
+00524 E370    42             FCB     'B               
+00525 E371    E28F           FDB     BREAK            
+00526 E373    43             FCB     'C               
+00527 E374    E0A6           FDB     CALL             
+00528 E376    44             FCB     'D               
+00529 E377    E32F           FDB     BOOT             
+00530 E379    45             FCB     'E               
+00531 E37A    E139           FDB     CHANGE           
+00532 E37C    46             FCB     'F               
+00533 E37D    E8EC           FDB     FILL             
+00534 E37F    47             FCB     'G               
+00535 E380    E095           FDB     GO               
+00536 E382    48             FCB     'H               
+00537 E383    E03F           FDB     LDABRT           
+00538 E385    49             FCB     'I               
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 12
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00539 E386    E5A8           FDB     DISSA            
+00540 E388    4A             FCB     'J               
+00541 E389    E0A4           FDB     JUMP             
+00542 E38B    4B             FCB     'K               
+00543 E38C    E2BA           FDB     SWICLR           
+00544 E38E    4C             FCB     'L               
+00545 E38F    E91D           FDB     LOCATE           
+00546 E391    4D             FCB     'M               
+00547 E392    E419           FDB     MOVE             
+00548 E394    4E             FCB     'N               
+00549 E395    E03F           FDB     LDABRT           
+00550 E397    4F             FCB     'O               
+00551 E398    E03F           FDB     LDABRT           
+00552 E39A    50             FCB     'P               
+00553 E39B    E03F           FDB     LDABRT           
+00554 E39D    51             FCB     'Q               
+00555 E39E    E222           FDB     TESTMD           
+00556 E3A0    52             FCB     'R               
+00557 E3A1    E11E           FDB     REGS             
+00558 E3A3    53             FCB     'S               
+00559 E3A4    E03F           FDB     LDABRT           
+00560 E3A6    54             FCB     'T               
+00561 E3A7    E5B0           FDB     TRACE            
+00562 E3A9    55             FCB     'U               
+00563 E3AA    E03F           FDB     LDABRT           
+00564 E3AC    56             FCB     'V               
+00565 E3AD    E43E           FDB     VIEW             
+00566 E3AF    57             FCB     'W               
+00567 E3B0    E03F           FDB     LDABRT           
+00568 E3B2    58             FCB     'X               
+00569 E3B3    E03F           FDB     LDABRT           
+00570 E3B5    59             FCB     'Y               
+00571 E3B6    E03F           FDB     LDABRT           
+00572 E3B8    10             FCB     $10              
+00573 E3B9    E40C           FDB     HCOPY            
+00574 E3BB    5A             FCB     'Z               
+00575 E3BC    E03F           FDB     LDABRT           
+00576 E3BE    61             FCB     'a               
+00577 E3BF    E8D6           FDB     ASCII            
+00578 E3C1    62             FCB     'b               
+00579 E3C2    E28F           FDB     BREAK            
+00580 E3C4    63             FCB     'c               
+00581 E3C5    E0A6           FDB     CALL             
+00582 E3C7    64             FCB     'd               
+00583 E3C8    E32F           FDB     BOOT             
+00584 E3CA    65             FCB     'e               
+00585 E3CB    E139           FDB     CHANGE           
+00586 E3CD    66             FCB     'f               
+00587 E3CE    E8EC           FDB     FILL             
+00588 E3D0    67             FCB     'g               
+00589 E3D1    E095           FDB     GO               
+00590 E3D3    68             FCB     'h               
+00591 E3D4    E03F           FDB     LDABRT           
+00592 E3D6    69             FCB     'i               
+00593 E3D7    E5A8           FDB     DISSA            
+00594 E3D9    6A             FCB     'j               
+00595 E3DA    E0A4           FDB     JUMP             
+00596 E3DC    6B             FCB     'k               
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 13
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00597 E3DD    E2BA           FDB     SWICLR           
+00598 E3DF    6C             FCB     'l               
+00599 E3E0    E91D           FDB     LOCATE           
+00600 E3E2    6D             FCB     'm               
+00601 E3E3    E419           FDB     MOVE             
+00602 E3E5    6E             FCB     'n               
+00603 E3E6    E03F           FDB     LDABRT           
+00604 E3E8    6F             FCB     'o               
+00605 E3E9    E03F           FDB     LDABRT           
+00606 E3EB    70             FCB     'p               
+00607 E3EC    E03F           FDB     LDABRT           
+00608 E3EE    71             FCB     'q               
+00609 E3EF    E222           FDB     TESTMD           
+00610 E3F1    72             FCB     'r               
+00611 E3F2    E11E           FDB     REGS             
+00612 E3F4    73             FCB     's               
+00613 E3F5    E03F           FDB     LDABRT           
+00614 E3F7    74             FCB     't               
+00615 E3F8    E5B0           FDB     TRACE            
+00616 E3FA    75             FCB     'u               
+00617 E3FB    E03F           FDB     LDABRT           
+00618 E3FD    76             FCB     'v               
+00619 E3FE    E43E           FDB     VIEW             
+00620 E400    77             FCB     'w               
+00621 E401    E03F           FDB     LDABRT           
+00622 E403    78             FCB     'x               
+00623 E404    E03F           FDB     LDABRT           
+00624 E406    79             FCB     'y               
+00625 E407    E03F           FDB     LDABRT           
+00626 E409    7A   TBLEND    FCB     'z               
+00627 E40A    E03F           FDB     LDABRT           
+00628               *
+00629 E40C 86 FF   HCOPY     LDA A   #$FF             
+00630 E40E B7 A028           STA A   PFLAG            
+00631 E411 73 A027           COM     PRNTFLG          
+00632 E414 31                INS                      
+00633 E415 31                INS                      
+00634 E416 7E E0F7           JMP     GETCMD           
+00635               *
+00636 E419 BD E4E7 MOVE      JSR     LIMITS           
+00637 E41C CE EAAE           LDX     #TOADD           
+00638 E41F BD E4E1           JSR     BAD1             
+00639 E422 FE A002           LDX     BEGA             
+00640 E425 09                DEX                      
+00641 E426 08      MOVE1     INX                      
+00642 E427 A6 00             LDA A   0,X              
+00643 E429 FF A002           STX     BEGA             
+00644 E42C FE A00D           LDX     INXMSB           
+00645 E42F A7 00             STA A   0,X              
+00646 E431 08                INX                      
+00647 E432 FF A00D           STX     INXMSB           
+00648 E435 FE A002           LDX     BEGA             
+00649 E438 BC A004           CPX     ENDA             
+00650 E43B 26 E9             BNE     MOVE1            
+00651 E43D 39                RTS                      
+00652               *
+00653 E43E BD E4D9 VIEW      JSR     BAD2             
+00654 E441 86 08   V1        LDA A   #8               
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 14
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00655 E443 B7 A06E           STA A   MCONT            
+00656 E446 BD E260 V5        JSR     PCRLF            
+00657 E449 BD E49A           JSR     OUTXHI           
+00658 E44C C6 10             LDA B   #16              
+00659 E44E BD E0CA V9        JSR     OUT2HS           
+00660 E451 5A                DEC B                    
+00661 E452 C5 03             BIT B   #3               
+00662 E454 26 05             BNE     V10              
+00663 E456 BD E0CC           JSR     OUTS             
+00664 E459 C1 00             CMP B   #0               
+00665 E45B 26 F1   V10       BNE     V9               
+00666 E45D BD E260           JSR     PCRLF            
+00667 E460 C6 05             LDA B   #5               
+00668 E462 BD E491           JSR     SKIP             
+00669 E465 FE A00D           LDX     INXMSB           
+00670 E468 C6 10             LDA B   #16              
+00671 E46A A6 00   V2        LDA A   0,X              
+00672 E46C 81 20             CMP A   #$20             
+00673 E46E 25 04             BCS     V3               
+00674 E470 81 5F             CMP A   #$5F             
+00675 E472 25 02             BCS     V4               
+00676 E474 86 2E   V3        LDA A   #'.              
+00677 E476 BD E8D3 V4        JSR     OUTA             
+00678 E479 08                INX                      
+00679 E47A 5A                DEC B                    
+00680 E47B 26 ED             BNE     V2               
+00681 E47D FF A00D           STX     INXMSB           
+00682 E480 7A A06E           DEC     MCONT            
+00683 E483 26 C1             BNE     V5               
+00684 E485 BD E1AC           JSR     INEEE            
+00685 E488 81 20             CMP A   #$20             
+00686 E48A 27 B5             BEQ     V1               
+00687 E48C 81 56             CMP A   #'V              
+00688 E48E 27 AE             BEQ     VIEW             
+00689 E490 39                RTS                      
+00690               *
+00691 E491 86 20   SKIP      LDA A   #$20             
+00692 E493 BD E1D1           JSR     OUTEEE           
+00693 E496 5A                DEC B                    
+00694 E497 26 F8             BNE     SKIP             
+00695 E499 39                RTS                      
+00696               *
+00697 E49A CE A00D OUTXHI    LDX     #INXMSB          
+00698 E49D BD E0C8           JSR     OUT4HS           
+00699 E4A0 FE A00D           LDX     INXMSB           
+00700 E4A3 39                RTS                      
+00701               *
+00702 E4A4 B7 A047 PNTBYT    STA A   BYTECT           
+00703 E4A7 CE A047           LDX     #BYTECT          
+00704 E4AA 7E E0BF           JMP     OUT2H            
+00705               *
+00706 E4AD BF A008 SFE       STS     SP               
+00707 E4B0 30                TSX                      
+00708 E4B1 6D 06             TST     6,X              
+00709 E4B3 26 02             BNE     DECP             
+00710 E4B5 6A 05             DEC     5,X              
+00711 E4B7 6A 06   DECP      DEC     6,X              
+00712 E4B9 8E A060           LDS     #TSTACK          
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 15
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00713 E4BC 7D A06F           TST     TFLAG            
+00714 E4BF 27 4C             BEQ     PRINT            
+00715 E4C1 FE A066           LDX     PC1              
+00716 E4C4 B6 A062           LDA A   OPSAVE           
+00717 E4C7 A7 00             STA A   0,X              
+00718 E4C9 7D A070           TST     BFLAG            
+00719 E4CC 27 08             BEQ     DISPLY           
+00720 E4CE FE A068           LDX     BPOINT           
+00721 E4D1 B6 A06A           LDA A   BPOINT+2         
+00722 E4D4 A7 00             STA A   0,X              
+00723 E4D6 7E E5CC DISPLY    JMP     RETRN            
+00724               *
+00725 E4D9 CE EA98 BAD2      LDX     #FROMAD          
+00726 E4DC 20 03             BRA     BAD1             
+00727 E4DE CE EAA3 ENDADD    LDX     #THRUAD          
+00728 E4E1 BD E07E BAD1      JSR     PDATA1           
+00729 E4E4 7E E047           JMP     BADDR            
+00730 E4E7 8D F0   LIMITS    BSR     BAD2             
+00731 E4E9 FF A002           STX     BEGA             
+00732 E4EC 8D 05             BSR     DOLF             
+00733 E4EE 8D EE             BSR     ENDADD           
+00734 E4F0 FF A004           STX     ENDA             
+00735 E4F3 7E E260 DOLF      JMP     PCRLF            
+00736 E4F6 CE EA90 ADDR      LDX     #ADASC           
+00737 E4F9 20 E6             BRA     BAD1             
+00738 E4FB CE EAB7 VALUE     LDX     #VALASC          
+00739 E4FE BD E07E           JSR     PDATA1           
+00740 E501 7E E055           JMP     BYTE             
+00741               *
+00742 E504    4849 CSET      FCC     'HINZVC'         
+00743               *
+00744 E50A    5339 S9        FCC     'S9'             
+00745 E50C    04             FCB     4                
+00746               *
+00747 E50D FE A008 PRINT     LDX     SP               
+00748 E510 86 06             LDA A   #6               
+00749 E512 B7 A06E           STA A   MCONT            
+00750 E515 E6 01             LDA B   1,X              
+00751 E517 58                ASL B                    
+00752 E518 58                ASL B                    
+00753 E519 CE E504           LDX     #CSET            
+00754 E51C 86 2D   DSOOP     LDA A   #'-              
+00755 E51E 58                ASL B                    
+00756 E51F 24 02             BCC     DSOOP1           
+00757 E521 A6 00             LDA A   0,X              
+00758 E523 BD E1D1 DSOOP1    JSR     OUTEEE           
+00759 E526 08                INX                      
+00760 E527 7A A06E           DEC     MCONT            
+00761 E52A 26 F0             BNE     DSOOP            
+00762 E52C CE EA7B           LDX     #BREG            
+00763 E52F BD E07E           JSR     PDATA1           
+00764 E532 FE A008           LDX     SP               
+00765 E535 08                INX                      
+00766 E536 08                INX                      
+00767 E537 BD E0CA           JSR     OUT2HS           
+00768 E53A FF A079           STX     TEMP             
+00769 E53D CE EA7F           LDX     #AREG            
+00770 E540 BD E07E           JSR     PDATA1           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 16
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00771 E543 FE A079           LDX     TEMP             
+00772 E546 BD E0CA           JSR     OUT2HS           
+00773 E549 FF A079           STX     TEMP             
+00774 E54C CE EA82           LDX     #XREG            
+00775 E54F BD E07E           JSR     PDATA1           
+00776 E552 FE A079           LDX     TEMP             
+00777 E555 BD E0C8           JSR     OUT4HS           
+00778 E558 FF A079           STX     TEMP             
+00779 E55B 7D A06F           TST     TFLAG            
+00780 E55E 26 0C             BNE     PNTS             
+00781 E560 CE EA88           LDX     #PCTR            
+00782 E563 BD E07E           JSR     PDATA1           
+00783 E566 FE A079           LDX     TEMP             
+00784 E569 BD E0C8           JSR     OUT4HS           
+00785 E56C CE EA85 PNTS      LDX     #SREG            
+00786 E56F BD E07E           JSR     PDATA1           
+00787 E572 CE A008           LDX     #SP              
+00788 E575 7D A06F           TST     TFLAG            
+00789 E578 26 1A             BNE     PRINTS           
+00790 E57A BD E0C8           JSR     OUT4HS           
+00791 E57D B6 A06C           LDA A   BKFLG            
+00792 E580 27 0F             BEQ     C2               
+00793 E582 FE A064           LDX     PB2              
+00794 E585 A7 00             STA A   0,X              
+00795 E587 FE A06D           LDX     BKFLG2           
+00796 E58A 27 05             BEQ     C2               
+00797 E58C FE A066           LDX     PC1              
+00798 E58F A7 00             STA A   0,X              
+00799 E591 7E E0E3 C2        JMP     MONITOR          
+00800 E594 E6 00   PRINTS    LDA B   0,X              
+00801 E596 A6 01             LDA A   1,X              
+00802 E598 8B 07             ADD A   #7               
+00803 E59A C9 00             ADC B   #0               
+00804 E59C F7 A079           STA B   TEMP             
+00805 E59F B7 A07A           STA A   TEMP+1           
+00806 E5A2 CE A079           LDX     #TEMP            
+00807 E5A5 7E E0C8           JMP     OUT4HS           
+00808               *
+00809 E5A8 BD E4D9 DISSA     JSR     BAD2             
+00810 E5AB 7F A06F           CLR     TFLAG            
+00811 E5AE 20 24             BRA     DISS             
+00812               *
+00813 E5B0 CE E4AD TRACE     LDX     #SFE             
+00814 E5B3 FF A012           STX     SWI              
+00815 E5B6 BD E4D9           JSR     BAD2             
+00816 E5B9 BD E260           JSR     PCRLF            
+00817 E5BC FE A008           LDX     SP               
+00818 E5BF F6 A00D           LDA B   INXMSB           
+00819 E5C2 E7 06             STA B   6,X              
+00820 E5C4 B6 A00E           LDA A   INXLSB           
+00821 E5C7 A7 07             STA A   7,X              
+00822 E5C9 7C A06F KONTIN    INC     TFLAG            
+00823 E5CC BD E50D RETRN     JSR     PRINT            
+00824 E5CF FE A008           LDX     SP               
+00825 E5D2 EE 06             LDX     6,X              
+00826 E5D4 FF A066 DISS      STX     PC1              
+00827 E5D7 BD E260 DISIN     JSR     PCRLF            
+00828 E5DA CE A066           LDX     #PC1             
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 17
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00829 E5DD BD E0C8           JSR     OUT4HS           
+00830 E5E0 CE A070           LDX     #BFLAG           
+00831 E5E3 86 05             LDA A   #5               
+00832 E5E5 6F 00   CLEAR     CLR     0,X              
+00833 E5E7 08                INX                      
+00834 E5E8 4A                DEC A                    
+00835 E5E9 26 FA             BNE     CLEAR            
+00836 E5EB FE A066           LDX     PC1              
+00837 E5EE E6 00             LDA B   0,X              
+00838 E5F0 BD E0CA           JSR     OUT2HS           
+00839 E5F3 FF A066           STX     PC1              
+00840 E5F6 A6 00             LDA A   0,X              
+00841 E5F8 B7 A064           STA A   PB2              
+00842 E5FB A6 01             LDA A   1,X              
+00843 E5FD B7 A065           STA A   PB3              
+00844 E600 F7 A063           STA B   PB1              
+00845 E603 17                TBA                      
+00846 E604 BD E80F           JSR     TBLKUP           
+00847 E607 B6 A079           LDA A   TEMP             
+00848 E60A 81 2A             CMP A   #'*'             
+00849 E60C 26 03             BNE     OKOP             
+00850 E60E 7E E6D2           JMP     NOTBB            
+00851 E611 B6 A063 OKOP      LDA A   PB1              
+00852 E614 81 8D             CMP A   #$8D             
+00853 E616 26 05             BNE     NEXT             
+00854 E618 7C A070           INC     BFLAG            
+00855 E61B 20 2D             BRA     PUT1             
+00856 E61D 84 F0   NEXT      AND A   #$F0             
+00857 E61F 81 60             CMP A   #$60             
+00858 E621 27 18             BEQ     ISX              
+00859 E623 81 A0             CMP A   #$A0             
+00860 E625 27 14             BEQ     ISX              
+00861 E627 81 E0             CMP A   #$E0             
+00862 E629 27 10             BEQ     ISX              
+00863 E62B 81 80             CMP A   #$80             
+00864 E62D 27 04             BEQ     IMM              
+00865 E62F 81 C0             CMP A   #$C0             
+00866 E631 26 17             BNE     PUT1             
+00867 E633 7C A071 IMM       INC     MFLAG            
+00868 E636 CE EA69           LDX     #SPLBOO          
+00869 E639 20 0C             BRA     PUT              
+00870 E63B 7C A072 ISX       INC     XFLAG            
+00871 E63E B6 A064           LDA A   PB2              
+00872 E641 BD E4A4           JSR     PNTBYT           
+00873 E644 CE EA6C           LDX     #COMMX           
+00874 E647 BD E07E PUT       JSR     PDATA1           
+00875 E64A FE A066 PUT1      LDX     PC1              
+00876 E64D B6 A063           LDA A   PB1              
+00877 E650 81 8C             CMP A   #$8C             
+00878 E652 27 1D             BEQ     BYT3             
+00879 E654 81 8E             CMP A   #$8E             
+00880 E656 27 19             BEQ     BYT3             
+00881 E658 81 CE             CMP A   #$CE             
+00882 E65A 27 15             BEQ     BYT3             
+00883 E65C 84 F0             AND A   #$F0             
+00884 E65E 81 20             CMP A   #$20             
+00885 E660 26 05             BNE     NOTB             
+00886 E662 7C A070           INC     BFLAG            
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 18
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00887 E665 20 25             BRA     BYT2             
+00888 E667 81 60   NOTB      CMP A   #$60             
+00889 E669 25 43             BCS     BYT1             
+00890 E66B 84 30             AND A   #$30             
+00891 E66D 81 30             CMP A   #$30             
+00892 E66F 26 1B             BNE     BYT2             
+00893 E671 7C A074 BYT3      INC     BITE3            
+00894 E674 7D A071           TST     MFLAG            
+00895 E677 26 05             BNE     BYT31            
+00896 E679 86 24             LDA A   #'$'             
+00897 E67B BD E1D1           JSR     OUTEEE           
+00898 E67E A6 00   BYT31     LDA A   0,X              
+00899 E680 08                INX                      
+00900 E681 FF A066           STX     PC1              
+00901 E684 BD E4A4           JSR     PNTBYT           
+00902 E687 FE A066           LDX     PC1              
+00903 E68A 20 03             BRA     BYT21            
+00904 E68C 7C A073 BYT2      INC     BITE2            
+00905 E68F A6 00   BYT21     LDA A   0,X              
+00906 E691 08                INX                      
+00907 E692 FF A066           STX     PC1              
+00908 E695 7D A072           TST     XFLAG            
+00909 E698 26 14             BNE     BYT1             
+00910 E69A 7D A074           TST     BITE3            
+00911 E69D 26 0C             BNE     BYT22            
+00912 E69F 7D A071           TST     MFLAG            
+00913 E6A2 26 07             BNE     BYT22            
+00914 E6A4 16                TAB                      
+00915 E6A5 86 24             LDA A   #'$'             
+00916 E6A7 BD E1D1           JSR     OUTEEE           
+00917 E6AA 17                TBA                      
+00918 E6AB BD E4A4 BYT22     JSR     PNTBYT           
+00919 E6AE 7D A070 BYT1      TST     BFLAG            
+00920 E6B1 27 1F             BEQ     NOTBB            
+00921 E6B3 C6 03             LDA B   #3               
+00922 E6B5 BD E491           JSR     SKIP             
+00923 E6B8 4F                CLR A                    
+00924 E6B9 F6 A064           LDA B   PB2              
+00925 E6BC 2C 02             BGE     DPOS             
+00926 E6BE 86 FF             LDA A   #$FF             
+00927 E6C0 FB A067 DPOS      ADD B   PC2              
+00928 E6C3 B9 A066           ADC A   PC1              
+00929 E6C6 B7 A068           STA A   BPOINT           
+00930 E6C9 F7 A069           STA B   BPOINT+1         
+00931 E6CC CE A068           LDX     #BPOINT          
+00932 E6CF BD E0C8           JSR     OUT4HS           
+00933 E6D2 C6 0D   NOTBB     LDA B   #$0D             
+00934 E6D4 86 01             LDA A   #1               
+00935 E6D6 7D A073           TST     BITE2            
+00936 E6D9 27 19             BEQ     NOTBB3           
+00937 E6DB C6 01             LDA B   #1               
+00938 E6DD 7D A070           TST     BFLAG            
+00939 E6E0 26 0E             BNE     NOTBB2           
+00940 E6E2 C6 08             LDA B   #8               
+00941 E6E4 7D A071           TST     MFLAG            
+00942 E6E7 26 07             BNE     NOTBB2           
+00943 E6E9 7D A072           TST     XFLAG            
+00944 E6EC 26 02             BNE     NOTBB2           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 19
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+00945 E6EE C6 09             LDA B   #9               
+00946 E6F0 86 02   NOTBB2    LDA A   #2               
+00947 E6F2 20 10             BRA     NOTBB8           
+00948 E6F4 7D A074 NOTBB3    TST     BITE3            
+00949 E6F7 27 0B             BEQ     NOTBB8           
+00950 E6F9 86 03             LDA A   #3               
+00951 E6FB C6 06             LDA B   #6               
+00952 E6FD 7D A071           TST     MFLAG            
+00953 E700 27 02             BEQ     NOTBB8           
+00954 E702 C6 05             LDA B   #5               
+00955 E704 36      NOTBB8    PSH A                    
+00956 E705 BD E491           JSR     SKIP             
+00957 E708 33                PUL B                    
+00958 E709 CE A063           LDX     #PB1             
+00959 E70C A6 00   NOTBB4    LDA A   0,X              
+00960 E70E 81 20             CMP A   #$20             
+00961 E710 2F 04             BLE     NOTBB5           
+00962 E712 81 60             CMP A   #$60             
+00963 E714 2F 02             BLE     NOTBB9           
+00964 E716 86 2E   NOTBB5    LDA A   #'.'             
+00965 E718 08      NOTBB9    INX                      
+00966 E719 BD E1D1           JSR     OUTEEE           
+00967 E71C 5A                DEC B                    
+00968 E71D 26 ED             BNE     NOTBB4           
+00969 E71F BD E1AC NOT1      JSR     INEEE            
+00970 E722 16                TAB                      
+00971 E723 BD E0CC           JSR     OUTS             
+00972 E726 C1 20             CMP B   #$20             
+00973 E728 27 45             BEQ     DOT              
+00974 E72A FE A008 CHCBA     LDX     SP               
+00975 E72D 08                INX                      
+00976 E72E C1 43             CMP B   #'C'             
+00977 E730 27 1C             BEQ     RDC              
+00978 E732 08                INX                      
+00979 E733 C1 42             CMP B   #'B'             
+00980 E735 27 17             BEQ     RDC              
+00981 E737 08                INX                      
+00982 E738 C1 41             CMP B   #'A'             
+00983 E73A 27 12             BEQ     RDC              
+00984 E73C 08                INX                      
+00985 E73D C1 58             CMP B   #'X'             
+00986 E73F 27 07             BEQ     RDX              
+00987 E741 CE A008           LDX     #SP              
+00988 E744 C1 53             CMP B   #'S'             
+00989 E746 26 13             BNE     RETNOT           
+00990 E748 BD E055 RDX       JSR     BYTE             
+00991 E74B A7 00             STA A   0,X              
+00992 E74D 08                INX                      
+00993 E74E BD E055 RDC       JSR     BYTE             
+00994 E751 A7 00             STA A   0,X              
+00995 E753 BD E260           JSR     PCRLF            
+00996 E756 BD E50D           JSR     PRINT            
+00997 E759 20 C4             BRA     NOT1             
+00998 E75B BD E260 RETNOT    JSR     PCRLF            
+00999 E75E 8E A0C0           LDS     #STKORG          
+01000 E761 86 FF             LDA A   #$FF             
+01001 E763 BD E00F           JSR     PATCH            
+01002 E766 BD E2BA           JSR     SWICLR           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 20
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+01003 E769 BD E31D           JSR     SWISET           
+01004 E76C 7E E0E3           JMP     MONITOR          
+01005 E76F 7D A06F DOT       TST     TFLAG            
+01006 E772 26 03             BNE     DOT1             
+01007 E774 7E E5D7           JMP     DISIN            
+01008               *
+01009 E777 C6 3F   DOT1      LDA B   #$3F             
+01010 E779 B6 A063           LDA A   PB1              
+01011 E77C 81 8D             CMP A   #$8D             
+01012 E77E 26 09             BNE     TSTB             
+01013 E780 FE A068           LDX     BPOINT           
+01014 E783 FF A066           STX     PC1              
+01015 E786 7F A070           CLR     BFLAG            
+01016 E789 7D A070 TSTB      TST     BFLAG            
+01017 E78C 27 0C             BEQ     TSTJ             
+01018 E78E FE A068           LDX     BPOINT           
+01019 E791 A6 00             LDA A   0,X              
+01020 E793 B7 A06A           STA A   BPOINT+2         
+01021 E796 E7 00             STA B   0,X              
+01022 E798 20 44             BRA     EXEC             
+01023 E79A 81 6E   TSTJ      CMP A   #$6E             
+01024 E79C 27 14             BEQ     ISXD             
+01025 E79E 81 AD             CMP A   #$AD             
+01026 E7A0 27 10             BEQ     ISXD             
+01027 E7A2 81 7E             CMP A   #$7E             
+01028 E7A4 27 04             BEQ     ISJ              
+01029 E7A6 81 BD             CMP A   #$BD             
+01030 E7A8 26 1C             BNE     NOTJ             
+01031 E7AA FE A064 ISJ       LDX     PB2              
+01032 E7AD FF A066 ISJ1      STX     PC1              
+01033 E7B0 20 2C             BRA     EXEC             
+01034 E7B2 FE A008 ISXD      LDX     SP               
+01035 E7B5 A6 05             LDA A   5,X              
+01036 E7B7 BB A064           ADD A   PB2              
+01037 E7BA B7 A067           STA A   PC2              
+01038 E7BD A6 04             LDA A   4,X              
+01039 E7BF 89 00             ADC A   #0               
+01040 E7C1 B7 A066           STA A   PC1              
+01041 E7C4 20 18             BRA     EXEC             
+01042 E7C6 FE A008 NOTJ      LDX     SP               
+01043 E7C9 81 39             CMP A   #$39             
+01044 E7CB 26 04             BNE     NOTRTS           
+01045 E7CD EE 08   NOTJ1     LDX     8,X              
+01046 E7CF 20 06             BRA     EXR              
+01047 E7D1 81 3B   NOTRTS    CMP A   #$3B             
+01048 E7D3 26 05             BNE     NOTRTI           
+01049 E7D5 EE 0D             LDX     13,X             
+01050 E7D7 FF A066 EXR       STX     PC1              
+01051 E7DA 81 3F   NOTRTI    CMP A   #$3F             
+01052 E7DC 27 12             BEQ     NONO             
+01053 E7DE FE A066 EXEC      LDX     PC1              
+01054 E7E1 A6 00             LDA A   0,X              
+01055 E7E3 B7 A062           STA A   OPSAVE           
+01056 E7E6 E7 00             STA B   0,X              
+01057 E7E8 E1 00             CMP B   0,X              
+01058 E7EA 26 07             BNE     CHKROM           
+01059 E7EC BE A008 CONTG     LDS     SP               
+01060 E7EF 3B                RTI                      
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 21
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+01061 E7F0 7E E03F NONO      JMP     LDABRT           
+01062 E7F3 B6 A066 CHKROM    LDA A   PC1              
+01063 E7F6 81 C0             CMP A   #$C0             
+01064 E7F8 25 F6             BCS     NONO             
+01065 E7FA FE A008           LDX     SP               
+01066 E7FD B6 A063           LDA A   PB1              
+01067 E800 81 7E             CMP A   #$7E             
+01068 E802 27 C9             BEQ     NOTJ1            
+01069 E804 81 BD             CMP A   #$BD             
+01070 E806 26 E8             BNE     NONO             
+01071 E808 EE 06             LDX     6,X              
+01072 E80A 08                INX                      
+01073 E80B 08                INX                      
+01074 E80C 08                INX                      
+01075 E80D 20 9E             BRA     ISJ1             
+01076               *
+01077 E80F 81 40   TBLKUP    CMP A   #$40             
+01078 E811 24 26             BCC     TLU6             
+01079 E813 BD E8A7 TLU1      JSR     PNT3C            
+01080 E816 B6 A063           LDA A   PB1              
+01081 E819 81 32             CMP A   #$32             
+01082 E81B 27 11             BEQ     TLU3             
+01083 E81D 81 36             CMP A   #$36             
+01084 E81F 27 0D             BEQ     TLU3             
+01085 E821 81 33             CMP A   #$33             
+01086 E823 27 0E             BEQ     TLU4             
+01087 E825 81 37             CMP A   #$37             
+01088 E827 27 0A             BEQ     TLU4             
+01089 E829 CE EA6F TLU2      LDX     #BLANK           
+01090 E82C 20 08             BRA     TLU5             
+01091 E82E CE EA73 TLU3      LDX     #PNTA            
+01092 E831 20 03             BRA     TLU5             
+01093 E833 CE EA77 TLU4      LDX     #PNTB            
+01094 E836 7E E07E TLU5      JMP     PDATA1           
+01095               *
+01096 E839 81 4E   TLU6      CMP A   #$4E             
+01097 E83B 27 04             BEQ     TLU7             
+01098 E83D 81 5E             CMP A   #$5E             
+01099 E83F 26 03             BNE     TLU8             
+01100 E841 4F      TLU7      CLR A                    
+01101 E842 20 CF             BRA     TLU1             
+01102 E844 81 80   TLU8      CMP A   #$80             
+01103 E846 24 19             BCC     TLU9             
+01104 E848 84 4F             AND A   #$4F             
+01105 E84A BD E8A7           JSR     PNT3C            
+01106 E84D B6 A079           LDA A   TEMP             
+01107 E850 81 2A             CMP A   #'*'             
+01108 E852 27 D5             BEQ     TLU2             
+01109 E854 B6 A063           LDA A   PB1              
+01110 E857 81 60             CMP A   #$60             
+01111 E859 24 CE             BCC     TLU2             
+01112 E85B 84 10             AND A   #$10             
+01113 E85D 27 CF             BEQ     TLU3             
+01114 E85F 20 D2             BRA     TLU4             
+01115               *
+01116 E861 84 3F   TLU9      AND A   #$3F             
+01117 E863 81 0F             CMP A   #$0F             
+01118 E865 27 DA             BEQ     TLU7             
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 22
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+01119 E867 81 07             CMP A   #$07             
+01120 E869 27 D6             BEQ     TLU7             
+01121 E86B 84 0F             AND A   #$0F             
+01122 E86D 81 03             CMP A   #$03             
+01123 E86F 27 D0             BEQ     TLU7             
+01124 E871 81 0C             CMP A   #$0C             
+01125 E873 2C 0E             BGE     TLU10            
+01126 E875 8B 50             ADD A   #$50             
+01127 E877 BD E8A7           JSR     PNT3C            
+01128 E87A B6 A063           LDA A   PB1              
+01129 E87D 84 40             AND A   #$40             
+01130 E87F 27 AD             BEQ     TLU3             
+01131 E881 20 B0             BRA     TLU4             
+01132               *
+01133 E883 B6 A063 TLU10     LDA A   PB1              
+01134 E886 81 8D             CMP A   #$8D             
+01135 E888 26 04             BNE     TLU11            
+01136 E88A 86 53             LDA A   #$53             
+01137 E88C 20 85             BRA     TLU1             
+01138 E88E 81 C0   TLU11     CMP A   #$C0             
+01139 E890 24 0A             BCC     TLU12            
+01140 E892 81 9D             CMP A   #$9D             
+01141 E894 27 AB             BEQ     TLU7             
+01142 E896 84 0F             AND A   #$0F             
+01143 E898 8B 50             ADD A   #$50             
+01144 E89A 20 08             BRA     TLU13            
+01145 E89C 84 0F   TLU12     AND A   #$0F             
+01146 E89E 8B 52             ADD A   #$52             
+01147 E8A0 81 60             CMP A   #$60             
+01148 E8A2 2D 9D             BLT     TLU7             
+01149 E8A4 7E E813 TLU13     JMP     TLU1             
+01150               *
+01151 E8A7 5F      PNT3C     CLR B                    
+01152 E8A8 B7 A079           STA A   TEMP             
+01153 E8AB 48                ASL A                    
+01154 E8AC BB A079           ADD A   TEMP             
+01155 E8AF C9 00             ADC B   #0               
+01156 E8B1 CE E943           LDX     #TBL             
+01157 E8B4 FF A075           STX     XTEMP1           
+01158 E8B7 BB A076           ADD A   XTEMP1+1         
+01159 E8BA F9 A075           ADC B   XTEMP1           
+01160 E8BD F7 A075           STA B   XTEMP1           
+01161 E8C0 B7 A076           STA A   XTEMP1+1         
+01162 E8C3 FE A075           LDX     XTEMP1           
+01163 E8C6 A6 00             LDA A   0,X              
+01164 E8C8 B7 A079           STA A   TEMP             
+01165 E8CB 8D 06             BSR     OUTA             
+01166 E8CD A6 01             LDA A   1,X              
+01167 E8CF 8D 02             BSR     OUTA             
+01168 E8D1 A6 02             LDA A   2,X              
+01169 E8D3 7E E1D1 OUTA      JMP     OUTEEE           
+01170               *
+01171 E8D6 BD E4D9 ASCII     JSR     BAD2             
+01172 E8D9 08                INX                      
+01173 E8DA 09      ASCII1    DEX                      
+01174 E8DB BD E1AC ASCII2    JSR     INEEE            
+01175 E8DE 81 08             CMP A   #8               
+01176 E8E0 27 F8             BEQ     ASCII1           
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 23
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+01177 E8E2 A7 00             STA A   0,X              
+01178 E8E4 81 04             CMP A   #4               
+01179 E8E6 26 01             BNE     ASCII3           
+01180 E8E8 39                RTS                      
+01181 E8E9 08      ASCII3    INX                      
+01182 E8EA 20 EF             BRA     ASCII2           
+01183               *
+01184 E8EC BD E4E7 FILL      JSR     LIMITS           
+01185 E8EF BD E4FB           JSR     VALUE            
+01186 E8F2 FE A002           LDX     BEGA             
+01187 E8F5 09                DEX                      
+01188 E8F6 08      FILL2     INX                      
+01189 E8F7 A7 00             STA A   0,X              
+01190 E8F9 A1 00             CMP A   0,X              
+01191 E8FB 26 06             BNE     FILERR           
+01192 E8FD BC A004           CPX     ENDA             
+01193 E900 26 F4             BNE     FILL2            
+01194 E902 39                RTS                      
+01195 E903 FF A00D FILERR    STX     INXMSB           
+01196 E906 B7 A00F           STA A   CHKSUM           
+01197 E909 BD E0CC           JSR     OUTS             
+01198 E90C CE A00D           LDX     #INXMSB          
+01199 E90F BD E0C8           JSR     OUT4HS           
+01200 E912 FE A00D           LDX     INXMSB           
+01201 E915 BD E0CA           JSR     OUT2HS           
+01202 E918 B6 A00F           LDA A   CHKSUM           
+01203 E91B 20 D9             BRA     FILL2            
+01204               *
+01205 E91D BD E4E7 LOCATE    JSR     LIMITS           
+01206 E920 BD E4FB           JSR     VALUE            
+01207 E923 16                TAB                      
+01208 E924 FE A002           LDX     BEGA             
+01209 E927 09                DEX                      
+01210 E928 08      LOC1      INX                      
+01211 E929 A6 00             LDA A   0,X              
+01212 E92B 11                CBA                      
+01213 E92C 26 0F             BNE     LOC2             
+01214 E92E FF A00D           STX     INXMSB           
+01215 E931 BD E260           JSR     PCRLF            
+01216 E934 CE A00D           LDX     #INXMSB          
+01217 E937 BD E0C8           JSR     OUT4HS           
+01218 E93A FE A00D           LDX     INXMSB           
+01219 E93D BC A004 LOC2      CPX     ENDA             
+01220 E940 26 E6             BNE     LOC1             
+01221 E942 39                RTS                      
+01222               *
+01223               *
+01224               * COMPACTED MNEMONIC TBL
+01225               *
+01226 E943    2A2A TBL       FCC     '***NOP'         
+01227 E949    4E4F           FCC     'NOP***'         
+01228 E94F    2A2A           FCC     '******'         
+01229 E955    5441           FCC     'TAPTPA'         
+01230 E95B    494E           FCC     'INXDEX'         
+01231 E961    434C           FCC     'CLVSEV'         
+01232 E967    434C           FCC     'CLCSEC'         
+01233 E96D    434C           FCC     'CLISEI'         
+01234 E973    5342           FCC     'SBACBA'         
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 24
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+01235 E979    2A2A           FCC     '******'         
+01236 E97F    2A2A           FCC     '******'         
+01237 E985    5441           FCC     'TABTBA'         
+01238 E98B    2A2A           FCC     '***DAA'         
+01239 E991    2A2A           FCC     '***ABA'         
+01240 E997    2A2A           FCC     '******'         
+01241 E99D    2A2A           FCC     '******'         
+01242 E9A3    4252           FCC     'BRA***'         
+01243 E9A9    4248           FCC     'BHIBLS'         
+01244 E9AF    4243           FCC     'BCCBCS'         
+01245 E9B5    424E           FCC     'BNEBEQ'         
+01246 E9BB    4256           FCC     'BVCBVS'         
+01247 E9C1    4250           FCC     'BPLBMI'         
+01248 E9C7    4247           FCC     'BGEBLT'         
+01249 E9CD    4247           FCC     'BGTBLE'         
+01250 E9D3    5453           FCC     'TSXINS'         
+01251 E9D9    5055           FCC     'PULPUL'         
+01252 E9DF    4445           FCC     'DESTXS'         
+01253 E9E5    5053           FCC     'PSHPSH'         
+01254 E9EB    2A2A           FCC     '***RTS'         
+01255 E9F1    2A2A           FCC     '***RTI'         
+01256 E9F7    2A2A           FCC     '******'         
+01257 E9FD    5741           FCC     'WAISWI'         
+01258 EA03    4E45           FCC     'NEG***'         
+01259 EA09    2A2A           FCC     '***COM'         
+01260 EA0F    4C53           FCC     'LSR***'         
+01261 EA15    524F           FCC     'RORASR'         
+01262 EA1B    4153           FCC     'ASLROL'         
+01263 EA21    4445           FCC     'DEC***'         
+01264 EA27    494E           FCC     'INCTST'         
+01265 EA2D    4A4D           FCC     'JMPCLR'         
+01266 EA33    5355           FCC     'SUBCMP'         
+01267 EA39    5342           FCC     'SBCBSR'         
+01268 EA3F    414E           FCC     'ANDBIT'         
+01269 EA45    4C44           FCC     'LDASTA'         
+01270 EA4B    454F           FCC     'EORADC'         
+01271 EA51    4F52           FCC     'ORAADD'         
+01272 EA57    4350           FCC     'CPXJSR'         
+01273 EA5D    4C44           FCC     'LDSSTS'         
+01274 EA63    4C44           FCC     'LDXSTX'         
+01275 EA69    2324 SPLBOO    FCC     '#$'             
+01276 EA6B    04             FCB     4                
+01277 EA6C    2C58 COMMX     FCC     ',X'             
+01278 EA6E    04             FCB     4                
+01279 EA6F    2020 BLANK     FCC     '   '            
+01280 EA72    04             FCB     4                
+01281 EA73    2041 PNTA      FCC     ' A '            
+01282 EA76    04             FCB     4                
+01283 EA77    2042 PNTB      FCC     ' B '            
+01284 EA7A    04             FCB     4                
+01285 EA7B    2042 BREG      FCC     ' B='            
+01286 EA7E    04             FCB     4                
+01287 EA7F    413D AREG      FCC     'A='             
+01288 EA81    04             FCB     4                
+01289 EA82    583D XREG      FCC     'X='             
+01290 EA84    04             FCB     4                
+01291 EA85    533D SREG      FCC     'S='             
+01292 EA87    04             FCB     4                
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 25
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+01293 EA88    5043 PCTR      FCC     'PC='            
+01294 EA8B    04             FCB     4                
+01295 EA8C    0D0A CRLF      FCB     $0D,$0A          
+01296 EA8E    1504           FCB     $15,$04          
+01297 EA90    424B ADASC     FCC     'BKADDR '        
+01298 EA97    04             FCB     4                
+01299 EA98    4652 FROMAD    FCC     'FROM '          
+01300 EA9D    4144           FCC     'ADDR '          
+01301 EAA2    04             FCB     4                
+01302 EAA3    5448 THRUAD    FCC     'THRU '          
+01303 EAA8    4144           FCC     'ADDR '          
+01304 EAAD    04             FCB     4                
+01305 EAAE    544F TOADD     FCC     'TO ADDR '       
+01306 EAB6    04             FCB     4                
+01307 EAB7    5641 VALASC    FCC     'VALUE '         
+01308 EABD    04             FCB     4                
+01309               *
+01310         FFF8           ORG     ROM+$1FF8        
+01311               *
+01312 FFF8    E000 IRQTV     FDB     IRQV             
+01313 FFFA    E005 SWITV     FDB     SWIV             
+01314 FFFC    E00A NMITV     FDB     NMIV             
+01315 FFFE    E0D0 RESTART   FDB     START            
+01316               *
+01317         E0D0           END     START            
+
+No errors
+ASM68 6800 Assembler (c) 1988-1995 Evenson Consulting Services        Page 26
+FILE: d:\src\swtpcemu\newbug.asm      TITLE: THEBUG
+
+
+Symbol table
+
+
+ABORT    E0EF  ACIAIN   E1B4  ACIAOUT  E1C0  ACIAS1   E08E  ACIASET  E08C  
+ADASC    EA90  ADDR     E4F6  AGAIN    E0FD  ALTER    E168  ALTER1   E17A  
+ALTER2   E189  AREG     EA7F  ASCII    E8D6  ASCII1   E8DA  ASCII2   E8DB  
+ASCII3   E8E9  BAD1     E4E1  BAD2     E4D9  BADDR    E047  BEGA     A002  
+BFLAG    A070  BITE2    A073  BITE3    A074  BKFLG    A06C  BKFLG2   A06D  
+BLANK    EA6F  BLOOP1   E342  BLOOP2   E358  BLOOP3   E362  BOOT     E32F  
+BOOT0    E336  BPOINT   A068  BREAK    E28F  BREAKND  A027  BREAKPT  A018  
+BREG     EA7B  BYT1     E6AE  BYT2     E68C  BYT21    E68F  BYT22    E6AB  
+BYT3     E671  BYT31    E67E  BYTE     E055  BYTE1    E057  BYTECT   A047  
+C2       E591  CALL     E0A6  CHANGE   E139  CHCBA    E72A  CHKROM   E7F3  
+CHKSUM   A00F  CLEAR    E5E5  CLRED    E2FE  CLRSWI   E2EB  CMDTBL   E36D  
+COMMX    EA6C  COMREG   8018  CONTG    E7EC  CRC0     A077  CRC16    A014  
+CRLF     EA8C  CSET     E504  CTLPORT  8004  DATAREG  801B  DEBUG    E0E9  
+DECP     E4B7  DISIN    E5D7  DISPLY   E4D6  DISS     E5D4  DISSA    E5A8  
+DOLF     E4F3  DOT      E76F  DOT1     E777  DPOS     E6C0  DRVREG   8014  
+DSOOP    E51C  DSOOP1   E523  EATLSP   E14A  ECHFLG   A00C  ENDA     A004  
+ENDADD   E4DE  EXEC     E7DE  EXR      E7D7  FILERR   E903  FILL     E8EC  
+FILL2    E8F6  FNDCMD   E10B  FROMAD   EA98  GETCMD   E0F7  GETPAIR  E210  
+GO       E095  GOADDR   A048  HCOPY    E40C  IMM      E633  INCADR   E27F  
+INCH     E078  INCH8    E1B1  INEEE    E1AC  INHEX    E0AA  INHEX1   E0AC  
+INHRET   E0BE  INXLSB   A00E  INXMSB   A00D  IOADDR   8000  IRQ      A000  
+IRQTV    FFF8  IRQV     E000  ISJ      E7AA  ISJ1     E7AD  ISX      E63B  
+ISXD     E7B2  JUMP     E0A4  KONTIN   E5C9  LDABRT   E03F  LDADDR   A100  
+LIMITS   E4E7  LOADCNT  0100  LOC1     E928  LOC2     E93D  LOCATE   E91D  
+MCL      E19D  MCLOFF   E19C  MCONT    A06E  MEMLOC   E13C  MFLAG    A071  
+MONITOR  E0E3  MOVE     E419  MOVE1    E426  NEXADR   E162  NEXADX   E163  
+NEXT     E61D  NMI      A006  NMITV    FFFC  NMIV     E00A  NOBREAK  E2B7  
+NONO     E7F0  NOT1     E71F  NOTB     E667  NOTBB    E6D2  NOTBB2   E6F0  
+NOTBB3   E6F4  NOTBB4   E70C  NOTBB5   E716  NOTBB8   E704  NOTBB9   E718  
+NOTHEX   E178  NOTJ     E7C6  NOTJ1    E7CD  NOTRTI   E7DA  NOTRTS   E7D1  
+OKOP     E611  OPSAVE   A062  OUT2H    E0BF  OUT2HS   E0CA  OUT4HS   E0C8  
+OUTA     E8D3  OUTCH    E075  OUTEEE   E1D1  OUTHL    E067  OUTHR    E06B  
+OUTPLUS  E28A  OUTS     E0CC  OUTS1    E21F  OUTXHI   E49A  PATCH    E00F  
+PB1      A063  PB2      A064  PB3      A065  PC1      A066  PC2      A067  
+PCHK     E1EF  PCRLF    E260  PCRLFP   E133  PCTR     EA88  PDATA1   E07E  
+PDATA2   E07B  PEXIT    E1FF  PFLAG    A028  PIA      801C  PINIT    E200  
+PNT3C    E8A7  PNTA     EA73  PNTB     EA77  PNTBYT   E4A4  PNTS     E56C  
+PORTADR  A00A  POUT     E1D9  PREADY   E1F9  PRINT    E50D  PRINTS   E594  
+PRNTFLG  A027  PROM     F000  PROMPT   003A  PUT      E647  PUT1     E64A  
+RAM      A000  RDC      E74E  RDX      E748  REGS     E11E  RESTART  FFFE  
+RET      E1C8  RETNOT   E75B  RETRN    E5CC  RETURN   E36C  ROM      E000  
+RTIINS   E0A3  S9       E50A  SAVEGET  E1A5  SECREG   801A  SFE      E4AD  
+SKIP     E491  SP       A008  SPLBOO   EA69  SREG     EA85  SSRCH1   E302  
+SSRCH2   E30D  SSRCH3   E312  START    E0D0  STKORG   A0C0  SWI      A012  
+SWICLR   E2BA  SWIENT   E113  SWINXA   E313  SWINXT   E2BD  SWISCL   E2C7  
+SWISE1   E326  SWISET   E31D  SWISRCH  E2FF  SWITV    FFFA  SWIV     E005  
+TBL      E943  TBLEND   E409  TBLKUP   E80F  TEMP     A079  TEMP16   A010  
+TESTADR  E257  TESTD1   E227  TESTD2   E229  TESTD3   E236  TESTD4   E24A  
+TESTMC   E266  TESTMD   E222  TESTMO   E272  TESTMR   E26C  TESTMX   E273  
+TFLAG    A06F  THRUAD   EAA3  TLU1     E813  TLU10    E883  TLU11    E88E  
+TLU12    E89C  TLU13    E8A4  TLU2     E829  TLU3     E82E  TLU4     E833  
+TLU5     E836  TLU6     E839  TLU7     E841  TLU8     E844  TLU9     E861  
+TOADD    EAAE  TRACE    E5B0  TSTACK   A060  TSTB     E789  TSTJ     E79A  
+V1       E441  V10      E45B  V2       E46A  V3       E474  V4       E476  
+V5       E446  V9       E44E  VALASC   EAB7  VALUE    E4FB  VIEW     E43E  
+XFLAG    A072  XREG     EA82  XTEMP    A016  XTEMP1   A075  
+
+ Total bytes output = 2779

@@ -1,0 +1,1497 @@
+                                      NAM                OS9P1.TXT
+                                      OPT                PAG
+
+                                      LIB                OS9EQU.TXT
+                               *
+                               *       Equate file for OS9 page zero data segm
+                               * ent
+                               *
+      E 0001                   Z0001  EQU    $0001
+      E 000D                   Z000D  EQU    $000D
+      E 0012                   Z0012  EQU    $0012
+      E 0013                   Z0013  EQU    $0013
+      E 0016                   Z0016  EQU    $0016
+      E 0020                   Z0020  EQU    $0020
+      E 0022                   Z0022  EQU    $0022
+      E 0024                   Z0024  EQU    $0024
+      E 0026                   Z0026  EQU    $0026
+      E 0028                   Z0028  EQU    $0028
+      E 002A                   Z002A  EQU    $002A
+      E 002C                   Z002C  EQU    $002C
+      E 002E                   Z002E  EQU    $002E
+      E 0030                   Z0030  EQU    $0030
+      E 0032                   Z0032  EQU    $0032
+      E 0034                   Z0034  EQU    $0034
+      E 0036                   Z0036  EQU    $0036
+      E 0038                   Z0038  EQU    $0038
+      E 003A                   Z003A  EQU    $003A
+      E 003C                   Z003C  EQU    $003C
+      E 003E                   Z003E  EQU    $003E
+      E 003F                   Z003F  EQU    $003F
+      E 0040                   Z0040  EQU    $0040
+      E 0041                   Z0041  EQU    $0041
+      E 0042                   Z0042  EQU    $0042
+      E 0043                   Z0043  EQU    $0043
+      E 0044                   Z0044  EQU    $0044
+      E 0046                   Z0046  EQU    $0046
+      E 0048                   Z0048  EQU    $0048
+      E 0049                   Z0049  EQU    $0049
+      E 004B                   Z004B  EQU    $004B
+      E 004D                   Z004D  EQU    $004D
+      E 004F                   Z004F  EQU    $004F
+      E 0051                   Z0051  EQU    $0051
+      E 0053                   Z0053  EQU    $0053
+      E 0055                   Z0055  EQU    $0055
+      E 0057                   Z0057  EQU    $0057
+      E 005B                   Z005B  EQU    $005B
+      E 0066                   Z0066  EQU    $0066
+      E 0068                   Z0068  EQU    $0068
+      E 0073                   Z0073  EQU    $0073
+
+      E 0800                   Z0800  EQU    $0800
+
+      E E014                   ZE014  EQU    $E014
+
+      E 00C0                   sys    EQU    $C0
+      E 0001                   objct  EQU    $01
+      E 0080                   reent  EQU    $80
+
+      E F800                   P1base EQU    $F800
+      E F000                   P2base EQU    $F000
+
+      E 87CD                   MODHD  EQU    $87CD
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     1
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+
+
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     2
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+
+
+      S 0000 87 CD 07 D1              mod    ZFFD1,ZF80D,sys+objct,reent+1,ZF853,0
+        0004 00 0D C1 81 2E 00 53 00 00
+
+      C 000D 4F 53 39 70       ZF80D  FCS    "OS9p1"
+        0011 B1
+      C 0012 0C                       FCB    $0C
+      C 0013 53 77 74 70              FCC    "Swtpc "
+        0017 63 20
+
+      C 0019 49 6E 69 F4       ZF819  FCS    "Init"
+
+      C 001D 4F 53 39 70       ZF81D  FCS    "OS9p2"
+        0021 B2
+
+      C 0022 00                ZF822  FCB    $00
+      C 0023 02B5                     FDB    ZFADA-ZF825 (02B5)
+      C 0025 03                ZF825  FCB    $03
+      C 0026 0451                     FDB    ZFC79-ZF828 (0451)
+      C 0028 05                ZF828  FCB    $05
+      C 0029 04B5                     FDB    ZFCE0-ZF82B (04B5)
+      C 002B 85                ZF82B  FCB    $85
+      C 002C 04C4                     FDB    ZFCF2-ZF82E (04C4)
+      C 002E 10                ZF82E  FCB    $10
+      C 002F 06D8                     FDB    ZFF09-ZF831 (06D8)
+      C 0031 11                ZF831  FCB    $11
+      C 0032 073B                     FDB    ZFF6F-ZF834 (073B)
+      C 0034 12                ZF834  FCB    $12
+      C 0035 0671                     FDB    ZFEA8-ZF837 (0671)
+      C 0037 13                ZF837  FCB    $13
+      C 0038 05E4                     FDB    ZFE1E-ZF83A (05E4)
+      C 003A 14                ZF83A  FCB    $14
+      C 003B 0634                     FDB    ZFE71-ZF83D (0634)
+      C 003D 17                ZF83D  FCB    $17
+      C 003E 0382                     FDB    ZFBC2-ZF840 (0382)
+      C 0040 A8                ZF840  FCB    $A8
+      C 0041 0570                     FDB    ZFDB3-ZF843 (0570)
+      C 0043 A9                ZF843  FCB    $A9
+      C 0044 05BD                     FDB    ZFE03-ZF846 (05BD)
+      C 0046 AC                ZF846  FCB    $AC
+      C 0047 01A0                     FDB    ZF9E9-ZF849 (01A0)
+      C 0049 AD                ZF849  FCB    $AD
+      C 004A 023F                     FDB    ZFA8B-ZF84C (023F)
+      C 004C AE                ZF84C  FCB    $AE
+      C 004D 02C1                     FDB    ZFB10-ZF84F (02C1)
+      C 004F 32                ZF84F  FCB    $32
+      C 0050 0743                     FDB    ZFF95-ZF852 (0743)
+      C 0052 80                ZF852  FCB    $80
+
+        0053   8E    0020      ZF853  LDX    #Z0020
+        0056 108E    02E0             LDY    #$02E0
+        005A   4F                     CLRA               
+
+        005B   5F              ZF85B  CLRB               
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     3
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        005C   ED 81           ZF85C  STD    ,X++
+        005E   31 3E                  LEAY   -$02,Y
+        0060   26      FA 005C        BNE    ZF85C
+        0062   4C                     INCA               
+        0063   DD      20             STD    <Z0020
+        0065   CB      20             ADDB   #$20
+        0067   DD      22             STD    <Z0022
+        0069   CB      02             ADDB   #$02
+        006B   DD      46             STD    <Z0046
+        006D   CB      70             ADDB   #$70
+        006F   DD      44             STD    <Z0044
+        0071   5F                     CLRB               
+        0072   4C                     INCA               
+        0073   DD      26             STD    <Z0026
+        0075   9F      28             STX    <Z0028
+        0077   32 89 0100             LEAS   $0100,X
+
+        007B   31 84           ZF87B  LEAY   ,X
+        007D   EC A4                  LDD    ,Y
+        007F   8E    00FF             LDX    #$00FF
+        0082   AF A4                  STX    ,Y
+        0084   AC A4                  CMPX   ,Y
+        0086   26      16 009E        BNE    ZF89E
+        0088   8E    FF00             LDX    #$FF00
+        008B   AF A4                  STX    ,Y
+        008D   AC A4                  CMPX   ,Y
+        008F   26      0D 009E        BNE    ZF89E
+        0091   ED A4                  STD    ,Y
+        0093   30 A9 0100             LEAX   $0100,Y
+        0097   8C    E000             CMPX   #$E000
+        009A   25      DF 007B        BCS    ZF87B
+        009C   31 84                  LEAY   ,X
+
+        009E   30 A4           ZF89E  LEAX   ,Y
+        00A0   9F      24             STX    <Z0024
+
+        00A2   17    0276 031B ZF8A2  LBSR   ZFB1B
+        00A5   25      06 00AD        BCS    ZF8AD
+        00A7   EC 02                  LDD    $02,X
+        00A9   30 8B                  LEAX   D,X
+        00AB   20      06 00B3        BRA    ZF8B3
+
+        00AD   C1      E7      ZF8AD  CMPB   #$E7
+        00AF   27      04 00B5        BEQ    ZF8B5
+        00B1   30 01                  LEAX   $01,X
+
+        00B3   26      ED 00A2 ZF8B3  BNE    ZF8A2
+
+        00B5   31 8D 0729 07E2 ZF8B5  LEAY   >ZFFE2,PCR
+        00B9   30 8D 0743 0800        LEAX   >Z0800,PCR
+        00BD   34      10             PSHS   X
+        00BF   8E    002C             LDX    #Z002C
+
+        00C2   EC A1           ZF8C2  LDD    ,Y++
+        00C4   E3 E4                  ADDD   ,S
+        00C6   ED 81                  STD    ,X++
+        00C8   8C    0036             CMPX   #Z0036
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     4
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        00CB   23      F5 00C2        BLS    ZF8C2
+        00CD   32 62                  LEAS   $02,S
+        00CF   30 8D 0093 0166        LEAX   >ZF966,PCR
+        00D3   9F      3C             STX    <Z003C
+        00D5   30 8D 013E 0217        LEAX   >ZFA17,PCR
+        00D9   9F      40             STX    <Z0040
+        00DB   30 8D 00B2 0191        LEAX   >ZF991,PCR
+        00DF   9F      3E             STX    <Z003E
+        00E1   9F      38             STX    <Z0038
+        00E3   30 8D 0157 023E        LEAX   >ZFA3E,PCR
+        00E7   9F      42             STX    <Z0042
+        00E9   9F      2E             STX    <Z002E
+        00EB   30 8D 00B2 01A1        LEAX   >ZF9A1,PCR
+        00EF   9F      3A             STX    <Z003A
+        00F1   31 8D FF2D 0022        LEAY   >ZF822,PCR
+        00F5   17    06C2 07BA        LBSR   ZFFBA
+        00F8   86      C0             LDA    #$C0
+        00FA   30 8D FF1B 0019        LEAX   >ZF819,PCR
+        00FE 103F                     SWI2               
+      C 0100 00                       FCB    $00
+        0101 1025    FF4E 0053        LBCS   ZF853
+        0105   DF      2A             STU    <Z002A
+        0107   EC 4A                  LDD    $0A,U
+        0109   5F                     CLRB               
+        010A 1093      24             CMPD   <Z0024
+        010D   24      02 0111        BCC    ZF911
+        010F   DD      24             STD    <Z0024
+
+        0111   9E      20      ZF911  LDX    <Z0020
+        0113   C6      F0             LDB    #$F0
+        0115   E7 84                  STB    ,X
+        0117   4F                     CLRA               
+        0118   D6      24             LDB    <Z0024
+        011A   50                     NEGB               
+        011B   1F      02             TFR    D,Y
+        011D   50                     NEGB               
+        011E   17    0503 0624        LBSR   ZFE24
+        0121   30 8D FEF8 001D        LEAX   >ZF81D,PCR
+        0125   86      C1             LDA    #$C1
+        0127 103F                     SWI2               
+      C 0129 00                       FCB    $00
+        012A 1025    FF25 0053        LBCS   ZF853
+        012E   6E A4                  JMP    ,Y
+
+      W 0130   6E 9F 002C      ZF930  JMP    [Z002C]     SWI3
+      W 0134   6E 9F 002E      ZF934  JMP    [Z002E]     SWI2
+      W 0138   6E 9F 0030      ZF938  JMP    [Z0030]     FIRQ
+      W 013C   6E 9F 0032      ZF93C  JMP    [Z0032]     IRQ
+      W 0140   6E 9F 0034      ZF940  JMP    [Z0034]     SWI
+      W 0144   6E 9F 0036      ZF944  JMP    [Z0036]     NMI
+
+        0148   34      94      ZF948  PSHS   PC,X,B
+        014A   C6      18             LDB    #$18
+        014C   20      0F 015D        BRA    ZF95D
+
+        014E   34      94      ZF94E  PSHS   PC,X,B
+        0150   C6      16             LDB    #$16
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     5
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        0152   20      09 015D        BRA    ZF95D
+
+        0154   3B              ZF954  RTI                
+
+      W 0155   6E 9F 0038      ZF955  JMP    [Z0038]
+
+        0159   34      94      ZF959  PSHS   PC,X,B
+        015B   C6      14             LDB    #$14
+
+      W 015D   BE    004B      ZF95D  LDX    >Z004B
+        0160   AE 85                  LDX    B,X
+        0162   AF 63                  STX    $03,S
+        0164   35      94             PULS   PC,X,B
+
+        0166   31 8C   19 0182 ZF966  LEAY   <ZF982,PCR
+
+        0169   4F              ZF969  CLRA               
+        016A   1F      8B             TFR    A,DP
+        016C   9E      4B             LDX    <Z004B
+        016E   DC      42             LDD    <Z0042
+        0170   DD      2E             STD    <Z002E
+        0172   DC      3E             LDD    <Z003E
+        0174   DD      38             STD    <Z0038
+        0176   33 E4                  LEAU   ,S
+        0178   EF 04                  STU    $04,X
+        017A   A6 0D                  LDA    $0D,X
+        017C   8A      80             ORA    #$80
+        017E   A7 0D                  STA    $0D,X
+        0180   6E A4                  JMP    ,Y
+
+      W 0182   AD 9F 003A      ZF982  JSR    [Z003A]
+        0186   24      06 018E        BCC    ZF98E
+        0188   E6 E4                  LDB    ,S
+        018A   CA      10             ORB    #$10
+        018C   E7 E4                  STB    ,S
+
+        018E   16    0095 0226 ZF98E  LBRA   ZFA26
+
+        0191   4F              ZF991  CLRA               
+        0192   1F      8B             TFR    A,DP
+      W 0194   AD 9F 003A             JSR    [Z003A]
+        0198   24      06 01A0        BCC    ZF9A0
+        019A   E6 E4                  LDB    ,S
+        019C   CA      10             ORB    #$10
+        019E   E7 E4                  STB    ,S
+
+        01A0   3B              ZF9A0  RTI                
+
+        01A1   53              ZF9A1  COMB               
+        01A2   39                     RTS                
+
+        01A3   9E      51      ZF9A3  LDX    <Z0051
+        01A5   27      27 01CE        BEQ    ZF9CE
+        01A7   A6 0D                  LDA    $0D,X
+        01A9   85      40             BITA   #$40
+        01AB   27      21 01CE        BEQ    ZF9CE
+        01AD   EE 04                  LDU    $04,X
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     6
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        01AF   EC 44                  LDD    $04,U
+        01B1   83    0001             SUBD   #$0001
+        01B4   ED 44                  STD    $04,U
+        01B6   26      16 01CE        BNE    ZF9CE
+
+        01B8   EE 0E           ZF9B8  LDU    $0E,X
+        01BA   8D      2F 01EB        BSR    ZF9EB
+        01BC   30 C4                  LEAX   ,U
+        01BE   27      0C 01CC        BEQ    ZF9CC
+        01C0   A6 0D                  LDA    $0D,X
+        01C2   85      40             BITA   #$40
+        01C4   27      06 01CC        BEQ    ZF9CC
+        01C6   EE 04                  LDU    $04,X
+        01C8   EC 44                  LDD    $04,U
+        01CA   27      EC 01B8        BEQ    ZF9B8
+
+        01CC   9F      51      ZF9CC  STX    <Z0051
+
+        01CE   0A      48      ZF9CE  DEC    <Z0048
+        01D0   26      10 01E2        BNE    ZF9E2
+        01D2   96      5B             LDA    <Z005B
+        01D4   97      48             STA    <Z0048
+        01D6   9E      4B             LDX    <Z004B
+        01D8   27      08 01E2        BEQ    ZF9E2
+        01DA   A6 0D                  LDA    $0D,X
+        01DC   8A      20             ORA    #$20
+        01DE   A7 0D                  STA    $0D,X
+        01E0   2A      01 01E3        BPL    ZF9E3
+
+        01E2   3B              ZF9E2  RTI                
+
+        01E3   31 8D 003F 0226 ZF9E3  LEAY   >ZFA26,PCR
+        01E7   20      80 0169        BRA    ZF969
+
+        01E9   AE 44           ZF9E9  LDX    $04,U
+
+        01EB   34      60      ZF9EB  PSHS   U,Y
+        01ED   CE    003F             LDU    #Z003F
+        01F0   20      07 01F9        BRA    ZF9F9
+
+        01F2   E6 4C           ZF9F2  LDB    $0C,U
+        01F4   5C                     INCB               
+        01F5   27      02 01F9        BEQ    ZF9F9
+        01F7   E7 4C                  STB    $0C,U
+
+        01F9   EE 4E           ZF9F9  LDU    $0E,U
+        01FB   26      F5 01F2        BNE    ZF9F2
+        01FD   CE    003F             LDU    #Z003F
+        0200   A6 0B                  LDA    $0B,X
+        0202   A7 0C                  STA    $0C,X
+        0204   1A      50             ORCC   #$50
+
+        0206   31 C4           ZFA06  LEAY   ,U
+        0208   EE 4E                  LDU    $0E,U
+        020A   27      04 0210        BEQ    ZFA10
+        020C   A1 4C                  CMPA   $0C,U
+        020E   23      F6 0206        BLS    ZFA06
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     7
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+
+        0210   EF 0E           ZFA10  STU    $0E,X
+        0212   AF 2E                  STX    $0E,Y
+        0214   5F                     CLRB               
+        0215   35      E0             PULS   PC,U,Y
+
+        0217   31 8C   05 021F ZFA17  LEAY   <ZFA1F,PCR
+        021A   1A      50             ORCC   #$50
+        021C   16    FF4A 0169        LBRA   ZF969
+
+        021F   1C      AF      ZFA1F  ANDCC  #$AF
+        0221 109E      44             LDY    <Z0044
+        0224   8D      23 0249        BSR    ZFA49
+
+        0226   9E      4B      ZFA26  LDX    <Z004B
+        0228   27      61 028B        BEQ    ZFA8B
+        022A   1A      50             ORCC   #$50
+        022C   E6 0D                  LDB    $0D,X
+        022E   C4      7F             ANDB   #$7F
+        0230   E7 0D                  STB    $0D,X
+        0232   C5      20             BITB   #$20
+        0234   27      6C 02A2        BEQ    ZFAA2
+        0236   C4      DF             ANDB   #$DF
+        0238   E7 0D                  STB    $0D,X
+        023A   8D      AF 01EB        BSR    ZF9EB
+        023C   20      4D 028B        BRA    ZFA8B
+
+        023E   4F              ZFA3E  CLRA               
+        023F   1F      8B             TFR    A,DP
+        0241   33 E4                  LEAU   ,S
+        0243 109E      46             LDY    <Z0046
+        0246   8D      01 0249        BSR    ZFA49
+        0248   3B                     RTI                
+
+        0249   34      40      ZFA49  PSHS   U
+        024B   AE 4A                  LDX    $0A,U
+        024D   E6 80                  LDB    ,X+
+        024F   AF 4A                  STX    $0A,U
+        0251   58                     ASLB               
+        0252   24      05 0259        BCC    ZFA59
+        0254   56                     RORB               
+        0255   AE 3E                  LDX    -$02,Y
+        0257   20      08 0261        BRA    ZFA61
+
+        0259   C1      6E      ZFA59  CMPB   #$6E
+        025B   24      1B 0278        BCC    ZFA78
+        025D   AE A5                  LDX    B,Y
+        025F   27      17 0278        BEQ    ZFA78
+
+        0261   AD 84           ZFA61  JSR    ,X
+
+        0263   35      40      ZFA63  PULS   U
+        0265   1F      A8             TFR    CC,A
+        0267   24      02 026B        BCC    ZFA6B
+        0269   E7 42                  STB    $02,U
+
+        026B   E6 C4           ZFA6B  LDB    ,U
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     8
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        026D   C4      F0             ANDB   #$F0
+        026F   E7 C4                  STB    ,U
+        0271   84      0F             ANDA   #$0F
+        0273   AA C4                  ORA    ,U
+        0275   A7 C4                  STA    ,U
+        0277   39                     RTS                
+
+        0278   53              ZFA78  COMB               
+        0279   C6      D0             LDB    #$D0
+        027B   20      E6 0263        BRA    ZFA63
+
+        027D   E6 0D           ZFA7D  LDB    $0D,X
+        027F   CA      80             ORB    #$80
+        0281   E7 0D                  STB    $0D,X
+        0283   E6 88   36             LDB    $36,X
+        0286   1C      AF             ANDCC  #$AF
+        0288 103F                     SWI2               
+      C 028A 06                       FCB    $06
+
+        028B   4F              ZFA8B  CLRA               
+        028C   5F                     CLRB               
+        028D   DD      4B             STD    <Z004B
+        028F   20      02 0293        BRA    ZFA93
+
+        0291   3C      AF      ZFA91  CWAI   #$AF
+
+        0293   1A      50      ZFA93  ORCC   #$50
+        0295   9E      4D             LDX    <Z004D
+        0297   27      F8 0291        BEQ    ZFA91
+        0299   EC 0E                  LDD    $0E,X
+        029B   DD      4D             STD    <Z004D
+        029D   9F      4B             STX    <Z004B
+        029F 10EE 04                  LDS    $04,X
+
+        02A2   E6 0D           ZFAA2  LDB    $0D,X
+        02A4   2B      33 02D9        BMI    ZFAD9
+        02A6   C5      02             BITB   #$02
+        02A8   26      D3 027D        BNE    ZFA7D
+        02AA   E6 88   36             LDB    $36,X
+        02AD   27      21 02D0        BEQ    ZFAD0
+        02AF   5A                     DECB               
+        02B0   27      1B 02CD        BEQ    ZFACD
+        02B2   EE 88   37             LDU    $37,X
+        02B5   27      C6 027D        BEQ    ZFA7D
+        02B7 10AE 88   39             LDY    $39,X
+        02BB   EC 66                  LDD    $06,S
+        02BD   34      66             PSHS   U,Y,B,A
+        02BF   EE 6A                  LDU    $0A,S
+        02C1   A6 88   36             LDA    $36,X
+        02C4   E6 69                  LDB    $09,S
+        02C6   1F      02             TFR    D,Y
+        02C8   EC 66                  LDD    $06,S
+        02CA   34      66             PSHS   U,Y,B,A
+        02CC   5F                     CLRB               
+
+        02CD   E7 88   36      ZFACD  STB    $36,X
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE     9
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        02D0   EC 88   16      ZFAD0  LDD    $16,X
+        02D3   DD      2E             STD    <Z002E
+        02D5   DC      3C             LDD    <Z003C
+        02D7   DD      38             STD    <Z0038
+
+        02D9   3B              ZFAD9  RTI                
+
+        02DA   34      40      ZFADA  PSHS   U
+        02DC   EC 41                  LDD    $01,U
+        02DE   AE 44                  LDX    $04,U
+
+        02E0   17    0131 0414 ZFAE0  LBSR   ZFC14
+        02E3   24      04 02E9        BCC    ZFAE9
+        02E5   C6      DD             LDB    #$DD
+        02E7   20      25 030E        BRA    ZFB0E
+
+        02E9 10AE C4           ZFAE9  LDY    ,U
+        02EC   E6 27                  LDB    $07,Y
+        02EE   C5      80             BITB   #$80
+        02F0   26      09 02FB        BNE    ZFAFB
+        02F2   6D 42                  TST    $02,U
+        02F4   27      05 02FB        BEQ    ZFAFB
+        02F6   53                     COMB               
+        02F7   C6      D1             LDB    #$D1
+        02F9   20      13 030E        BRA    ZFB0E
+
+        02FB   6C 42           ZFAFB  INC    $02,U
+        02FD   EE E4                  LDU    ,S
+        02FF   AF 44                  STX    $04,U
+        0301 10AF 48                  STY    $08,U
+        0304   EC 26                  LDD    $06,Y
+        0306   ED 41                  STD    $01,U
+        0308   EC 29                  LDD    $09,Y
+        030A   30 AB                  LEAX   D,Y
+        030C   AF 46                  STX    $06,U
+
+        030E   35      C0      ZFB0E  PULS   PC,U
+
+        0310   34      40      ZFB10  PSHS   U
+        0312   AE 44                  LDX    $04,U
+        0314   8D      05 031B        BSR    ZFB1B
+        0316   35      20             PULS   Y
+        0318   EF 28                  STU    $08,Y
+        031A   39                     RTS                
+
+        031B   8D      57 0374 ZFB1B  BSR    ZFB74
+        031D   25      4C 036B        BCS    ZFB6B
+        031F   A6 06                  LDA    $06,X
+        0321   34      12             PSHS   X,A
+        0323   EC 04                  LDD    $04,X
+        0325   30 8B                  LEAX   D,X
+        0327   35      02             PULS   A
+        0329   17    00E8 0414        LBSR   ZFC14
+        032C   35      10             PULS   X
+        032E   25      3C 036C        BCS    ZFB6C
+        0330   C6      E7             LDB    #$E7
+        0332   AC C4                  CMPX   ,U
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    10
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        0334   27      3C 0372        BEQ    ZFB72
+        0336   A6 07                  LDA    $07,X
+        0338   84      0F             ANDA   #$0F
+        033A   34      02             PSHS   A
+        033C 10AE C4                  LDY    ,U
+        033F   A6 27                  LDA    $07,Y
+        0341   84      0F             ANDA   #$0F
+        0343   A1 E0                  CMPA   ,S+
+        0345   24      2B 0372        BCC    ZFB72
+        0347   34      30             PSHS   Y,X
+        0349   E6 42                  LDB    $02,U
+        034B   26      19 0366        BNE    ZFB66
+        034D   AE C4                  LDX    ,U
+        034F   9C      66             CMPX   <Z0066
+        0351   24      13 0366        BCC    ZFB66
+        0353   EC 02                  LDD    $02,X
+        0355   C3    00FF             ADDD   #$00FF
+        0358   1F      89             TFR    A,B
+        035A   4F                     CLRA               
+        035B   1F      02             TFR    D,Y
+        035D   E6 C4                  LDB    ,U
+        035F   9E      20             LDX    <Z0020
+        0361 103F                     SWI2               
+      C 0363 14                       FCB    $14
+        0364   6F 42                  CLR    $02,U
+
+        0366   35      30      ZFB66  PULS   Y,X
+
+        0368   AF C4           ZFB68  STX    ,U
+        036A   5F                     CLRB               
+
+        036B   39              ZFB6B  RTS                
+
+        036C   31 C4           ZFB6C  LEAY   ,U
+        036E   26      F8 0368        BNE    ZFB68
+        0370   C6      CE             LDB    #$CE
+
+        0372   43              ZFB72  COMA               
+        0373   39                     RTS                
+
+        0374   EC 84           ZFB74  LDD    ,X
+        0376 1083    87CD             CMPD   #MODHD
+        037A   26      06 0382        BNE    ZFB82
+        037C   31 08                  LEAY   $08,X
+        037E   8D      0F 038F        BSR    ZFB8F
+        0380   24      04 0386        BCC    ZFB86
+
+        0382   53              ZFB82  COMB               
+        0383   C6      CD             LDB    #$CD
+        0385   39                     RTS                
+
+        0386   34      10      ZFB86  PSHS   X
+        0388 10AE 02                  LDY    $02,X
+        038B   8D      0F 039C        BSR    ZFB9C
+        038D   35      90             PULS   PC,X
+
+        038F   34      30      ZFB8F  PSHS   Y,X
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    11
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        0391   4F                     CLRA               
+
+        0392   A8 80           ZFB92  EORA   ,X+
+        0394   AC 62                  CMPX   $02,S
+        0396   23      FA 0392        BLS    ZFB92
+        0398   81      FF             CMPA   #$FF
+        039A   35      B0             PULS   PC,Y,X
+
+        039C   CC    FFFF      ZFB9C  LDD    #$FFFF
+        039F   34      06             PSHS   B,A
+        03A1   34      06             PSHS   B,A
+        03A3   33 61                  LEAU   $01,S
+
+        03A5   A6 80           ZFBA5  LDA    ,X+
+        03A7   8D      2C 03D5        BSR    ZFBD5
+        03A9   31 3F                  LEAY   -$01,Y
+        03AB   26      F8 03A5        BNE    ZFBA5
+        03AD   6F 5F                  CLR    -$01,U
+        03AF   A6 C4                  LDA    ,U
+        03B1   81      80             CMPA   #$80
+        03B3   26      08 03BD        BNE    ZFBBD
+        03B5   EC 41                  LDD    $01,U
+        03B7 1083    0FE3             CMPD   #$0FE3
+        03BB   27      03 03C0        BEQ    ZFBC0
+
+        03BD   53              ZFBBD  COMB               
+        03BE   C6      E8             LDB    #$E8
+
+        03C0   35      B0      ZFBC0  PULS   PC,Y,X
+
+        03C2   AE 44           ZFBC2  LDX    $04,U
+        03C4 10AE 46                  LDY    $06,U
+        03C7   27      0A 03D3        BEQ    ZFBD3
+        03C9   EE 48                  LDU    $08,U
+
+        03CB   A6 80           ZFBCB  LDA    ,X+
+        03CD   8D      06 03D5        BSR    ZFBD5
+        03CF   31 3F                  LEAY   -$01,Y
+        03D1   26      F8 03CB        BNE    ZFBCB
+
+        03D3   5F              ZFBD3  CLRB               
+        03D4   39                     RTS                
+
+        03D5   A8 C4           ZFBD5  EORA   ,U
+        03D7   34      02             PSHS   A
+        03D9   EC 41                  LDD    $01,U
+        03DB   ED C4                  STD    ,U
+        03DD   4F                     CLRA               
+        03DE   E6 E4                  LDB    ,S
+        03E0   58                     ASLB               
+        03E1   49                     ROLA               
+        03E2   A8 41                  EORA   $01,U
+        03E4   ED 41                  STD    $01,U
+        03E6   5F                     CLRB               
+        03E7   A6 E4                  LDA    ,S
+        03E9   44                     LSRA               
+        03EA   56                     RORB               
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    12
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        03EB   44                     LSRA               
+        03EC   56                     RORB               
+        03ED   A8 41                  EORA   $01,U
+        03EF   E8 42                  EORB   $02,U
+        03F1   ED 41                  STD    $01,U
+        03F3   A6 E4                  LDA    ,S
+        03F5   48                     ASLA               
+        03F6   A8 E4                  EORA   ,S
+        03F8   A7 E4                  STA    ,S
+        03FA   48                     ASLA               
+        03FB   48                     ASLA               
+        03FC   A8 E4                  EORA   ,S
+        03FE   A7 E4                  STA    ,S
+        0400   48                     ASLA               
+        0401   48                     ASLA               
+        0402   48                     ASLA               
+        0403   48                     ASLA               
+        0404   A8 E0                  EORA   ,S+
+        0406   2A      0B 0413        BPL    ZFC13
+        0408   CC    8021             LDD    #$8021
+        040B   A8 C4                  EORA   ,U
+        040D   A7 C4                  STA    ,U
+        040F   E8 42                  EORB   $02,U
+        0411   E7 42                  STB    $02,U
+
+        0413   39              ZFC13  RTS                
+
+        0414   CE    0000      ZFC14  LDU    #0000
+        0417   1F      89             TFR    A,B
+        0419   84      F0             ANDA   #$F0
+        041B   C4      0F             ANDB   #$0F
+        041D   34      76             PSHS   U,Y,X,B,A
+        041F   8D      4F 0470        BSR    ZFC70
+        0421   81      2F             CMPA   #$2F
+        0423   27      48 046D        BEQ    ZFC6D
+        0425   17    02EF 0717        LBSR   ZFF17
+        0428   25      44 046E        BCS    ZFC6E
+        042A   DE      26             LDU    <Z0026
+
+        042C   34      64      ZFC2C  PSHS   U,Y,B
+        042E   EE C4                  LDU    ,U
+        0430   27      2A 045C        BEQ    ZFC5C
+        0432   EC 44                  LDD    $04,U
+        0434   31 CB                  LEAY   D,U
+        0436   E6 E4                  LDB    ,S
+        0438   17    033A 0775        LBSR   ZFF75
+        043B   25      27 0464        BCS    ZFC64
+        043D   A6 65                  LDA    $05,S
+        043F   27      06 0447        BEQ    ZFC47
+        0441   A8 46                  EORA   $06,U
+        0443   84      F0             ANDA   #$F0
+        0445   26      1D 0464        BNE    ZFC64
+
+        0447   A6 66           ZFC47  LDA    $06,S
+        0449   27      06 0451        BEQ    ZFC51
+        044B   A8 46                  EORA   $06,U
+        044D   84      0F             ANDA   #$0F
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    13
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        044F   26      13 0464        BNE    ZFC64
+
+        0451   35      54      ZFC51  PULS   U,X,B
+        0453   EF 66                  STU    $06,S
+        0455   8D      19 0470        BSR    ZFC70
+        0457   AF 62                  STX    $02,S
+        0459   4F                     CLRA               
+        045A   20      12 046E        BRA    ZFC6E
+
+        045C   EC 6B           ZFC5C  LDD    $0B,S
+        045E   26      04 0464        BNE    ZFC64
+        0460   EC 63                  LDD    $03,S
+        0462   ED 6B                  STD    $0B,S
+
+        0464   35      64      ZFC64  PULS   U,Y,B
+        0466   33 44                  LEAU   $04,U
+        0468 1193      28             CMPU   <Z0028
+        046B   25      BF 042C        BCS    ZFC2C
+
+        046D   53              ZFC6D  COMB               
+
+        046E   35      F6      ZFC6E  PULS   PC,U,Y,X,B,A
+
+        0470   86      20      ZFC70  LDA    #$20
+
+        0472   A1 80           ZFC72  CMPA   ,X+
+        0474   27      FC 0472        BEQ    ZFC72
+        0476   A6 82                  LDA    ,-X
+        0478   39                     RTS                
+
+        0479   9E      49      ZFC79  LDX    <Z0049
+        047B 103F                     SWI2               
+      C 047D 30                       FCB    $30
+        047E   25      5C 04DC        BCS    ZFCDC
+        0480   9E      4B             LDX    <Z004B
+        0482   34      10             PSHS   X
+        0484   EC 09                  LDD    $09,X
+        0486   ED 29                  STD    $09,Y
+        0488   A6 0B                  LDA    $0B,X
+        048A   5F                     CLRB               
+        048B   ED 2B                  STD    $0B,Y
+        048D   C6      80             LDB    #$80
+        048F   E7 2D                  STB    $0D,Y
+        0491 109F      4B             STY    <Z004B
+        0494   30 88   1A             LEAX   $1A,X
+        0497   31 A8   1A             LEAY   $1A,Y
+        049A   C6      0C             LDB    #$0C
+
+        049C   A6 80           ZFC9C  LDA    ,X+
+        049E   A7 A0                  STA    ,Y+
+        04A0   5A                     DECB               
+        04A1   26      F9 049C        BNE    ZFC9C
+        04A3   C6      03             LDB    #$03
+
+        04A5   A6 80           ZFCA5  LDA    ,X+
+        04A7 103F                     SWI2               
+      C 04A9 82                       FCB    $82
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    14
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        04AA   24      01 04AD        BCC    ZFCAD
+        04AC   4F                     CLRA               
+
+        04AD   A7 A0           ZFCAD  STA    ,Y+
+        04AF   5A                     DECB               
+        04B0   26      F3 04A5        BNE    ZFCA5
+        04B2   8D      64 0518        BSR    ZFD18
+        04B4   25      1B 04D1        BCS    ZFCD1
+        04B6   35      20             PULS   Y
+        04B8 109F      4B             STY    <Z004B
+        04BB   A6 84                  LDA    ,X
+        04BD   A7 41                  STA    $01,U
+        04BF   E6 23                  LDB    $03,Y
+        04C1   A7 23                  STA    $03,Y
+        04C3   A6 A4                  LDA    ,Y
+        04C5   ED 01                  STD    $01,X
+        04C7   E6 0D                  LDB    $0D,X
+        04C9   C4      7F             ANDB   #$7F
+        04CB   E7 0D                  STB    $0D,X
+        04CD 103F                     SWI2               
+      C 04CF 2C                       FCB    $2C
+        04D0   39                     RTS                
+
+        04D1   34      04      ZFCD1  PSHS   B
+        04D3 103F                     SWI2               
+      C 04D5 06                       FCB    $06
+        04D6   53                     COMB               
+        04D7   35      14             PULS   X,B
+        04D9   9F      4B             STX    <Z004B
+        04DB   39                     RTS                
+
+        04DC   53              ZFCDC  COMB               
+        04DD   C6      E5             LDB    #$E5
+        04DF   39                     RTS                
+
+        04E0   8D      26 0508 ZFCE0  BSR    ZFD08
+        04E2   25      12 04F6        BCS    ZFCF6
+        04E4   1A      50             ORCC   #$50
+        04E6   E6 0D                  LDB    $0D,X
+        04E8   C4      7F             ANDB   #$7F
+        04EA   E7 0D                  STB    $0D,X
+
+        04EC 103F              ZFCEC  SWI2               
+      C 04EE 2C                       FCB    $2C
+        04EF 103F                     SWI2               
+      C 04F1 2D                       FCB    $2D
+
+        04F2   8D      14 0508 ZFCF2  BSR    ZFD08
+        04F4   24      F6 04EC        BCC    ZFCEC
+
+        04F6   34      04      ZFCF6  PSHS   B
+        04F8   E7 88   36             STB    $36,X
+        04FB   E6 0D                  LDB    $0D,X
+        04FD   CA      02             ORB    #$02
+        04FF   E7 0D                  STB    $0D,X
+        0501   C6      FF             LDB    #$FF
+        0503   E7 0B                  STB    $0B,X
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    15
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        0505   53                     COMB               
+        0506   35      84             PULS   PC,B
+
+        0508   34      40      ZFD08  PSHS   U
+        050A   9E      4B             LDX    <Z004B
+        050C   EE 88   12             LDU    $12,X
+        050F 103F                     SWI2               
+      C 0511 02                       FCB    $02
+        0512   EE E4                  LDU    ,S
+        0514   8D      02 0518        BSR    ZFD18
+        0516   35      C0             PULS   PC,U
+
+        0518   9E      4B      ZFD18  LDX    <Z004B
+        051A   34      50             PSHS   U,X
+        051C   DC      40             LDD    <Z0040
+        051E   ED 88   14             STD    $14,X
+        0521   ED 88   16             STD    $16,X
+        0524   ED 88   18             STD    $18,X
+        0527   4F                     CLRA               
+        0528   5F                     CLRB               
+        0529   A7 88   36             STA    $36,X
+        052C   ED 88   37             STD    $37,X
+        052F   A6 41                  LDA    $01,U
+        0531   AE 44                  LDX    $04,U
+        0533 103F                     SWI2               
+      C 0535 00                       FCB    $00
+        0536   24      05 053D        BCC    ZFD3D
+        0538 103F                     SWI2               
+      C 053A 01                       FCB    $01
+        053B   25      74 05B1        BCS    ZFDB1
+
+        053D 109E      4B      ZFD3D  LDY    <Z004B
+        0540   EF A8   12             STU    $12,Y
+        0543   81      11             CMPA   #$11
+        0545   27      09 0550        BEQ    ZFD50
+        0547   81      C1             CMPA   #$C1
+        0549   27      05 0550        BEQ    ZFD50
+        054B   53                     COMB               
+        054C   C6      EA             LDB    #$EA
+        054E   20      61 05B1        BRA    ZFDB1
+
+        0550   31 C4           ZFD50  LEAY   ,U
+        0552   EE 62                  LDU    $02,S
+        0554   AF 44                  STX    $04,U
+        0556   A6 42                  LDA    $02,U
+        0558   5F                     CLRB               
+        0559 10A3 2B                  CMPD   $0B,Y
+        055C   24      02 0560        BCC    ZFD60
+        055E   EC 2B                  LDD    $0B,Y
+
+        0560   C3    0000      ZFD60  ADDD   #$0000
+        0563   26      05 056A        BNE    ZFD6A
+        0565   53                     COMB               
+        0566   C6      DF             LDB    #$DF
+        0568   20      47 05B1        BRA    ZFDB1
+
+        056A 103F              ZFD6A  SWI2               
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    16
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+      C 056C 07                       FCB    $07
+        056D   25      42 05B1        BCS    ZFDB1
+        056F   83    000C             SUBD   #$000C
+        0572   A3 46                  SUBD   $06,U
+        0574   25      39 05AF        BCS    ZFDAF
+        0576   AE 48                  LDX    $08,U
+        0578   EC 46                  LDD    $06,U
+        057A   34      06             PSHS   B,A
+        057C   27      0A 0588        BEQ    ZFD88
+        057E   30 8B                  LEAX   D,X
+
+        0580   A6 82           ZFD80  LDA    ,-X
+        0582   A7 A2                  STA    ,-Y
+        0584   AC 48                  CMPX   $08,U
+        0586   22      F8 0580        BHI    ZFD80
+
+        0588   9E      4B      ZFD88  LDX    <Z004B
+        058A 10AF 38                  STY    -$08,Y
+        058D   31 34                  LEAY   -$0C,Y
+        058F 10AF 04                  STY    $04,X
+        0592   A6 07                  LDA    $07,X
+        0594   5F                     CLRB               
+        0595   ED 28                  STD    $08,Y
+        0597   A7 23                  STA    $03,Y
+        0599   AB 08                  ADDA   $08,X
+        059B   ED 26                  STD    $06,Y
+        059D   35      06             PULS   B,A
+        059F   ED 21                  STD    $01,Y
+        05A1   C6      80             LDB    #$80
+        05A3   E7 A4                  STB    ,Y
+        05A5   EE 88   12             LDU    $12,X
+        05A8   EC 49                  LDD    $09,U
+        05AA   33 CB                  LEAU   D,U
+        05AC   EF 2A                  STU    $0A,Y
+        05AE   5F                     CLRB               
+
+        05AF   C6      E6      ZFDAF  LDB    #$E6
+
+        05B1   35      D0      ZFDB1  PULS   PC,U,X
+
+        05B3   EC 41           ZFDB3  LDD    $01,U
+        05B5   C3    00FF             ADDD   #$00FF
+        05B8   5F                     CLRB               
+        05B9   ED 41                  STD    $01,U
+        05BB   9E      22             LDX    <Z0022
+        05BD   CC    01FF             LDD    #$01FF
+        05C0   34      06             PSHS   B,A
+        05C2   20      0A 05CE        BRA    ZFDCE
+
+        05C4   6A 61           ZFDC4  DEC    $01,S
+        05C6   E6 61                  LDB    $01,S
+
+        05C8   68 E4           ZFDC8  ASL    ,S
+        05CA   24      08 05D4        BCC    ZFDD4
+        05CC   69 E4                  ROL    ,S
+
+        05CE   30 1F           ZFDCE  LEAX   -$01,X
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    17
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        05D0   9C      20             CMPX   <Z0020
+        05D2   25      16 05EA        BCS    ZFDEA
+
+        05D4   A6 84           ZFDD4  LDA    ,X
+        05D6   A4 E4                  ANDA   ,S
+        05D8   26      EA 05C4        BNE    ZFDC4
+        05DA   6A 61                  DEC    $01,S
+        05DC   E0 61                  SUBB   $01,S
+        05DE   E1 41                  CMPB   $01,U
+        05E0   46                     RORA               
+        05E1   EB 61                  ADDB   $01,S
+        05E3   49                     ROLA               
+        05E4   25      E2 05C8        BCS    ZFDC8
+        05E6   E6 61                  LDB    $01,S
+        05E8   4F                     CLRA               
+        05E9   5C                     INCB               
+
+        05EA   32 62           ZFDEA  LEAS   $02,S
+        05EC   25      11 05FF        BCS    ZFDFF
+        05EE   9E      20             LDX    <Z0020
+        05F0   1F      02             TFR    D,Y
+        05F2   E6 41                  LDB    $01,U
+        05F4   4F                     CLRA               
+        05F5   1E      02             EXG    D,Y
+        05F7   8D      2B 0624        BSR    ZFE24
+        05F9   1E      89             EXG    A,B
+        05FB   ED 48                  STD    $08,U
+
+        05FD   4F              ZFDFD  CLRA               
+        05FE   39                     RTS                
+
+        05FF   53              ZFDFF  COMB               
+        0600   C6      CF             LDB    #$CF
+        0602   39                     RTS                
+
+        0603   EC 41           ZFE03  LDD    $01,U
+        0605   C3    00FF             ADDD   #$00FF
+        0608   1F      89             TFR    A,B
+        060A   4F                     CLRA               
+        060B   1F      02             TFR    D,Y
+        060D   EC 48                  LDD    $08,U
+        060F   27      EC 05FD        BEQ    ZFDFD
+        0611   5D                     TSTB               
+        0612   27      04 0618        BEQ    ZFE18
+        0614   53                     COMB               
+        0615   C6      D2             LDB    #$D2
+        0617   39                     RTS                
+
+        0618   1E      89      ZFE18  EXG    A,B
+        061A   9E      20             LDX    <Z0020
+        061C   20      59 0677        BRA    ZFE77
+
+        061E   EC 41           ZFE1E  LDD    $01,U
+        0620   33 44                  LEAU   $04,U
+        0622   37      30             PULU   Y,X
+
+        0624   34      36      ZFE24  PSHS   Y,X,B,A
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    18
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        0626   8D      32 065A        BSR    ZFE5A
+        0628   4D                     TSTA               
+        0629   34      02             PSHS   A
+        062B   2B      0E 063B        BMI    ZFE3B
+        062D   A6 84                  LDA    ,X
+
+        062F   AA E4           ZFE2F  ORA    ,S
+        0631   31 3F                  LEAY   -$01,Y
+
+      E 0634                   ZFE34  EQU    *+1
+
+        0633   27      1E 0653        BEQ    ZFE53
+        0635   64 E4                  LSR    ,S
+        0637   24      F6 062F        BCC    ZFE2F
+        0639   A7 80                  STA    ,X+
+
+        063B   1F      20      ZFE3B  TFR    Y,D
+        063D   A7 E4                  STA    ,S
+        063F   86      FF             LDA    #$FF
+        0641   20      02 0645        BRA    ZFE45
+
+        0643   A7 80           ZFE43  STA    ,X+
+
+        0645   C0      08      ZFE45  SUBB   #$08
+        0647   24      FA 0643        BCC    ZFE43
+        0649   6A E4                  DEC    ,S
+        064B   2A      F6 0643        BPL    ZFE43
+
+        064D   48              ZFE4D  ASLA               
+        064E   5C                     INCB               
+        064F   26      FC 064D        BNE    ZFE4D
+        0651   AA 84                  ORA    ,X
+
+        0653   A7 84           ZFE53  STA    ,X
+        0655   4F                     CLRA               
+        0656   32 61                  LEAS   $01,S
+        0658   35      B6             PULS   PC,Y,X,B,A
+
+        065A   34      04      ZFE5A  PSHS   B
+        065C   44                     LSRA               
+        065D   56                     RORB               
+        065E   44                     LSRA               
+        065F   56                     RORB               
+        0660   44                     LSRA               
+        0661   56                     RORB               
+        0662   30 8B                  LEAX   D,X
+        0664   35      04             PULS   B
+        0666   86      80             LDA    #$80
+        0668   C4      07             ANDB   #$07
+        066A   27      04 0670        BEQ    ZFE70
+
+        066C   44              ZFE6C  LSRA               
+        066D   5A                     DECB               
+        066E   26      FC 066C        BNE    ZFE6C
+
+        0670   39              ZFE70  RTS                
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    19
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        0671   EC 41           ZFE71  LDD    $01,U
+        0673   33 44                  LEAU   $04,U
+        0675   37      30             PULU   Y,X
+
+        0677   34      36      ZFE77  PSHS   Y,X,B,A
+        0679   8D      DF 065A        BSR    ZFE5A
+        067B   43                     COMA               
+        067C   34      02             PSHS   A
+        067E   2A      0E 068E        BPL    ZFE8E
+        0680   A6 84                  LDA    ,X
+
+        0682   A4 E4           ZFE82  ANDA   ,S
+        0684   31 3F                  LEAY   -$01,Y
+        0686   27      1A 06A2        BEQ    ZFEA2
+        0688   67 E4                  ASR    ,S
+        068A   25      F6 0682        BCS    ZFE82
+        068C   A7 80                  STA    ,X+
+
+        068E   1F      20      ZFE8E  TFR    Y,D
+        0690   20      02 0694        BRA    ZFE94
+
+        0692   6F 80           ZFE92  CLR    ,X+
+
+        0694   83    0008      ZFE94  SUBD   #$0008
+        0697   22      F9 0692        BHI    ZFE92
+        0699   27      07 06A2        BEQ    ZFEA2
+
+        069B   48              ZFE9B  ASLA               
+        069C   5C                     INCB               
+        069D   26      FC 069B        BNE    ZFE9B
+        069F   43                     COMA               
+        06A0   A4 84                  ANDA   ,X
+
+        06A2   A7 84           ZFEA2  STA    ,X
+        06A4   6F E0                  CLR    ,S+
+        06A6   35      B6             PULS   PC,Y,X,B,A
+
+        06A8   34      40      ZFEA8  PSHS   U
+        06AA   EC 41                  LDD    $01,U
+        06AC   AE 44                  LDX    $04,U
+        06AE 10AE 46                  LDY    $06,U
+        06B1   EE 48                  LDU    $08,U
+        06B3   8D      08 06BD        BSR    ZFEBD
+        06B5   35      40             PULS   U
+        06B7   ED 41                  STD    $01,U
+        06B9 10AF 46                  STY    $06,U
+        06BC   39                     RTS                
+
+        06BD   34      76      ZFEBD  PSHS   U,Y,X,B,A
+        06BF   34      26             PSHS   Y,B,A
+        06C1   6F 68                  CLR    $08,S
+        06C3   6F 69                  CLR    $09,S
+        06C5   1F      02             TFR    D,Y
+        06C7   8D      91 065A        BSR    ZFE5A
+        06C9   34      02             PSHS   A
+        06CB   20      0D 06DA        BRA    ZFEDA
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    20
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        06CD   31 21           ZFECD  LEAY   $01,Y
+        06CF 10AF 65                  STY    $05,S
+
+        06D2   64 E4           ZFED2  LSR    ,S
+        06D4   24      08 06DE        BCC    ZFEDE
+        06D6   66 E4                  ROR    ,S
+        06D8   30 01                  LEAX   $01,X
+
+        06DA   AC 6B           ZFEDA  CMPX   $0B,S
+        06DC   24      1E 06FC        BCC    ZFEFC
+
+        06DE   A6 84           ZFEDE  LDA    ,X
+        06E0   A4 E4                  ANDA   ,S
+        06E2   26      E9 06CD        BNE    ZFECD
+        06E4   31 21                  LEAY   $01,Y
+        06E6   1F      20             TFR    Y,D
+        06E8   A3 65                  SUBD   $05,S
+        06EA 10A3 63                  CMPD   $03,S
+        06ED   24      14 0703        BCC    ZFF03
+        06EF 10A3 69                  CMPD   $09,S
+        06F2   23      DE 06D2        BLS    ZFED2
+        06F4   ED 69                  STD    $09,S
+        06F6   EC 65                  LDD    $05,S
+        06F8   ED 61                  STD    $01,S
+        06FA   20      D6 06D2        BRA    ZFED2
+
+        06FC   EC 61           ZFEFC  LDD    $01,S
+        06FE   ED 65                  STD    $05,S
+        0700   43                     COMA               
+        0701   20      02 0705        BRA    ZFF05
+
+        0703   ED 69           ZFF03  STD    $09,S
+
+        0705   32 65           ZFF05  LEAS   $05,S
+        0707   35      F6             PULS   PC,U,Y,X,B,A
+
+        0709   AE 44           ZFF09  LDX    $04,U
+        070B   8D      0A 0717        BSR    ZFF17
+        070D   ED 41                  STD    $01,U
+        070F   25      02 0713        BCS    ZFF13
+        0711   AF 44                  STX    $04,U
+
+        0713 10AF 46           ZFF13  STY    $06,U
+        0716   39                     RTS                
+
+        0717   A6 84           ZFF17  LDA    ,X
+        0719   81      2F             CMPA   #$2F
+        071B   26      02 071F        BNE    ZFF1F
+        071D   30 01                  LEAX   $01,X
+
+        071F   31 84           ZFF1F  LEAY   ,X
+        0721   5F                     CLRB               
+        0722   A6 A0                  LDA    ,Y+
+        0724   84      7F             ANDA   #$7F
+        0726   8D      34 075C        BSR    ZFF5C
+        0728   25      12 073C        BCS    ZFF3C
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    21
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        072A   5C              ZFF2A  INCB               
+        072B   A6 3F                  LDA    -$01,Y
+        072D   2B      0A 0739        BMI    ZFF39
+        072F   A6 A0                  LDA    ,Y+
+        0731   84      7F             ANDA   #$7F
+        0733   8D      17 074C        BSR    ZFF4C
+        0735   24      F3 072A        BCC    ZFF2A
+        0737   A6 A2                  LDA    ,-Y
+
+        0739   1C      FE      ZFF39  ANDCC  #$FE
+        073B   39                     RTS                
+
+        073C   81      2C      ZFF3C  CMPA   #$2C
+        073E   26      02 0742        BNE    ZFF42
+
+        0740   A6 A0           ZFF40  LDA    ,Y+
+        0742   81      20      ZFF42  CMPA   #$20
+        0744   27      FA 0740        BEQ    ZFF40
+        0746   A6 A2                  LDA    ,-Y
+        0748   53                     COMB               
+        0749   C6      EB             LDB    #$EB
+        074B   39                     RTS                
+
+        074C   81      2E      ZFF4C  CMPA   #$2E
+        074E   27      42 0792        BEQ    ZFF92
+        0750   81      30             CMPA   #$30
+        0752   25      18 076C        BCS    ZFF6C
+        0754   81      39             CMPA   #$39
+        0756   23      3A 0792        BLS    ZFF92
+        0758   81      5F             CMPA   #$5F
+        075A   27      36 0792        BEQ    ZFF92
+
+        075C   81      41      ZFF5C  CMPA   #$41
+        075E   25      0C 076C        BCS    ZFF6C
+        0760   81      5A             CMPA   #$5A
+        0762   23      2E 0792        BLS    ZFF92
+        0764   81      61             CMPA   #$61
+        0766   25      04 076C        BCS    ZFF6C
+        0768   81      7A             CMPA   #$7A
+        076A   23      26 0792        BLS    ZFF92
+
+        076C   1A      01      ZFF6C  ORCC   #$01
+        076E   39                     RTS                
+
+        076F   E6 42           ZFF6F  LDB    $02,U
+        0771   33 44                  LEAU   $04,U
+        0773   37      30             PULU   Y,X
+
+        0775   34      36      ZFF75  PSHS   Y,X,B,A
+
+        0777   A6 A0           ZFF77  LDA    ,Y+
+        0779   2B      0C 0787        BMI    ZFF87
+        077B   5A                     DECB               
+        077C   27      06 0784        BEQ    ZFF84
+        077E   A8 80                  EORA   ,X+
+        0780   84      DF             ANDA   #$DF
+        0782   27      F3 0777        BEQ    ZFF77
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    22
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+
+        0784   53              ZFF84  COMB               
+        0785   35      B6             PULS   PC,Y,X,B,A
+
+        0787   5A              ZFF87  DECB               
+        0788   26      FA 0784        BNE    ZFF84
+        078A   A8 84                  EORA   ,X
+        078C   84      5F             ANDA   #$5F
+        078E   26      F4 0784        BNE    ZFF84
+        0790   35      36             PULS   Y,X,B,A
+
+        0792   1C      FE      ZFF92  ANDCC  #$FE
+        0794   39                     RTS                
+
+        0795 10AE 46           ZFF95  LDY    $06,U
+        0798   20      20 07BA        BRA    ZFFBA
+
+        079A   1F      98      ZFF9A  TFR    B,A
+        079C   84      7F             ANDA   #$7F
+        079E   81      7F             CMPA   #$7F
+        07A0   27      08 07AA        BEQ    ZFFAA
+        07A2   81      37             CMPA   #$37
+        07A4   25      04 07AA        BCS    ZFFAA
+        07A6   53                     COMB               
+        07A7   C6      E3             LDB    #$E3
+        07A9   39                     RTS                
+
+        07AA   58              ZFFAA  ASLB               
+        07AB   DE      46             LDU    <Z0046
+        07AD   33 C5                  LEAU   B,U
+        07AF   EC A1                  LDD    ,Y++
+        07B1   30 AB                  LEAX   D,Y
+        07B3   AF C4                  STX    ,U
+        07B5   25      03 07BA        BCS    ZFFBA
+        07B7   AF C8   70             STX    $70,U
+
+        07BA   E6 A0           ZFFBA  LDB    ,Y+
+        07BC   C1      80             CMPB   #$80
+        07BE   26      DA 079A        BNE    ZFF9A
+        07C0   39                     RTS                
+
+        07C1   8E    FFF0      ZFFC1  LDX    #$FFF0
+        07C4   C6      0F             LDB    #$0F
+
+        07C6   E7 80           ZFFC6  STB    ,X+
+        07C8   5A                     DECB               
+        07C9   2A      FB 07C6        BPL    ZFFC6
+        07CB   16    F885 0053        LBRA   ZF853
+
+      S 07CE   CB    7973             emod               
+
+      E 07D1                   ZFFD1  EQU    *
+        07D1                          RPT    $07E0-ZFFD1
+        07D1   39                     RTS                
+        07D2   39                     RTS                
+        07D3   39                     RTS                
+        07D4   39                     RTS                
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    23
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+        07D5   39                     RTS                
+        07D6   39                     RTS                
+        07D7   39                     RTS                
+        07D8   39                     RTS                
+        07D9   39                     RTS                
+        07DA   39                     RTS                
+        07DB   39                     RTS                
+        07DC   39                     RTS                
+        07DD   39                     RTS                
+        07DE   39                     RTS                
+        07DF   39                     RTS                
+
+      C 07E0 F9A3              ZFFE0  FDB    ZF9A3+P1base
+      C 07E2 F948              ZFFE2  FDB    ZF948+P1base
+      C 07E4 F94E                     FDB    ZF94E+P1base
+      C 07E6 F954                     FDB    ZF954+P1base
+      C 07E8 F955                     FDB    ZF955+P1base
+      C 07EA F959                     FDB    ZF959+P1base
+      C 07EC F954                     FDB    ZF954+P1base
+      C 07EE 0000                     FDB    $0000
+
+      C 07F0 0000              ZFFF0  FDB    $0000
+      C 07F2 F930                     FDB    ZF930+P1base
+      C 07F4 F934                     FDB    ZF934+P1base
+      C 07F6 F938                     FDB    ZF938+P1base
+      C 07F8 F93C                     FDB    ZF93C+P1base
+      C 07FA F940                     FDB    ZF940+P1base
+      C 07FC F944                     FDB    ZF944+P1base
+      C 07FE FFC1                     FDB    ZFFC1+P1base
+
+        F853                          END    ZF853+P1base
+
+
+
+
+                 ERRORS :  NONE
+               WARNINGS :    10
+         PHASING OFFSET :  NONE 
+                 LABELS :   252
+   LAST PROGRAM ADDRESS :  2047  $07FF
+   LAST STORAGE ADDRESS :     0  $0000
+          PROGRAM BYTES :  2048  $0800
+          STORAGE BYTES :     0  $0000
+
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    24
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+
+
+   SYMBOL TABLE:
+
+87CD E MODHD    0001 E objct    F800 E P1base   F000 E P2base   
+0080 E reent    00C0 E sys      0001 E Z0001    000D E Z000D    
+0012 E Z0012    0013 E Z0013    0016 E Z0016    0020 E Z0020    
+0022 E Z0022    0024 E Z0024    0026 E Z0026    0028 E Z0028    
+002A E Z002A    002C E Z002C    002E E Z002E    0030 E Z0030    
+0032 E Z0032    0034 E Z0034    0036 E Z0036    0038 E Z0038    
+003A E Z003A    003C E Z003C    003E E Z003E    003F E Z003F    
+0040 E Z0040    0041 E Z0041    0042 E Z0042    0043 E Z0043    
+0044 E Z0044    0046 E Z0046    0048 E Z0048    0049 E Z0049    
+004B E Z004B    004D E Z004D    004F E Z004F    0051 E Z0051    
+0053 E Z0053    0055 E Z0055    0057 E Z0057    005B E Z005B    
+0066 E Z0066    0068 E Z0068    0073 E Z0073    0800 E Z0800    
+E014 E ZE014    000D C ZF80D    0019 C ZF819    001D C ZF81D    
+0022 C ZF822    0025 C ZF825    0028 C ZF828    002B C ZF82B    
+002E C ZF82E    0031 C ZF831    0034 C ZF834    0037 C ZF837    
+003A C ZF83A    003D C ZF83D    0040 C ZF840    0043 C ZF843    
+0046 C ZF846    0049 C ZF849    004C C ZF84C    004F C ZF84F    
+0052 C ZF852    0053 L ZF853    005B L ZF85B    005C L ZF85C    
+007B L ZF87B    009E L ZF89E    00A2 L ZF8A2    00AD L ZF8AD    
+00B3 L ZF8B3    00B5 L ZF8B5    00C2 L ZF8C2    0111 L ZF911    
+0130 L ZF930    0134 L ZF934    0138 L ZF938    013C L ZF93C    
+0140 L ZF940    0144 L ZF944    0148 L ZF948    014E L ZF94E    
+0154 L ZF954    0155 L ZF955    0159 L ZF959    015D L ZF95D    
+0166 L ZF966    0169 L ZF969    0182 L ZF982    018E L ZF98E    
+0191 L ZF991    01A0 L ZF9A0    01A1 L ZF9A1    01A3 L ZF9A3    
+01B8 L ZF9B8    01CC L ZF9CC    01CE L ZF9CE    01E2 L ZF9E2    
+01E3 L ZF9E3    01E9 L ZF9E9    01EB L ZF9EB    01F2 L ZF9F2    
+01F9 L ZF9F9    0206 L ZFA06    0210 L ZFA10    0217 L ZFA17    
+021F L ZFA1F    0226 L ZFA26    023E L ZFA3E    0249 L ZFA49    
+0259 L ZFA59    0261 L ZFA61    0263 L ZFA63    026B L ZFA6B    
+0278 L ZFA78    027D L ZFA7D    028B L ZFA8B    0291 L ZFA91    
+0293 L ZFA93    02A2 L ZFAA2    02CD L ZFACD    02D0 L ZFAD0    
+02D9 L ZFAD9    02DA L ZFADA    02E0 L ZFAE0    02E9 L ZFAE9    
+02FB L ZFAFB    030E L ZFB0E    0310 L ZFB10    031B L ZFB1B    
+0366 L ZFB66    0368 L ZFB68    036B L ZFB6B    036C L ZFB6C    
+0372 L ZFB72    0374 L ZFB74    0382 L ZFB82    0386 L ZFB86    
+038F L ZFB8F    0392 L ZFB92    039C L ZFB9C    03A5 L ZFBA5    
+03BD L ZFBBD    03C0 L ZFBC0    03C2 L ZFBC2    03CB L ZFBCB    
+03D3 L ZFBD3    03D5 L ZFBD5    0413 L ZFC13    0414 L ZFC14    
+042C L ZFC2C    0447 L ZFC47    0451 L ZFC51    045C L ZFC5C    
+0464 L ZFC64    046D L ZFC6D    046E L ZFC6E    0470 L ZFC70    
+0472 L ZFC72    0479 L ZFC79    049C L ZFC9C    04A5 L ZFCA5    
+04AD L ZFCAD    04D1 L ZFCD1    04DC L ZFCDC    04E0 L ZFCE0    
+04EC L ZFCEC    04F2 L ZFCF2    04F6 L ZFCF6    0508 L ZFD08    
+0518 L ZFD18    053D L ZFD3D    0550 L ZFD50    0560 L ZFD60    
+056A L ZFD6A    0580 L ZFD80    0588 L ZFD88    05AF L ZFDAF    
+05B1 L ZFDB1    05B3 L ZFDB3    05C4 L ZFDC4    05C8 L ZFDC8    
+05CE L ZFDCE    05D4 L ZFDD4    05EA L ZFDEA    05FD L ZFDFD    
+05FF L ZFDFF    0603 L ZFE03    0618 L ZFE18    061E L ZFE1E    
+0624 L ZFE24    062F L ZFE2F    0634 E ZFE34    063B L ZFE3B    
+0643 L ZFE43    0645 L ZFE45    064D L ZFE4D    0653 L ZFE53    
+065A L ZFE5A    066C L ZFE6C    0670 L ZFE70    0671 L ZFE71    
+0677 L ZFE77    0682 L ZFE82    068E L ZFE8E    0692 L ZFE92    
+
+OS9P1.TXT                                     LLOYD I/O ASSEMBLER   PAGE    25
+                                              7-4-97          
+++++++++ OSM    V5.2   (C) 1984 by LLOYD I/O, All Rights Reserved ++++++++
+
+0694 L ZFE94    069B L ZFE9B    06A2 L ZFEA2    06A8 L ZFEA8    
+06BD L ZFEBD    06CD L ZFECD    06D2 L ZFED2    06DA L ZFEDA    
+06DE L ZFEDE    06FC L ZFEFC    0703 L ZFF03    0705 L ZFF05    
+0709 L ZFF09    0713 L ZFF13    0717 L ZFF17    071F L ZFF1F    
+072A L ZFF2A    0739 L ZFF39    073C L ZFF3C    0740 L ZFF40    
+0742 L ZFF42    074C L ZFF4C    075C L ZFF5C    076C L ZFF6C    
+076F L ZFF6F    0775 L ZFF75    0777 L ZFF77    0784 L ZFF84    
+0787 L ZFF87    0792 L ZFF92    0795 L ZFF95    079A L ZFF9A    
+07AA L ZFFAA    07BA L ZFFBA    07C1 L ZFFC1    07C6 L ZFFC6    
+07D1 E ZFFD1    07E0 C ZFFE0    07E2 C ZFFE2    07F0 C ZFFF0    
