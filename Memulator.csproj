@@ -1,0 +1,372 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A0E331CC-E091-4B0D-9759-A039230B87B9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Memulator</RootNamespace>
+    <AssemblyName>memulator</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\memulator.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\memulator.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\memulator.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\memulator.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>SWTPCemu.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Memulator.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IODevices\BoardInfoClass.cs" />
+    <Compile Include="IODevices\MPS.cs" />
+    <Compile Include="IODevices\ConsoleACIA.cs" />
+    <Compile Include="IODevices\DMAF2.cs" />
+    <Compile Include="IODevices\DMAF3.cs" />
+    <Compile Include="IODevices\FD_2.cs" />
+    <Compile Include="IODevices\IODevice.cs" />
+    <Compile Include="IODevices\MPID.cs" />
+    <Compile Include="IODevices\MPT.cs" />
+    <Compile Include="CONSOLE\console.cs" />
+    <Compile Include="IODevices\PCStream.cs" />
+    <Compile Include="IODevices\PIAIDE.cs" />
+    <Compile Include="IODevices\CPrinter.cs" />
+    <Compile Include="CPUS\Cpu.cs" />
+    <Compile Include="CPUS\Cpu6800.cs" />
+    <Compile Include="CPUS\Cpu6809.cs" />
+    <Compile Include="IODevices\TTLIDE.cs" />
+    <Compile Include="CONSOLE\Keyboard.cs" />
+    <Compile Include="Memory.cs" />
+    <Compile Include="memulatorConfigEditor\ConvertCfgToXml.cs" />
+    <Compile Include="memulatorConfigEditor\frmACIAConfiguration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmACIAConfiguration.Designer.cs">
+      <DependentUpon>frmACIAConfiguration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmBoardSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmBoardSelection.Designer.cs">
+      <DependentUpon>frmBoardSelection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmDialogHardDriveParameters.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmDialogHardDriveParameters.Designer.cs">
+      <DependentUpon>frmDialogHardDriveParameters.cs</DependentUpon>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmDiskAddEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmDiskAddEdit.Designer.cs">
+      <DependentUpon>frmDiskAddEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmDriveAddEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\frmDriveAddEdit.Designer.cs">
+      <DependentUpon>frmDriveAddEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\KeyboardMapping.cs" />
+    <Compile Include="memulatorConfigEditor\memulatorConfigEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\memulatorConfigEditor.Designer.cs">
+      <DependentUpon>memulatorConfigEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="memulatorConfigEditor\Program.cs" />
+    <Compile Include="memulatorConfigEditor\SaveCode.cs" />
+    <Compile Include="MicroLibrary.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TraceEntry.cs" />
+    <Compile Include="CONSOLE\TS950.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CONFIGFILES\configuration.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CONFIGFILES\flex9_pt69s5_config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CONFIGFILES\flex9_ttl_config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CONFIGFILES\flex2_config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CONFIGFILES\flex9_fd2_config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CONFIGFILES\OS9_config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CONFIGFILES\uniflex_config.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DOCS\InforForCreatingShortcusts.txt" />
+    <Content Include="DOCS\OS9P1.LST" />
+    <Content Include="DOCS\OS9P2.LST" />
+    <Content Include="DOCS\USE_Instructions.txt" />
+    <Content Include="ROMS\mikbug.asm" />
+    <Content Include="ROMS\NEWBUG\Newbug.asm" />
+    <Content Include="ROMS\NEWBUG\NEWBUG.LST" />
+    <Content Include="ROMS\Os9rom.lst">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DOCS\ptmon4s5.lst" />
+    <Content Include="DOCS\Sbug18.lst" />
+    <Content Include="SWTPCemu.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="DISKS\6800BOOT.DSK">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\BLANK.DSK">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\EmuOs9Boot.dsk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\FLEX292F.dsk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\FLEX292HD.dsk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\PT69_DSK_Files\2048X18X32.dsk" />
+    <None Include="DISKS\TTLIDE_FLEX.dsk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\UNIFLEX\dssd8inch.dsk" />
+    <None Include="DISKS\UNIFLEX\dynamite.dsk" />
+    <None Include="DISKS\UNIFLEX\fd0_nopassword.dsk" />
+    <None Include="DISKS\UNIFLEX\init.dsk" />
+    <None Include="DISKS\UNIFLEX\INITIALIZERII.dsk" />
+    <None Include="DISKS\UNIFLEX\McCoshCandFortran.dsk" />
+    <None Include="DISKS\UNIFLEX\pascal.dsk" />
+    <None Include="DISKS\UNIFLEX\RELASMB.dsk" />
+    <None Include="DISKS\UNIFLEX\ssdd8inch.dsk" />
+    <None Include="DISKS\UNIFLEX\sssd8inch.dsk" />
+    <None Include="DISKS\UNIFLEX\UF_TRANSFER.dsk" />
+    <None Include="DISKS\UNIFLEX\UNIFLEX.dsk" />
+    <None Include="DISKS\UNIFLEX\UNIFLEXBOOT.DSK" />
+    <None Include="DISKS\UNIFLEX\UNIFLEXFLOPPYBOOT.DSK" />
+    <None Include="DISKS\UNIFLEX\UNIFLEX_SRC1.dsk" />
+    <None Include="DISKS\UNIFLEX\UNIFLEX_SRC2.dsk" />
+    <None Include="DISKS\UNIFLEX\UNIFLEX_SRC3.dsk" />
+    <None Include="DISKS\UNIFLEX\UNIFLEX_SRC4.dsk" />
+    <None Include="DISKS\UNIFLEX\UnixUtilsforUniFLEX.dsk" />
+    <None Include="DISKS\UNIFLEX\UOS_3S_BOOT.DSK" />
+    <None Include="DISKS\UNIFLEX\USE.dsk" />
+    <None Include="DISKS\wd0.dsk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DISKS\wd1.dsk">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="DOCS\C_Compiler_1983_Microware_Systems_Corp.mobi" />
+    <None Include="DOCS\C_Compiler_1983_Microware_Systems_Corp.pdf" />
+    <None Include="DOCS\C_Compiler_1983_Microware_Systems_Corp_text.pdf" />
+    <None Include="DOCS\os9ccguide.pdf" />
+    <None Include="DOCS\os9guide.pdf" />
+    <None Include="DOCS\uniflexcommands.pdf" />
+    <None Include="packages.config" />
+    <None Include="ROMS\NEWBUG.STX">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ROMS\NEWBUG\NEWBUG.MXT" />
+    <None Include="ROMS\NEWBUG\NEWBUG.STX" />
+    <None Include="ROMS\OS9Rom.stx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ROMS\ptmon4s5.s19">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ROMS\Sbug18.stx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ROMS\UNIBUG.STX">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ROMS\UOS_3S_UNIFLEX.stx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="ROMS\UOS_3S_UNIFLEX_840K.stx" />
+    <None Include="ROMS\UOS_3S_UNIFLEX_896K.stx" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="memulatorConfigEditor\frmACIAConfiguration.resx">
+      <DependentUpon>frmACIAConfiguration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="memulatorConfigEditor\frmBoardSelection.resx">
+      <DependentUpon>frmBoardSelection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="memulatorConfigEditor\frmDialogHardDriveParameters.resx">
+      <DependentUpon>frmDialogHardDriveParameters.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="memulatorConfigEditor\frmDiskAddEdit.resx">
+      <DependentUpon>frmDiskAddEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="memulatorConfigEditor\frmDriveAddEdit.resx">
+      <DependentUpon>frmDriveAddEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="memulatorConfigEditor\memulatorConfigEditor.resx">
+      <DependentUpon>memulatorConfigEditor.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
