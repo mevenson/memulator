@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <Global>
+    <ConsoleDump filename="ConsoleDump.txt" />
+    <ProcessorBoard CPU="6809" Board="MP_09" />
+    <Trace Enabled="0" Path="TraceFile.txt" />
+    <WinchesterInterruptDelay value="0" />
+    <AllowMultipleSector value="0" />
+    <ProcessorJumpers J_150_9600="1" J_600_4800="0" J_LOW_HIGH="1" E000_RAM="0" E800_RAM="1" F000_RAM="1" E000_ROM="0" E800_ROM="0" F000_ROM="0" />
+    <ProcessorSwitch SW1B="0" SW1C="1" SW1D="1" />
+  </Global>
+  <config6809>
+    <romfile filename="ROMS/Sbug18.stx" />
+    <BoardConfiguration>
+      <Board ID="0" Type="CONS" Addr="E004" Size="04" GUID="" IRQ="1" />
+      <Board ID="1" Type="FD2" Addr="E014" Size="08" GUID="" IRQ="1" />
+      <Board ID="2" Type="MPT" Addr="E040" Size="08" GUID="" IRQ="1" />
+    </BoardConfiguration>
+    <FloppyDisks>
+      <Disk ID="0" Path="C:\ProgramData\EvensonConsultingServices\SWTPCmemulator\DISKS\FLEX292HD.DSK" Format="FLEX" />
+      <Disk ID="1" Path="C:\ProgramData\EvensonConsultingServices\SWTPCmemulator\DISKS\Poly\TSC_TEXT_PROCESSOR.dsk" Format="FLEX" />
+      <Disk ID="2" Path="C:\ProgramData\EvensonConsultingServices\SWTPCmemulator\DISKS\CT09UTIL.DSK" Format="FLEX" />
+    </FloppyDisks>
+    <KeyBoardMap>
+      <Delete Normal="^J" Shifted="" Control="" Alt="" Both="" />
+      <DownArrow Normal="^C" Shifted="" Control="^N" Alt="" Both="" />
+      <End Normal="^]" Shifted="" Control="^B" Alt="" Both="" />
+      <Home Normal="^]" Shifted="" Control="^T" Alt="" Both="" />
+      <Insert Normal="^P" Shifted="" Control="" Alt="" Both="" />
+      <LeftArrow Normal="^S" Shifted="" Control="^A" Alt="" Both="" />
+      <PageDown Normal="^V" Shifted="" Control="" Alt="" Both="" />
+      <PageUp Normal="^R" Shifted="" Control="" Alt="" Both="" />
+      <RightArrow Normal="^F" Shifted="" Control="^G" Alt="" Both="" />
+      <UpArrow Normal="^E" Shifted="" Control="^Y" Alt="" Both="" />
+    </KeyBoardMap>
+  </config6809>
+</configuration>

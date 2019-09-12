@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+    <project>
+        <type value="" />
+        <commandline value="" />
+    </project>
+
+    <options>
+        <dumpSymbols    value="1" />
+        <listingFile    value="1" />
+        <os9Mode        value="0" />
+        <objectFile     value="1" />
+        <upperCaseOnly  value="0" />
+        <processorFlag  value="0" />
+    </options>
+
+    <emulation>
+        <configFile name="flex2_config.xml" />
+        <bootCommand value="D" />
+        <datetimePrompt value="DATE (MM,DD,YY)? " />
+        <datetimeFormat value="MM/dd/yy" />
+    </emulation>
+
+    <breakpoints enabled="0">
+    </breakpoints>
+
+    <openfiles>
+        <file position="0" name="C:\src\Emulators\memulator\memulator\COMMANDS\SPLM.asm" />
+        <file position="1" name="C:\src\Emulators\memulator\memulator\COMMANDS\FLEX.LIB" />
+    </openfiles>
+
+</configuration>

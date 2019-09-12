@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+  <Global>
+
+    <ConsoleDump filename="ConsoleDump.txt" />
+    
+    <!--This is for FLEX9-->
+    <!--
+    <ProcessorJumpers         J_150_9600="1" J_600_4800="0" J_LOW_HIGH="1" E000_RAM="0" E800_RAM="1" F000_RAM="1" E000_ROM="0" E800_ROM="0" F000_ROM="0" />
+    <ProcessorSwitch          SW1B="0" SW1C="1" SW1D="1" />
+    <AllowMultipleSector      value="0"/>
+    -->
+
+    <!--This is for UniFLEX-->
+    <ProcessorJumpers         J_150_9600="1" J_600_4800="0" J_LOW_HIGH="1" E000_RAM="1" E800_RAM="1" F000_RAM="0" E000_ROM="0" E800_ROM="0" F000_ROM="0" />
+    <ProcessorSwitch          SW1B="1" SW1C="1" SW1D="0" />
+    <ProcessorBoard           CPU="6809" Board="MP_09" />
+    <Trace                    Enabled="0" Path="TraceFile.txt" />
+    <WinchesterInterruptDelay value="1" />
+    <AllowMultipleSector      value="1"/>
+
+  </Global>
+
+  <config6800>
+    <romfile filename="ROMS/newbug.stx" />
+    <BoardConfiguration>
+      <Board ID="0" Type="CONS" Addr="8000" Size="8" GUID="" IRQ="1"/>
+      <Board ID="1" Type="FD2"  Addr="8014" Size="8" GUID="" IRQ="1"/>
+    </BoardConfiguration>
+    <FloppyDisks>
+      <Disk ID="0" Path="DISKS/6800BOOT.DSK" Format="FLEX"/>
+      <Disk ID="1" Path="DISKS/BLANK.DSK" Format="FLEX"/>
+    </FloppyDisks>
+    <KeyBoardMap>
+      <Delete     Normal="^J"	Shifted="" Control=""   Alt=""  Both="" />
+      <DownArrow  Normal="^X"	Shifted="" Control="^N" Alt=""  Both="" />
+      <End        Normal="^]"	Shifted="" Control="^B" Alt=""  Both="" />
+      <Home       Normal="^]"	Shifted="" Control="^T" Alt=""  Both=""	/>
+      <Insert     Normal="^P"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <LeftArrow  Normal="^S"	Shifted="" Control="^A" Alt=""  Both=""	/>
+      <PageDown   Normal="^V"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <PageUp     Normal="^R"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <RightArrow Normal="^D"	Shifted="" Control="^G" Alt=""  Both=""	/>
+      <UpArrow    Normal="^E"	Shifted="" Control="^Y" Alt=""  Both=""	/>
+    </KeyBoardMap>
+  </config6800>
+
+  <config6809>
+    <romfile filename="ROMS/UOS_3S_UNIFLEX.stx" />
+    <!--This is for UniFLEX-->
+    <!--<romfile filename="ROMS/Sbug18.stx" />-->
+    <!--This is for FLEX9-->
+    <BoardConfiguration>
+
+      <!--This is for UniFLEX-->
+      <Board ID = "0" Type="MPID"  Addr="E000" Size="160"   GUID="" IRQ="1"/>
+      <Board ID = "1" Type="CONS"  Addr="E000" Size="2"     GUID="" IRQ="1"/>
+      <Board ID = "2" Type="DMAF3" Addr="F000" Size="2048"  GUID="" IRQ="1"/>
+
+      <!--This is for FLEX9-->
+      <!--<Board ID = "1" Type="FD2"  Addr="E014" Size="8" GUID="" IRQ="1"/>-->
+      <!--<Board ID = "2" Type="MPT"  Addr="E040" Size="8" GUID="" IRQ="1"/>-->
+
+    </BoardConfiguration>
+    <FloppyDisks>
+
+      <!--This is for FLEX9-->
+      <!--<Disk ID ="0" Path="DISKS/FLEX292F.DSK" Format="FLEX"/>-->
+
+    </FloppyDisks>
+    <WinchesterDrives>
+
+      <!--This is for UniFLEX-->
+      <Disk ID="0" TypeName="CMI 5619 (19Mb)" Path="DISKS/wd0.dsk"  Cylinders="306" Heads="6" SectorsPerTrack="17"  BytesPerSector="512" />
+      <!--This is for UniFLEX-->
+      <Disk ID="1" TypeName=""                Path=""               Cylinders=""    Heads=""  SectorsPerTrack=""    BytesPerSector="" />
+      <Disk ID="2" TypeName=""                Path=""               Cylinders=""    Heads=""  SectorsPerTrack=""    BytesPerSector="" />
+      <Disk ID="3" TypeName=""                Path=""               Cylinders=""    Heads=""  SectorsPerTrack=""    BytesPerSector="" />
+
+    </WinchesterDrives>
+    <CDSDrives>
+
+      <!--This is for UniFLEX-->
+      <Disk ID="0" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+      <Disk ID="1" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+      <Disk ID="2" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+      <Disk ID="3" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+
+    </CDSDrives>
+    <KeyBoardMap>
+      <Delete     Normal="^J"	Shifted="" Control=""   Alt=""  Both="" />
+      <DownArrow  Normal="^C"	Shifted="" Control="^N" Alt=""  Both="" />
+      <End        Normal="^]"	Shifted="" Control="^B"	Alt=""  Both="" />
+      <Home       Normal="^]"	Shifted="" Control="^T" Alt=""  Both=""	/>
+      <Insert     Normal="^P"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <LeftArrow  Normal="^S"	Shifted="" Control="^A" Alt=""  Both=""	/>
+      <PageDown   Normal="^V"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <PageUp     Normal="^R"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <RightArrow Normal="^F"	Shifted="" Control="^G" Alt=""  Both=""	/>
+      <UpArrow    Normal="^E"	Shifted="" Control="^Y" Alt=""  Both=""	/>
+    </KeyBoardMap>
+  </config6809>
+</configuration>

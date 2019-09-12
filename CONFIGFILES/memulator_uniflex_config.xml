@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+  <Global>
+
+    <ConsoleDump              filename="ConsoleDump.txt" />
+    <ProcessorJumpers         J_150_9600="1" J_600_4800="0" J_LOW_HIGH="1" E000_RAM="0" E800_RAM="0" F000_RAM="0" E000_ROM="0" E800_ROM="0" F000_ROM="0" />
+    <ProcessorSwitch          SW1B="0" SW1C="0" SW1D="0" />
+    <ProcessorBoard           CPU="6809" Board="MP_09" />
+    <Trace                    Enabled="0" Path="TraceFile.txt" />
+    <WinchesterInterruptDelay value="1" />
+    <AllowMultipleSector      value="1"/>
+    <Statistics               filename="stats{date}_{time}.txt" />
+    <CoreDump                 filename="core{date}_{time}.bin" />
+
+    <Memory>
+      <Board  ID="0"   BaseAddress="0000" ExtendedPage="0"   Size="64K"/>
+      <Board  ID="1"   BaseAddress="0000" ExtendedPage="1"   Size="64K"/>
+      <Board  ID="2"   BaseAddress="0000" ExtendedPage="2"   Size="64K"/>
+      <Board  ID="3"   BaseAddress="0000" ExtendedPage="3"   Size="64K"/>
+      <Board  ID="4"   BaseAddress="0000" ExtendedPage="4"   Size="64K"/>
+      <Board  ID="5"   BaseAddress="0000" ExtendedPage="5"   Size="64K"/>
+      <Board  ID="6"   BaseAddress="0000" ExtendedPage="6"   Size="64K"/>
+      <Board  ID="7"   BaseAddress="0000" ExtendedPage="7"   Size="64K"/>
+      <Board  ID="8"   BaseAddress="0000" ExtendedPage="8"   Size="64K"/>
+      <Board  ID="9"   BaseAddress="0000" ExtendedPage="9"   Size="64K"/>
+      <Board  ID="10"  BaseAddress="0000" ExtendedPage="A"   Size="64K"/>
+      <Board  ID="11"  BaseAddress="0000" ExtendedPage="B"   Size="64K"/>
+      <Board  ID="12"  BaseAddress="0000" ExtendedPage="C"   Size="64K"/>
+      <Board  ID="13"  BaseAddress="0000" ExtendedPage="D"   Size="64K"/>
+      <Board  ID="14"  BaseAddress="0000" ExtendedPage="E"   Size="64K"/>
+      <Board  ID="15"  BaseAddress="0000" ExtendedPage="F"   Size="64K"/>
+    </Memory>
+
+    <DebugInfo>
+      <BreakPoints enabled="0" values="FFF8,FFFA,FFFC" />
+      <Exclude     enabled="0" values="CD03-CDFF,D406-D4FF" />
+    </DebugInfo>
+
+    <ConsoleColors>
+      <NormalBackgroundColor value ="Black" />
+      <NormalForegroundColor value ="White" />
+      <ReverseBackgroundColor value ="White" />
+      <ReverseForegroundColor value ="Black" />
+    </ConsoleColors>
+
+  </Global>
+
+  <config6809>
+    <romfile filename="ROMS/UOS_3S_UNIFLEX.stx" />
+    <BoardConfiguration>
+
+      <Board ID = "0" Type="CONS"  Addr="E000" Size="2"     GUID="" IRQ="1"/>
+      <Board ID = "1" Type="MPID"  Addr="E000" Size="160"   GUID="" IRQ="1"/>
+      <Board ID = "2" Type="DMAF3" Addr="F000" Size="2048"  GUID="" IRQ="1"/>
+
+    </BoardConfiguration>
+    <FloppyDisks>
+
+      <Disk ID ="0" Path="DISKS/UNIFLEX\McCoshCandFortran.dsk" Format="UNIFLEX"/>
+
+    </FloppyDisks>
+    <WinchesterDrives>
+
+      <!--This is for UniFLEX-->
+      <Disk ID="0" TypeName="CMI 5619 (19Mb)" Path="DISKS/wd0.dsk"        Cylinders="306" Heads="6" SectorsPerTrack="17"  BytesPerSector="512" />
+      <Disk ID="1" TypeName="CMI 5619 (19Mb)" Path="DISKS/wd1.dsk"        Cylinders="306" Heads="6" SectorsPerTrack="17"  BytesPerSector="512" />
+      <Disk ID="2" TypeName="CMI 5619 (19Mb)" Path="DISKS/ufsources.dsk"  Cylinders="306" Heads="6" SectorsPerTrack="17"  BytesPerSector="512" />
+      <Disk ID="3" TypeName=""                Path=""                     Cylinders=""    Heads=""  SectorsPerTrack=""    BytesPerSector="" />
+
+    </WinchesterDrives>
+    <CDSDrives>
+
+      <Disk ID="0" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+      <Disk ID="1" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+      <Disk ID="2" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+      <Disk ID="3" TypeName="" Path="" Cylinders="" Heads="" SectorsPerTrack="" BytesPerSector="" />
+
+    </CDSDrives>
+    <KeyBoardMap>
+      <Delete     Normal="^J"	Shifted="" Control=""   Alt=""  Both="" />
+      <DownArrow  Normal="^C"	Shifted="" Control="^N" Alt=""  Both="" />
+      <End        Normal="^]"	Shifted="" Control="^B"	Alt=""  Both="" />
+      <Home       Normal="^]"	Shifted="" Control="^T" Alt=""  Both=""	/>
+      <Insert     Normal="^P"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <LeftArrow  Normal="^S"	Shifted="" Control="^A" Alt=""  Both=""	/>
+      <PageDown   Normal="^V"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <PageUp     Normal="^R"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <RightArrow Normal="^F"	Shifted="" Control="^G" Alt=""  Both=""	/>
+      <UpArrow    Normal="^E"	Shifted="" Control="^Y" Alt=""  Both=""	/>
+    </KeyBoardMap>
+  </config6809>
+</configuration>

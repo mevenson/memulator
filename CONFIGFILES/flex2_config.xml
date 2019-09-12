@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+  <Global>
+
+    <ConsoleDump filename="ConsoleDump.txt" />
+    
+    <ProcessorBoard           CPU="6800" Board="MP_2" EnableScratchPadRAM="1" />
+    <Trace                    Enabled="0" Path="TraceFile.txt" />
+    <AllowMultipleSector      value="1"/>
+    <Memory>
+      <Board  ID="0" BaseAddress="0000" ExtendedPage="0" Size="16K"/>
+      <Board  ID="1" BaseAddress="4000" ExtendedPage="0" Size="16K"/>
+      <Board  ID="2" BaseAddress="8000" ExtendedPage="0" Size="16K"/>
+      <Board  ID="3" BaseAddress="C000" ExtendedPage="0" Size="16K"/>
+    </Memory>
+
+  </Global>
+
+  <config6800>
+    <romfile filename="ROMS/NEWBUG.STX" />
+    <BoardConfiguration>
+      <Board ID="0" Type="CONS" Addr="8000" Size="8" GUID="" IRQ="1"/>
+      <Board ID="1" Type="FD2"  Addr="8014" Size="8" GUID="" IRQ="1"/>
+    </BoardConfiguration>
+    <FloppyDisks>
+      <Disk ID="0" Path="DISKS/6800BOOT.DSK" Format="FLEX"/>
+      <Disk ID="1" Path="DISKS/BLANK.DSK" Format="FLEX"/>
+    </FloppyDisks>
+    <KeyBoardMap>
+      <Delete     Normal="^J"	Shifted="" Control=""   Alt=""  Both="" />
+      <DownArrow  Normal="^X"	Shifted="" Control="^N" Alt=""  Both="" />
+      <End        Normal="^]"	Shifted="" Control="^B" Alt=""  Both="" />
+      <Home       Normal="^]"	Shifted="" Control="^T" Alt=""  Both=""	/>
+      <Insert     Normal="^P"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <LeftArrow  Normal="^S"	Shifted="" Control="^A" Alt=""  Both=""	/>
+      <PageDown   Normal="^V"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <PageUp     Normal="^R"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <RightArrow Normal="^D"	Shifted="" Control="^G" Alt=""  Both=""	/>
+      <UpArrow    Normal="^E"	Shifted="" Control="^Y" Alt=""  Both=""	/>
+    </KeyBoardMap>
+  </config6800>
+
+</configuration>
