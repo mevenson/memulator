@@ -192,7 +192,7 @@ namespace Memulator
         public static FD_2     _CFD_2;
         public static DMAF2    _CDMAF2;
         public static DMAF3    _CDMAF3;
-        public static MPS     _CACIA;
+        public static ACIA     _CACIA;
         public static MPT      _CMPT;
         public static MPID     _CMPID;
         public static PIAIDE   _CPIAIDE;
@@ -716,7 +716,7 @@ namespace Memulator
                             // up to 16 ports
 
                             if (_CACIA == null)
-                                _CACIA = new MPS();
+                                _CACIA = new ACIA();
 
                             if (_CACIA != null)
                             {
@@ -1120,12 +1120,7 @@ namespace Memulator
                             if (valueNode != null)
                             {
                                 string strvalue = valueNode.Value;
-                                if (strvalue.StartsWith("0x") || strvalue.StartsWith("0X"))
-                                {
-                                    value = Convert.ToInt32(strvalue, 16);
-                                }
-                                else
-                                    Int32.TryParse(strvalue, out value);
+                                Int32.TryParse(strvalue, out value);
                             }
                         }
                     }
@@ -1189,8 +1184,6 @@ namespace Memulator
             xmlDocStream.Close();
             return value;
         }
-
-        // Modified to allow numbers to be specified as eothe decimal or hex if preceeded with "0x" or "0X"
         public static int GetConfigurationAttribute(string xpath, string attribute, string ordinal, int defaultvalue)
         {
             int value = defaultvalue;
@@ -1225,12 +1218,7 @@ namespace Memulator
                                         if (valueNode != null)
                                         {
                                             string strvalue = valueNode.Value;
-                                            if (strvalue.StartsWith("0x") || strvalue.StartsWith("0X"))
-                                            {
-                                                value = Convert.ToInt32(strvalue, 16);
-                                            }
-                                            else
-                                                Int32.TryParse(strvalue, out value);
+                                            Int32.TryParse(strvalue, out value);
                                             foundOrdinal = true;
                                             break;
                                         }
@@ -1374,7 +1362,7 @@ namespace Memulator
             System.Diagnostics.Debug.WriteLine(string.Format("Common App Directory: {0}", commonAppDir));
             System.Diagnostics.Debug.WriteLine(string.Format("User App Directory: {0}", userAppDir));
 
-            // this logic gives precedence to the User AppDir over the Common AppDir. If neither exist - uses execution directory as dataDir.
+            // this logic gives precedence to the common AppDir over the User AppDir. If neither exist - uses execution directory as dataDir.
 
             if (Directory.Exists(userAppDir))
             {
