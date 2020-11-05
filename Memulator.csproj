@@ -10,15 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Memulator</RootNamespace>
     <AssemblyName>memulator</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -31,8 +27,11 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -45,6 +44,9 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -55,6 +57,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -71,6 +76,11 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
@@ -89,6 +99,10 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
     <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -105,6 +119,11 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -121,27 +140,22 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <Prefer32Bit>false</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>SWTPCemu.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Memulator.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IODevices\BoardInfoClass.cs" />
-    <Compile Include="IODevices\MPS.cs" />
+    <Compile Include="IODevices\ACIA.cs" />
     <Compile Include="IODevices\ConsoleACIA.cs" />
     <Compile Include="IODevices\DMAF2.cs" />
     <Compile Include="IODevices\DMAF3.cs" />
@@ -206,64 +220,37 @@
     <Compile Include="CONSOLE\TS950.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="CONFIGFILES\configuration.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="CONFIGFILES\flex9_pt69s5_config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="CONFIGFILES\flex9_ttl_config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="CONFIGFILES\flex2_config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="CONFIGFILES\flex9_fd2_config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="CONFIGFILES\OS9_config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="CONFIGFILES\uniflex_config.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="CONFIGFILES\configuration.xml" />
+    <Content Include="CONFIGFILES\flex9_pt69s5_config.xml" />
+    <Content Include="CONFIGFILES\flex9_ttl_config.xml" />
+    <Content Include="CONFIGFILES\flex2_config.xml" />
+    <Content Include="CONFIGFILES\flex9_fd2_config.xml" />
+    <Content Include="CONFIGFILES\OS9_config.xml" />
+    <Content Include="CONFIGFILES\uniflex_config.xml" />
     <Content Include="DOCS\InforForCreatingShortcusts.txt" />
     <Content Include="DOCS\OS9P1.LST" />
     <Content Include="DOCS\OS9P2.LST" />
     <Content Include="DOCS\USE_Instructions.txt" />
-    <Content Include="ROMS\mikbug.asm" />
     <Content Include="ROMS\NEWBUG\Newbug.asm" />
     <Content Include="ROMS\NEWBUG\NEWBUG.LST" />
-    <Content Include="ROMS\Os9rom.lst">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="ROMS\Os9rom.lst" />
     <Content Include="DOCS\ptmon4s5.lst" />
     <Content Include="DOCS\Sbug18.lst" />
     <Content Include="SWTPCemu.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="DISKS\6800BOOT.DSK">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DISKS\BLANK.DSK">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DISKS\EmuOs9Boot.dsk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DISKS\FLEX292F.dsk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DISKS\FLEX292HD.dsk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="DISKS\6800BOOT.DSK" />
+    <None Include="DISKS\BLANK.DSK" />
+    <None Include="DISKS\EmuOs9Boot.dsk" />
+    <None Include="DISKS\FLEX292F.dsk" />
+    <None Include="DISKS\FLEX292HD.dsk" />
     <None Include="DISKS\PT69_DSK_Files\2048X18X32.dsk" />
-    <None Include="DISKS\TTLIDE_FLEX.dsk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="DISKS\TTLIDE_FLEX.dsk" />
     <None Include="DISKS\UNIFLEX\dssd8inch.dsk" />
     <None Include="DISKS\UNIFLEX\dynamite.dsk" />
+    <None Include="DISKS\UNIFLEX\extra_1.dsk" />
+    <None Include="DISKS\UNIFLEX\extra_2.dsk" />
     <None Include="DISKS\UNIFLEX\fd0_nopassword.dsk" />
     <None Include="DISKS\UNIFLEX\init.dsk" />
     <None Include="DISKS\UNIFLEX\INITIALIZERII.dsk" />
@@ -272,6 +259,7 @@
     <None Include="DISKS\UNIFLEX\RELASMB.dsk" />
     <None Include="DISKS\UNIFLEX\ssdd8inch.dsk" />
     <None Include="DISKS\UNIFLEX\sssd8inch.dsk" />
+    <None Include="DISKS\UNIFLEX\ufsources.dsk" />
     <None Include="DISKS\UNIFLEX\UF_TRANSFER.dsk" />
     <None Include="DISKS\UNIFLEX\UNIFLEX.dsk" />
     <None Include="DISKS\UNIFLEX\UNIFLEXBOOT.DSK" />
@@ -283,41 +271,21 @@
     <None Include="DISKS\UNIFLEX\UnixUtilsforUniFLEX.dsk" />
     <None Include="DISKS\UNIFLEX\UOS_3S_BOOT.DSK" />
     <None Include="DISKS\UNIFLEX\USE.dsk" />
-    <None Include="DISKS\wd0.dsk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DISKS\wd1.dsk">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DOCS\C_Compiler_1983_Microware_Systems_Corp.mobi" />
-    <None Include="DOCS\C_Compiler_1983_Microware_Systems_Corp.pdf" />
-    <None Include="DOCS\C_Compiler_1983_Microware_Systems_Corp_text.pdf" />
-    <None Include="DOCS\os9ccguide.pdf" />
+    <None Include="DISKS\wd0.dsk" />
+    <None Include="DISKS\wd1.dsk" />
     <None Include="DOCS\os9guide.pdf" />
     <None Include="DOCS\uniflexcommands.pdf" />
-    <None Include="packages.config" />
-    <None Include="ROMS\NEWBUG.STX">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="ROMS\NEWBUG.STX" />
     <None Include="ROMS\NEWBUG\NEWBUG.MXT" />
     <None Include="ROMS\NEWBUG\NEWBUG.STX" />
-    <None Include="ROMS\OS9Rom.stx">
+    <None Include="ROMS\OS9Rom.stx" />
+    <None Include="ROMS\ptmon4s5.s19" />
+    <None Include="ROMS\Sbug18.stx" />
+    <None Include="ROMS\UNIBUG.STX" />
+    <None Include="ROMS\UOS_3S_UNIFLEX.stx" />
+    <None Include="defaultConfiguration.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="ROMS\ptmon4s5.s19">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="ROMS\Sbug18.stx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="ROMS\UNIBUG.STX">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="ROMS\UOS_3S_UNIFLEX.stx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="ROMS\UOS_3S_UNIFLEX_840K.stx" />
-    <None Include="ROMS\UOS_3S_UNIFLEX_896K.stx" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
