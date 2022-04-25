@@ -186,8 +186,9 @@ namespace Memulator
                         // special case handlers for program control keys like Quit, RESET, etc.
                         //
                         //       F1     Show Configuration Editor
-                        //  CTRL-F1     Kill emulation
-                        //  CTRL-F2     Reset emulation
+                        //  CTRL-F1     Kill emulation (Windows Only)
+                        //       F2     Stuff FLEX date time format into keyboard buffer (linux)
+                        //  CTRL-F2     Reset emulation (Windows)
                         //
                         //  CTRL-F3     Start save output to Console Dump File
                         //  CTRL-F4     Stop  save output to Console Dump File
@@ -244,25 +245,45 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F2:
-                            if (cki.Modifiers == ConsoleModifiers.Control)
+                            if (Program.Platform == OSPlatform.Windows)
                             {
-                                bStoreChar = false;
-                                Program._cpu.ResetPressed = true;
 
-                                if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                if (cki.Modifiers == ConsoleModifiers.Control)
                                 {
-                                    try
+                                    bStoreChar = false;
+                                    Program._cpu.ResetPressed = true;
+
+                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
                                     {
-                                        Program._cpuThread.Resume();
-                                    }
-                                    catch (ThreadStateException e)
-                                    {
-                                        // do nothing if thread is not suspended
+                                        try
+                                        {
+                                            Program._cpuThread.Resume();
+                                        }
+                                        catch (ThreadStateException e)
+                                        {
+                                            // do nothing if thread is not suspended
+                                        }
                                     }
                                 }
+                                else
+                                    Program._cpu.CoreDump();
                             }
-                            else
-                                Program._cpu.CoreDump();
+                            else if (Program.Platform == OSPlatform.Linux)
+                            {
+                                bStoreChar = false;
+                                DateTime dt = DateTime.Now;
+                                StuffKeyboard
+                                    (
+                                        String.Format("{0}/{1}/{2} {3}/{4}/{5}\r",
+                                            dt.Month.ToString("00"),
+                                            dt.Day.ToString("00"),
+                                            (dt.Year - 2000).ToString("00"),
+                                            dt.Hour.ToString("00"),
+                                            dt.Minute.ToString("00"),
+                                            dt.Second.ToString("00")
+                                        )
+                                    );
+                            }
                             break;
 
                         case ConsoleKey.F3:
