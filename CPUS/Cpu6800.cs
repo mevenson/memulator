@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-
+using System.IO;
 using System.Threading;
 using System.Runtime.InteropServices;
 
@@ -8,13 +8,20 @@ namespace Memulator
 {
     class Cpu6800 : Cpu
     {
+        public bool allow00NOP = false;
+
         public Cpu6800()
         {
-            traceFull = false;
+            processorType = 6800;
+            traceHasWrapped = false;
             for (int i = 0; i < traceSize; i++)
             {
                 clsTraceBuffer[i] = new TraceEntry();
             }
+
+            allow00NOP = Program.GetConfigurationAttribute("Global/ProcessorBoard", "Allow00NOP", 0) == 0 ? false : true;
+            BreakpointsEnabled = Program.GetConfigurationAttribute("Global/DebugInfo/BreakPoints", "enabled"   , 0) == 1 ? true : false;
+            TraceEnabled        = Program.GetConfigurationAttribute("Global/Trace"                , "Enabled"   , 0) == 0 ? false : true;
         }
 
         public enum AddressingModes
@@ -65,27 +72,7 @@ namespace Memulator
 
         _6800_OPCTABLEENTRY [] opctbl = new _6800_OPCTABLEENTRY [256];
 
-        private byte    _aReg   = 0x00;
-        private byte    _bReg   = 0x00;
-        private ushort  _xReg   = 0x0000;
-
-        private bool _resetPressed = false;
-
-        public byte     AReg
-        {
-            get { return _aReg; }
-            set { _aReg = value; }
-        }
-        public byte     BReg
-        {
-            get { return _bReg; }
-            set { _bReg = value; }
-        }
-        public ushort   XReg
-        {
-            get { return _xReg; }
-            set { _xReg = value; }
-        }
+        public _6800_OPCTABLEENTRY[] Opctbl { get => opctbl; set => opctbl = value; }
 
         private void SetOpCodeTableEntry(int index, string mneunonic, byte OpCode, AddressingModes AddrMode, int numbytes, int cycles, int H, int I, int N, int Z, int V, int C, int lcount)
         {
@@ -108,7 +95,10 @@ namespace Memulator
             {
                 opctbl[i].ccr_rules = new int[6];
             }
-            SetOpCodeTableEntry(  0, "~~~~~",    0x00, AddressingModes.AM_ILLEGAL,         1,  1,   0,  0,  0,  0,  0,  0, 0);
+            if (allow00NOP)
+                SetOpCodeTableEntry( 0, "NOP  ", 0x00, AddressingModes.AM_INHERENT_6800,   1,  2,   0,  0,  0,  0,  0,  0, 0);
+            else
+            	SetOpCodeTableEntry( 0, "~~~~~", 0x00, AddressingModes.AM_ILLEGAL,         1,  1,   0,  0,  0,  0,  0,  0, 0);
             SetOpCodeTableEntry(  1, "NOP  ",    0x01, AddressingModes.AM_INHERENT_6800,   1,  2,   0,  0,  0,  0,  0,  0, 0);
             SetOpCodeTableEntry(  2, "~~~~~",    0x02, AddressingModes.AM_ILLEGAL,         1,  1,   0,  0,  0,  0,  0,  0, 0);
             SetOpCodeTableEntry(  3, "~~~~~",    0x03, AddressingModes.AM_ILLEGAL,         1,  1,   0,  0,  0,  0,  0,  0, 0);
@@ -367,20 +357,246 @@ namespace Memulator
         }                       
                                 
         private byte _opCode;
-        private byte _ccr;
 
         private ushort _cf = 0;
         private ushort _vf = 0;
         private ushort _hf = 0;
         private ushort _nf = 0;
 
-        private ushort _sp = 0;        // Stack Pointer (6800)
-
         private int cycles;
         private ushort _operand;
 
+        private static string _coreDumpFile;
+        private static string _statDumpFile;
+
         public override void CoreDump()
         {
+            int nDatOffset;
+            ulong page;
+            int i, j;
+            try
+            {
+                DateTime ltime = DateTime.Now;
+                string szDate = ltime.ToString("yyyyMMdd");
+                string szTime = ltime.ToString("HHmmss");
+                _statDumpFile = Program.GetConfigurationAttribute("Global/Statistics", "filename", "");
+                if (_statDumpFile.Length > 0)
+                {
+                    string dirName = Path.GetDirectoryName(_statDumpFile);
+                    if (!dirName.Contains(":") && !dirName.StartsWith(@"\\") && !dirName.StartsWith("//"))
+                    {
+                        _statDumpFile = Path.Combine(Program.dataDir, _statDumpFile);
+                    }
+                    _statDumpFile = _statDumpFile.Replace("{date}", szDate);
+                    _statDumpFile = _statDumpFile.Replace("{time}", szTime);
+                    string[] pszTableName = new string[3];
+                    pszTableName[0] = "MC6800";
+                    using (TextWriter fp = new StreamWriter(File.Open(_statDumpFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
+                    {
+                        if (fp != null)
+                        {
+                            fp.Write(string.Format("A = {0} B = {1} X = {2} CCR = {3}\r\nIP= {4} SP= {5}\r\n\r\n",
+                                AReg.ToString("X2"),
+                                BReg.ToString("X2"),
+                                OffsetRegisters[(int)OffsetRegisterIndex.m_X].ToString("X4"),
+                                _ccr.ToString("X2"),
+                                IP.ToString("X4"),
+                                OffsetRegisters[(int)OffsetRegisterIndex.m_S].ToString("X4")));
+                            fp.Write("\r\n");
+                            for (i = 0; i < 256; i++)
+                            {
+                                AddressingModes m = opctbl[i].attribute;
+                                if (m != AddressingModes.AM_ILLEGAL)
+                                {
+                                    long nCPUTime;
+                                    int table = 0;
+                                    nCPUTime = 0;
+                                    fp.Write("insert into test values ('{0}', '0x{1}', '0x{2}', {3}, {4})\r\n",
+                                            opctbl[i].mneumonic,
+                                            table.ToString("X2"),
+                                            ((byte)i).ToString("X2"),
+                                            opctbl[i].lCount.ToString(),
+                                            nCPUTime.ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+                _coreDumpFile = Program.GetConfigurationAttribute("Global/CoreDump", "filename", "");
+                if (_coreDumpFile.Length > 0)
+                {
+                    string dirName = Path.GetDirectoryName(_coreDumpFile);
+                    if (!dirName.Contains(":") && !dirName.StartsWith(@"\\") && !dirName.StartsWith("//"))
+                    {
+                        _coreDumpFile = Path.Combine(Program.dataDir, _coreDumpFile);
+                    }
+                    _coreDumpFile = _coreDumpFile.Replace("{date}", szDate);
+                    _coreDumpFile = _coreDumpFile.Replace("{time}", szTime);
+                    using (BinaryWriter fp = new BinaryWriter(File.Open(_coreDumpFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite)))
+                    {
+                        fp.Write(Memory.MemorySpace, 0, 65536);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                //MessageBox.Show(e.Message);
+            }
+        }
+        byte ReadMemByte(ushort sLogicalAddress)
+        {
+            return (Memory.MemorySpace[sLogicalAddress]);
+        }
+        private byte ReadOnlyROMorRAM (ushort _operand)
+        {
+            byte memoryContents = 0xff;
+            if ((Memory.DeviceMap[_operand] == (int)Devices.DEVICE_RAM) || (Memory.DeviceMap[_operand] == (int)Devices.DEVICE_ROM))
+            {
+                memoryContents = ReadMemByte(_operand);
+            }
+            else
+                memoryContents = Memory.PeekMemoryByte(_operand);
+            return memoryContents;
+        }
+        private byte LoadOnlyROMorRAM(ushort _operand)
+        {
+            byte memoryContents = 0xff;
+            if ((Memory.DeviceMap[_operand] == (int)Devices.DEVICE_RAM) || (Memory.DeviceMap[_operand] == (int)Devices.DEVICE_ROM))
+            {
+                memoryContents = ReadMemByte(_operand);
+            }
+            else
+                memoryContents = Memory.PeekMemoryByte(_operand);
+            return memoryContents;
+        }
+        public string BuildDebugLine(AddressingModes mode, ushort _currentIP, ushort _programCounter, bool m_IncludeHex = true)
+        {
+            ushort nOffset;
+            string szDebugLine = "";
+            string szMemoryContents = "";
+            string szFinishedLine = "";
+            lock (buildingDebugLineLock)
+            {
+                szMemoryContents = "";
+                switch (mode)
+                {
+                    case AddressingModes.AM_INHERENT_6800:
+                        szDebugLine = String.Format("{0} {1}       {2}", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic);
+                        break;
+                    case AddressingModes.AM_DIRECT_6800:
+                        if (
+                            _opCode == 0x9C ||
+                            _opCode == 0x9E ||
+                            _opCode == 0x9F ||
+                            _opCode == 0xDE ||
+                            _opCode == 0xDF
+                           )
+                        {
+                            szDebugLine = String.Format("{0} {1} {3}    {2} ${3}     (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"), (LoadOnlyROMorRAM(_operand) * 256 + LoadOnlyROMorRAM((ushort)(_operand + 1))).ToString("X4"));
+                            szMemoryContents = string.Format("(${0})", (ReadOnlyROMorRAM(_operand) * 256 + ReadOnlyROMorRAM((ushort)(_operand + 1))).ToString("X4"));
+                        }
+                        else
+                        {
+                            szDebugLine = String.Format("{0} {1} {3}    {2} ${3}     (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"), LoadOnlyROMorRAM(_operand).ToString("X2"));
+                            szMemoryContents = string.Format("(${0})", ReadOnlyROMorRAM(_operand).ToString("X2"));
+                        }
+                        break;
+                    case AddressingModes.AM_RELATIVE_6800:
+                        nOffset = _operand;
+                        if (_operand > 127)
+                            nOffset += 0xFF00;
+                        szDebugLine = String.Format("{0} {1} {3}    {2} ${3}     (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"), ((_programCounter + nOffset) & 0xFFFF).ToString("X4"));
+                        szMemoryContents = string.Format("(${0})", ((IP + nOffset) & 0xFFFF).ToString("X4"));
+                        break;
+                    case AddressingModes.AM_EXTENDED_6800:
+                        if (
+                            _opCode == 0xBC || //  CPX
+                            _opCode == 0xBE || //  LDS
+                            _opCode == 0xBF || //  STS
+                            _opCode == 0xFE || //  LDX
+                            _opCode == 0xFF    //  STX
+                           )
+                        {
+                            szDebugLine = String.Format("{0} {1} {3}  {2} ${3}   (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X4"), (LoadOnlyROMorRAM(_operand) * 256 + LoadOnlyROMorRAM((ushort)(_operand + 1))).ToString("X4"));
+                            szMemoryContents = string.Format("(${0})", (ReadOnlyROMorRAM(_operand) * 256 + ReadOnlyROMorRAM((ushort)(_operand + 1))).ToString("X4"));
+                        }
+                        else
+                        {
+                            if (
+                                _opCode == 0x7E || //  JMP
+                                _opCode == 0xBD    //  JSR
+                                )
+                            {
+                                szDebugLine = String.Format("{0} {1} {3}  {2} ${3}", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X4"));
+                            }
+                            else
+                            {
+                                szDebugLine = String.Format("{0} {1} {3}  {2} ${3}   (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X4"), LoadOnlyROMorRAM((ushort)(_operand)).ToString("X2"));
+                                szMemoryContents = string.Format("(${0})", ReadOnlyROMorRAM(_operand).ToString("X2"));
+                            }
+                        }
+                        break;
+                    case AddressingModes.AM_IMM16_6800:
+                        szDebugLine = String.Format("{0} {1} {3}  {2} #${3}", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X4"));
+                        break;
+                    case AddressingModes.AM_IMM8_6800:
+                        szDebugLine = String.Format("{0} {1} {3}    {2} #${3}", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"));
+                        break;
+                    case AddressingModes.AM_INDEXED_6800:
+                        if (
+                            _opCode == 0xAC || //  CPX
+                            _opCode == 0xAE || //  LDS
+                            _opCode == 0xAF || //  STS
+                            _opCode == 0xEE || //  LDX
+                            _opCode == 0xEF    //  STX
+                           )
+                        {
+                            szDebugLine = String.Format("{0} {1} {3}    {2} ${3},X   (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"), (LoadOnlyROMorRAM((ushort)(_operand + _xReg)) * 256 + LoadOnlyROMorRAM((ushort)(_operand + _xReg + 1))).ToString("X4"));
+                            szMemoryContents = string.Format("(${0})", _operand.ToString("X4"));
+                        }
+                        else
+                        {
+                            if (
+                                _opCode == 0x6E || //  JMP
+                                _opCode == 0xAD    //  JSR
+                               )
+                            {
+                                szDebugLine = String.Format("{0} {1} {3}    {2} ${3},X", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"));
+                                szMemoryContents = string.Format("(${0})", _operand.ToString("X4"));
+                            }
+                            else
+                            {
+                                szDebugLine = String.Format("{0} {1} {3}    {2} ${3},X   (${4})", _currentIP.ToString("X4"), _opCode.ToString("X2"), opctbl[_opCode].mneumonic, _operand.ToString("X2"), LoadOnlyROMorRAM((ushort)(_operand + _xReg)).ToString("X2"));
+                                szMemoryContents = string.Format("(${0})", _operand.ToString("X4"));
+                            }
+                        }
+                        break;
+                }
+                szFinishedLine = string.Format("{0}{1}{2}{3}", _currentIP.ToString("X4"), _opCode.ToString("X2"), _operand.ToString("X4"), szDebugLine);
+                if (m_IncludeHex)
+                {
+                    while (szFinishedLine.Length < 37)
+                        szFinishedLine += " ";
+                }
+                else
+                {
+                    while (szFinishedLine.Length < 24)
+                        szFinishedLine += " ";
+                }
+                szFinishedLine += szMemoryContents;
+                string szRegisterContents =
+                    string.Format
+                    (
+                        "{0} {1} {2} {3} {4} {5}",
+                            clsTraceBuffer[TraceIndex].sStackTrace.ToString("X4"),
+                            clsTraceBuffer[TraceIndex].cRegisterA.ToString("X2"),
+                            clsTraceBuffer[TraceIndex].cRegisterB.ToString("X2"),
+                            clsTraceBuffer[TraceIndex].sRegisterX.ToString("X4"),
+                            clsTraceBuffer[TraceIndex].cRegisterCCR.ToString("X2"),
+                            clsTraceBuffer[TraceIndex].sRegisterInterrupts.ToString()
+                    );
+            }
+            return szDebugLine;
         }
 
         // HINZVC values:
@@ -749,7 +965,7 @@ namespace Memulator
             }
         }
 
-            // Arithmetic and Logical Register Operations
+        #region Arithmetic and Logical Register Operations
 
         private byte SubtractRegister (byte cReg, byte cOperand)
         {
@@ -919,7 +1135,9 @@ namespace Memulator
 
             return (c);
         }
+        #endregion
 
+        #region Instruction Executors
         private void Execute6800Inherent ()
         {
             byte  cReg;
@@ -1102,7 +1320,7 @@ namespace Memulator
                     Memory.MemorySpace[_sp--] = _bReg;
                     Memory.MemorySpace[_sp--] = _ccr;
                     InWait = true;
-                    Program._cpuThread.Suspend();
+                    Program.CpuThread.Suspend();
                     break;
 
                 case 0x3F:     //    "SWI  "
@@ -2103,6 +2321,7 @@ namespace Memulator
                 ProgramCounter = (ushort)(ProgramCounter + _operand);
             }
         }
+        #endregion
 
         public override byte ReadFromFirst64K (ushort m)
         {
@@ -2138,47 +2357,39 @@ namespace Memulator
             Running = true;
             while (Running)    
             {
-                if (Program.debugMode)
-                {
-                    if ((counter++ % 1000000) == 0)
-                    {
-                        try
-                        {
-                            if (MySocket == null)
-                            {
-                                //Console.WriteLine("Trying to Accept connection");
-                                MySocket = Program.listenSocket.Accept();
-                            }
+                //if (Program.debugMode)
+                //{
+                //    if ((counter++ % 1000000) == 0)
+                //    {
+                //        try
+                //        {
+                //            byte[] buffer = new byte[1024];
+                //            try
+                //            {
+                //                //Console.WriteLine("Waiting for data");
+                //                int size = MySocket.Receive(buffer);
+                //                if (size > 1)
+                //                {
+                //                    switch (buffer[0])
+                //                    {
+                //                        case (byte)'K':
+                //                            console._keyboard.StuffKeyboard(Encoding.ASCII.GetString(buffer, 1, size - 1));
+                //                            break;
+                //                    }
+                //                }
 
-                            MySocket.ReceiveTimeout = 1;
-
-                            byte[] buffer = new byte[1024];
-                            try
-                            {
-                                //Console.WriteLine("Waiting for data");
-                                int size = MySocket.Receive(buffer);
-                                if (size > 1)
-                                {
-                                    switch (buffer[0])
-                                    {
-                                        case (byte)'K':
-                                            console._keyboard.StuffKeyboard(Encoding.ASCII.GetString(buffer, 1, size - 1));
-                                            break;
-                                    }
-                                }
-
-                            }
-                            catch
-                            {
-                                //Console.WriteLine("Nothing to read");
-                            }
-                        }
-                        catch
-                        {
-                            //Console.WriteLine("Nothing to accept");
-                        }
-                    }
-                }
+                //            }
+                //            catch
+                //            {
+                //                //Console.WriteLine("Nothing to read");
+                //            }
+                //        }
+                //        catch
+                //        {
+                //            //Console.WriteLine("Nothing to accept");
+                //        }
+                //    }
+                //}
 
                 //m_nIRQAsserted = m_nInterruptRegister;
 
@@ -2282,22 +2493,22 @@ namespace Memulator
                     {
                         if (Program._cpu.BreakpointAddress[i] == ProgramCounter)
                         {
-                            if (Program.debugMode)
-                            {
-                                string registers = string.Format("REGS: IP {0} SP {1} A {2} B {3} X {4} CC {5}\n", ProgramCounter.ToString("X4"), _sp.ToString("X4"), _aReg.ToString("X2"), _bReg.ToString("X4"), _xReg.ToString("X4"), _ccr.ToString("X2"));
-                                byte[] buffer = Encoding.ASCII.GetBytes(registers);
-                                Program._cpu.MySocket.Send(buffer);
-                            }
+                            //if (Program.debugMode)
+                            //{
+                            //    string registers = string.Format("REGS: IP {0} SP {1} A {2} B {3} X {4} CC {5}\n", ProgramCounter.ToString("X4"), _sp.ToString("X4"), _aReg.ToString("X2"), _bReg.ToString("X4"), _xReg.ToString("X4"), _ccr.ToString("X2"));
+                            //    byte[] buffer = Encoding.ASCII.GetBytes(registers);
+                            //    Program._cpu.MySocket.Send(buffer);
+                            //}
                             SingleStepMode = true;
                             break;
                         }
                     }
                 }
 
-                if (_resetPressed)
+                if (ResetPressed)
                 {
                     ProgramCounter = (ushort)(Memory.MemorySpace[0xfffe] * 256 + Memory.MemorySpace[0xffff]);
-                    _resetPressed = false;
+                    ResetPressed = false;
                 }
 
                 // do instruction execution here

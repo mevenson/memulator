@@ -12,11 +12,15 @@ namespace Memulator
     {
         public Cpu6809()
         {
-            traceFull = false;
+            processorType = 6809;
+            traceHasWrapped = false;
             for (int i = 0; i < traceSize; i++)
             {
                 clsTraceBuffer[i] = new TraceEntry();
             }
+            BreakpointsEnabled = Program.GetConfigurationAttribute("Global/DebugInfo/BreakPoints", "enabled", 0) == 1 ? true : false;
+            TraceEnabled = Program.GetConfigurationAttribute("Global/Trace", "Enabled", 0) == 0 ? false : true;
+            _bUseCircularBufferTraceFile = Program.GetConfigurationAttribute("Global/Trace", "UseCircularBufferTraceFile", 0) == 0 ? false : true;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -353,7 +357,7 @@ namespace Memulator
             SetOpCodeTableEntry(137, 0, "ADC A",    0x89, AddressingModes.AM_IMM8_6809,       2,  2,  15,  0, 15, 15, 15, 15, 0,    0);   // MC6809 X
             SetOpCodeTableEntry(138, 0, "ORA A",    0x8A, AddressingModes.AM_IMM8_6809,       2,  2,   0,  0, 15, 15, 14,  0, 0,    0);   // MC6809
             SetOpCodeTableEntry(139, 0, "ADD A",    0x8B, AddressingModes.AM_IMM8_6809,       2,  2,  15,  0, 15, 15, 15, 15, 0,    0);   // MC6809 X
-            SetOpCodeTableEntry(140, 0, "CMP X",    0x8C, AddressingModes.AM_IMM16_6809,      3,  3,   0,  0, 16, 16, 16, 16, 0,    0);   // MC6809 X
+            SetOpCodeTableEntry(140, 0, "CMP X",    0x8C, AddressingModes.AM_IMM16_6809,      3,  4,   0,  0, 16, 16, 16, 16, 0,    0);   // MC6809 X
             SetOpCodeTableEntry(141, 0, "BSR  ",    0x8D, AddressingModes.AM_RELATIVE_6809,   2,  6,   0,  0,  0,  0,  0,  0, 0,    0);   // MC6809
             SetOpCodeTableEntry(142, 0, "LDX  ",    0x8E, AddressingModes.AM_IMM16_6809,      3,  3,   0,  0, 16, 16, 14,  0, 0,    0);   // MC6809
             SetOpCodeTableEntry(143, 0, "~~~~~",    0x8F, AddressingModes.AM_ILLEGAL,         1,  1,   0,  0,  0,  0,  0,  0, 0,    0);   // MC6809 X
@@ -1018,13 +1022,20 @@ namespace Memulator
         byte ReadMemByte (ushort sLogicalAddress)
         {
             bool bValidMemory;
+            byte b = 0xff;
 
             ulong lPhysicalAddress = Memory.LogicalToPhysicalAddress (sLogicalAddress, out bValidMemory);
 
+            if (Memory.IsRAM(sLogicalAddress) || Memory.IsROM(sLogicalAddress))
+            {
             if (bValidMemory)
-                return (Memory.MemorySpace[lPhysicalAddress]);
+                    b = (Memory.MemorySpace[lPhysicalAddress]);
+            }
             else
-                return (0xFF);
+            {
+                b = Memory.PeekMemoryByte(sLogicalAddress);
+            }
+            return b;
         }
 
         void WriteMemByte (ushort sLogicalAddress, byte b)
@@ -1120,9 +1131,12 @@ namespace Memulator
 
         string BuildDebugLine (AddressingModes attribute, ushort sCurrentIP, ushort Xreg, ushort Yreg, ushort Ureg, ushort Sreg, bool m_IncludeHex)
         {
-            ushort nOffset;
-            string pszOpenIndirect  = "";
-            string pszCloseIndirect = "";
+            //BuildingDebugLine = true;
+            lock (buildingDebugLineLock)
+            {
+                ushort nOffset;
+                string pszOpenIndirect = "";
+                string pszCloseIndirect = "";
 
             string szAddress        = "";
             string szDebugLine      = "";
@@ -1340,12 +1354,14 @@ namespace Memulator
 
                     // These are 8 bit values
 
-                    else
-                    {
-                        szDebugLine = string.Format("{0} ${1}", opctbl[m_nTable,m_OpCode].mneumonic, m_Operand.ToString("X4"));
-                        szMemoryContents = string.Format("(${0})", ReadMemByte (m_Operand).ToString("X2"));
-                    }
-                    break;
+                        else
+                        {
+                            // we have to take into account the Direct Page Register
+
+                            szDebugLine = string.Format("{0} ${1}", opctbl[m_nTable, m_OpCode].mneumonic, m_Operand.ToString("X4"));
+                            szMemoryContents = string.Format("(${0})", ReadMemByte((ushort)((ushort)m_Operand + (ushort)(m_DP * 256))).ToString("X2"));
+                        }
+                        break;
 
                 case AddressingModes.AM_RELATIVE_6809:
                     if (m_OpCode == 0x16 || m_OpCode == 0x17)
@@ -1621,8 +1637,9 @@ namespace Memulator
                         clsTraceBuffer[TraceIndex].sRegisterInterrupts.ToString()
                 );
 
-            string fullLine = string.Format("{0} ${1}", szFinishedLine.PadRight(50), szRegisterContents);
-            return (fullLine);
+                string fullLine = string.Format("{0} ${1}", szFinishedLine.PadRight(50), szRegisterContents);
+                return (fullLine);
+            }
         }
 
         void SaveState(AddressingModes attribute)
@@ -1690,8 +1707,8 @@ namespace Memulator
 
                 if (TraceIndex > (long)(traceSize - 1))
                 {
-                    traceFull = true;
-                    using (StreamWriter sw = new StreamWriter(File.Open(Program._traceFilePath, FileMode.Append, FileAccess.Write, FileShare.Write)))
+                    traceHasWrapped = true;
+                    using (StreamWriter sw = new StreamWriter(File.Open(Program.TraceFilePath, FileMode.Append, FileAccess.Write, FileShare.Write)))
                     {
                         foreach (string s in DebugLine)
                         {
@@ -3036,7 +3053,7 @@ namespace Memulator
                 case 0x13:  // "SYNC ",    0x13, AM_INHERENT_6809,   1,  2,   0,  0,  0,  0,  0,  0, 0,    // MC6809
                     InSync = true;
                     if (!IrqAsserted)
-                        Program._cpuThread.Suspend();
+                        Program.CpuThread.Suspend();
                     break;
                     
                 case 0x19:  // "DAA  ",    0x19, AM_INHERENT_6809,   1,  2,   0,  0, 15, 15, 15,  3, 0,    // MC6809 X
@@ -4193,7 +4210,7 @@ namespace Memulator
                     InWait = true;
                     m_CCR &= (byte)m_Operand;
                     if (!IrqAsserted)
-                        Program._cpuThread.Suspend();
+                        Program.CpuThread.Suspend();
                     break;
 
                 case 0x80: // "SUB A",    0x80, AM_IMM8_6809,       2,  2,   0,  0, 15, 15, 15, 15, 0,    // MC6809
@@ -5699,47 +5716,47 @@ namespace Memulator
 
             while (Running)
             {
-                if (Program.debugMode)
-                {
-                    if ((counter++ % 1000000) == 0)
-                    {
-                        try
-                        {
-                            if (MySocket == null)
-                            {
-                                //Console.WriteLine("Trying to Accept connection");
-                                MySocket = Program.listenSocket.Accept();
-                            }
+                //if (Program.debugMode)
+                //{
+                //    if ((counter++ % 1000000) == 0)
+                //    {
+                //        try
+                //        {
+                //            if (MySocket == null)
+                //            {
+                //                //Console.WriteLine("Trying to Accept connection");
+                //                MySocket = Program.listenSocket.Accept();
+                //            }
 
-                            MySocket.ReceiveTimeout = 1;
+                //            MySocket.ReceiveTimeout = 1;
 
-                            byte[] buffer = new byte[1024];
-                            try
-                            {
-                                //Console.WriteLine("Waiting for data");
-                                int size = MySocket.Receive(buffer);
-                                if (size > 1)
-                                {
-                                    switch (buffer[0])
-                                    {
-                                        case (byte)'K':
-                                            console._keyboard.StuffKeyboard(Encoding.ASCII.GetString(buffer, 1, size - 1));
-                                            break;
-                                    }
-                                }
+                //            byte[] buffer = new byte[1024];
+                //            try
+                //            {
+                //                //Console.WriteLine("Waiting for data");
+                //                int size = MySocket.Receive(buffer);
+                //                if (size > 1)
+                //                {
+                //                    switch (buffer[0])
+                //                    {
+                //                        case (byte)'K':
+                //                            console._keyboard.StuffKeyboard(Encoding.ASCII.GetString(buffer, 1, size - 1));
+                //                            break;
+                //                    }
+                //                }
 
-                            }
-                            catch
-                            {
-                                //Console.WriteLine("Nothing to read");
-                            }
-                        }
-                        catch
-                        {
-                            //Console.WriteLine("Nothing to accept");
-                        }
-                    }
-                }
+                //            }
+                //            catch
+                //            {
+                //                //Console.WriteLine("Nothing to read");
+                //            }
+                //        }
+                //        catch
+                //        {
+                //            //Console.WriteLine("Nothing to accept");
+                //        }
+                //    }
+                //}
 
                 // check all hardware to see if any are generating an interrupt
                 //
@@ -5747,6 +5764,10 @@ namespace Memulator
                 //  reset is pressed, we will set it back to 0.
                 //
 
+                if (IrqAsserted)
+                {
+                    int x = 1;
+                }
                 if (Program.TraceEnabled)
                     clsTraceBuffer[TraceIndex].sRegisterInterrupts = IrqAsserted;
 
@@ -5763,6 +5784,9 @@ namespace Memulator
 
                 if (ResetPressed)
                 {
+                    InterruptRegister = 0;
+                    IrqAsserted = false;
+
                     IP = LoadMemoryWord(0xFFFE);
                     _dReg.hi = 0x00;
                     _dReg.lo = 0x00;
@@ -5818,11 +5842,20 @@ namespace Memulator
 
                 // see if there are any IRQ's pending and interrupts are NOT masked
 
-                if ((IrqAsserted) && ((m_CCR & CCR_INTERRUPT) == 0))
+                if ((IrqAsserted) && ((m_CCR & CCR_INTERRUPT) == 0))        // this checks that interrupts are not masked in the CCR
                 {
-                    if ((InterruptRegister & 0x0001) != 0)
-                    {
-                    }
+                    // this is here to trap on iterrupts generated by the board. The board interrupting will set a bit in the 
+                    // InterruptRegister . The bit set will depend on the order that the boards are specified in the config
+                    // file.
+                    //  0x01 = first board
+                    //  0x02 = second board 
+                    //  0x03 = third board
+                    //  etc.
+                    //
+                    // If more than one board has it's interrupt bit set in the InterruptRegister the values will be ored
+                    // together. For instance if the first and third boards are both interrupting, the value in the 
+                    // InterruptRegister would be 0x05.
+
                     if (!InWait)
                     {
                         //if ((m_nInterruptRegister & (uint)0xFFFB) != 0)        // ignore DMAF3 Interrupts
@@ -5992,7 +6025,7 @@ namespace Memulator
 
                         if (Program.TraceEnabled)
                         {
-                            using (StreamWriter sw = new StreamWriter(File.Open(Program._traceFilePath, FileMode.Append, FileAccess.Write, FileShare.Write)))
+                            using (StreamWriter sw = new StreamWriter(File.Open(Program.TraceFilePath, FileMode.Append, FileAccess.Write, FileShare.Write)))
                             {
                                 for (int debugIndex = 0; debugIndex < TraceIndex; debugIndex++)
                                 {
