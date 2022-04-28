@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
 
 	<Global>
@@ -39,8 +39,8 @@
 		<BoardConfiguration>
 
 			<Board ID = "0" Type="CONS"  Addr="E000" Size="2"     GUID="" IRQ="1"/>
-			<Board ID = "1" Type="MPID"  Addr="E000" Size="160"   GUID="" IRQ="1"/>
-			<Board ID = "2" Type="DMAF3" Addr="F000" Size="2048"  GUID="" IRQ="1"/>
+			<Board ID = "1" Type="MPID"  Addr="E000" Size="A0"   GUID="" IRQ="1"/>
+			<Board ID = "2" Type="DMAF3" Addr="F000" Size="800"  GUID="" IRQ="1"/>
 
 		</BoardConfiguration>
 		<FloppyDisks>
