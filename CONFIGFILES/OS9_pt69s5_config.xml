@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+
+  <Global>
+
+    <ConsoleDump filename="D:\ConsoleDump.txt" />
+
+    <AllowMultipleSector      value="0"/>
+    <ProcessorBoard           CPU="6809" Board="GENERIC" />
+    <Trace                    Enabled="0" Path="D:\TraceFile.txt" />
+
+    <ConsoleColors>
+      <NormalBackgroundColor value ="Black" />
+      <NormalForegroundColor value ="White" />
+      <ReverseBackgroundColor value ="White" />
+      <ReverseForegroundColor value ="Black" />
+    </ConsoleColors>
+
+  </Global>
+
+  <config6809>
+    <romfile filename="roms\OS9-69-5.stx" />
+    
+    <BoardConfiguration>
+
+      <Board ID = "0" Type="CONS"   Addr="E004" Size="4" GUID="" IRQ="0"/>
+      <Board ID = "1" Type="FD2"    Addr="E014" Size="8" GUID="" IRQ="0"/>
+      <Board ID = "2" Type="PIAIDE" Addr="E010" Size="4" GUID="" IRQ="0"/>
+
+    </BoardConfiguration>
+    
+    <FloppyDisks>
+      <Disk ID ="0" Path="disks/PT69_DSK_Files/OS9.6809.PT69.OS9.ima" Format="OS9"/>
+    </FloppyDisks>
+
+    <PIAIDEDisks>
+      <Disk ID ="0" Path="disks/pt69_dsk_files/2048X18X32.DSK" Format="FLEX"/>
+    </PIAIDEDisks>
+   
+    <KeyBoardMap>
+      <Delete     Normal="^J"	Shifted="" Control=""   Alt=""  Both="" />
+      <DownArrow  Normal="^C"	Shifted="" Control="^N" Alt=""  Both="" />
+      <End        Normal="^]"	Shifted="" Control="^B"	Alt=""  Both="" />
+      <Home       Normal="^]"	Shifted="" Control="^T" Alt=""  Both=""	/>
+      <Insert     Normal="^P"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <LeftArrow  Normal="^S"	Shifted="" Control="^A" Alt=""  Both=""	/>
+      <PageDown   Normal="^V"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <PageUp     Normal="^R"	Shifted="" Control=""   Alt=""  Both=""	/>
+      <RightArrow Normal="^F"	Shifted="" Control="^G" Alt=""  Both=""	/>
+      <UpArrow    Normal="^E"	Shifted="" Control="^Y" Alt=""  Both=""	/>
+    </KeyBoardMap>
+
+  </config6809>
+</configuration>
