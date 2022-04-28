@@ -171,11 +171,11 @@ namespace Memulator
                         m_MPIDStatusRegister |= 0x80;
                         if (Program._cpu != null)
                         {
-                            if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                            if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                             {
                                 try
                                 {
-                                    Program._cpuThread.Resume();
+                                    Program.CpuThread.Resume();
                                 }
                                 catch (ThreadStateException tse)
                                 {
@@ -268,6 +268,8 @@ namespace Memulator
 
                             case 1:         // Read the Status register
 
+                                lock (Program._cpu.buildingDebugLineLock)
+                                {
                                 // get the status of the interrupt bits for each of the counters
 
                                 if ((m_MPIDControlRegister1 & 0x40) != 0 && m_RegsiterIsInterrupting[0])
@@ -299,49 +301,161 @@ namespace Memulator
                                 }
 
                                 m_bCanResetTimerInterrupt = true;
+                                }
+                                //else
+                                //{
+                                //    d = m_MPIDStatusRegister;
+                                //    if ((m_MPIDControlRegister1 & 0x40) != 0 && m_RegsiterIsInterrupting[0])
+                                //        d |= 0x01;
+                                //    else
+                                //        d &= (byte)(~0x01 & 0xff);
+
+                                //    if ((m_MPIDControlRegister1 & 0x40) != 0 && m_RegsiterIsInterrupting[1])
+                                //        d |= 0x02;
+                                //    else
+                                //        d &= (byte)(~0x02 & 0xff);
+
+                                //    if ((m_MPIDControlRegister1 & 0x40) != 0 && m_RegsiterIsInterrupting[2])
+                                //        d |= 0x04;
+                                //    else
+                                //        d &= (byte)(~0x04 & 0xff);
+                                //}
                                 break;
 
                             case 2:         // Read Timer Number 1 counter
                                 if (m_bCanResetTimerInterrupt)
                                 {
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
                                     m_bCanResetTimerInterrupt = false;
                                     m_MPIDStatusRegister &= 0x7F;
                                     m_MPIDStatusRegister &= (byte)(~0x01 & 0xff);
 
                                     ClearInterrupt();
+                                    }
                                 }
                                 d = m_MPIDTimerMSB[0];
                                 break;
 
                             case 3:         // Read Timer Number 1 counter LSB
+                                if (m_bCanResetTimerInterrupt)
+                                {
+                                    //if (!Program._cpu.BuildingDebugLine)
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
+                                        m_bCanResetTimerInterrupt = false;
+                                        m_MPIDStatusRegister &= 0x7F;
+                                        m_MPIDStatusRegister &= (byte)(~0x01 & 0xff);
+
+                                        ClearInterrupt();
+                                    }
+                                }
                                 d = m_MPIDTimerLSB[0];
                                 break;
 
                             case 4:         // Read Timer Number 2 counter LSB
                                 if (m_bCanResetTimerInterrupt)
                                 {
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
                                     m_bCanResetTimerInterrupt = false;
                                     m_MPIDStatusRegister &= 0x7F;
                                     m_MPIDStatusRegister &= (byte)(~0x02 & 0xff);
 
                                     ClearInterrupt();
+                                    }
                                 }
                                 d = m_MPIDTimerMSB[1];
                                 break;
 
                             case 5:         // Read Timer Number 2 counter LSB
+                                if (m_bCanResetTimerInterrupt)
+                                {
+                                    //if (!Program._cpu.BuildingDebugLine)
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
+                                        m_bCanResetTimerInterrupt = false;
+                                        m_MPIDStatusRegister &= 0x7F;
+                                        m_MPIDStatusRegister &= (byte)(~0x01 & 0xff);
+
+                                        ClearInterrupt();
+                                    }
+                                }
                                 d = m_MPIDTimerLSB[1];
                                 break;
 
                             case 6:         // Read Timer Number 3 counter LSB
                                 if (m_bCanResetTimerInterrupt)
                                 {
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
                                     m_bCanResetTimerInterrupt = false;
                                     m_MPIDStatusRegister &= 0x7F;
                                     m_MPIDStatusRegister &= (byte)(~0x04 & 0xff);
 
                                     ClearInterrupt();
+                                    }
                                 }
+                                d = m_MPIDTimerMSB[2];
+                                break;
+                            case 7:         // Read Timer Number 3 counter LSB
+                                d = m_MPIDTimerLSB[2];
+                                break;
+                        }
+                        break;
+                }
+            }
+            return (d);
+        }
+        public override byte Peek(ushort m)
+        {
+            byte d = 0xFF;
+
+            // remap to Other IO boards - MPID really starts at 0xE080 and diverts all addresses between 0xE000 through 0xE07F to the IO Slots
+
+            if (m >= m_sBaseAddress + 0x80)
+            {
+                switch (m & 0x00F0)
+                {
+                    case 0x0080:        // PIA on MP-ID
+                        switch (m & 0x0003)
+                        {
+                            case 0:     // data port A side
+                                d = (byte)(Program._cpu.Memory.MemorySpace[m_PIA_A_PRT_DAT]);   // *m_PIA_A_PRTDatAddress;
+                                break;
+                            case 1:     // control / status port A side
+                                d = (byte)(Program._cpu.Memory.MemorySpace[m_PIA_A_PRT_CMD] & 0x7F);    // always return ready
+                                break;
+                            case 2:     // data port B side
+                                Program._cpu.WriteToFirst64K((ushort)(m + 1), (byte)(Program._cpu.Memory.MemorySpace[m_PIA_B_PRT_CMD] & 0x7F));      // turn off the ready bit
+                                d = (byte)(Program._cpu.Memory.MemorySpace[m_PIA_B_PRT_CMD] & 0x7F);
+                                break;
+                            case 3:     // control / status port B side
+                                d = (byte)(Program._cpu.Memory.MemorySpace[m_PIA_B_PRT_CMD] & 0x7F);    // always return ready
+                                break;
+                        }
+                        break;
+                    case 0x0090:        // 6840 on MP-ID
+                        switch (m & 0x0007)
+                        {
+                            case 0:         // NOP
+                                break;
+                            case 1:         // Read the Status register
+                                d = m_MPIDStatusRegister;
+                                break;
+                            case 2:         // Read Timer Number 1 counter
+                                d = m_MPIDTimerMSB[0];
+                                break;
+                            case 3:         // Read Timer Number 1 counter LSB
+                                d = m_MPIDTimerLSB[0];
+                                break;
+                            case 4:         // Read Timer Number 2 counter LSB
+                                d = m_MPIDTimerMSB[1];
+                                break;
+                            case 5:         // Read Timer Number 2 counter LSB
+                                d = m_MPIDTimerLSB[1];
+                                break;
+                            case 6:         // Read Timer Number 3 counter LSB
                                 d = m_MPIDTimerMSB[2];
                                 break;
 

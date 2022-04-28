@@ -125,11 +125,11 @@ namespace Memulator
                                         SetInterrupt(_spin);
                                         if (Program._cpu != null)
                                         {
-                                            if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                            if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                             {
                                                 try
                                                 {
-                                                    Program._cpuThread.Resume();
+                                                    Program.CpuThread.Resume();
                                                 }
                                                 catch (ThreadStateException e)
                                                 {
@@ -164,11 +164,11 @@ namespace Memulator
                                     SetInterrupt(_spin);
                                     if (Program._cpu != null)
                                     {
-                                        if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                        if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                         {
                                             try
                                             {
-                                                Program._cpuThread.Resume();
+                                                Program.CpuThread.Resume();
                                             }
                                             catch (ThreadStateException e)
                                             {
@@ -187,11 +187,11 @@ namespace Memulator
                                     SetInterrupt(_spin);
                                     if (Program._cpu != null)
                                     {
-                                        if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                        if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                         {
                                             try
                                             {
-                                                Program._cpuThread.Resume();
+                                                Program.CpuThread.Resume();
                                             }
                                             catch (ThreadStateException e)
                                             {
@@ -214,15 +214,15 @@ namespace Memulator
                     case 1:
                         _ACIA_CONSStatusRegister &= (byte)~ACIA_TDRE;
                         Program._theConsole.Terminal.PutCharacter(b);       // This is where we actually put out the character to the screen device
-                        if (Program.debugMode)
-                        {
-                            if (Program._cpu.MySocket != null)
-                            {
-                                byte[] buffer = new byte[1];
-                                buffer[0] = b;
-                                Program._cpu.MySocket.Send(buffer);
-                            }
-                        }
+                        //if (Program.debugMode)
+                        //{
+                        //    if (Program._cpu.MySocket != null)
+                        //    {
+                        //        byte[] buffer = new byte[1];
+                        //        buffer[0] = b;
+                        //        Program._cpu.MySocket.Send(buffer);
+                        //    }
+                        //}
                         _ACIA_CONSStatusRegister |= ACIA_TDRE;
 
                         if (((_ACIA_CONSCommandRegister & ACIA_TDRE_IRQ_ENABLED) != 0) && ((_ACIA_CONSCommandRegister & 0x40) == 0))
@@ -235,11 +235,11 @@ namespace Memulator
                                 SetInterrupt(_spin);
                                 if (Program._cpu != null)
                                 {
-                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                     {
                                         try
                                         {
-                                            Program._cpuThread.Resume();
+                                            Program.CpuThread.Resume();
                                         }
                                         catch (ThreadStateException e)
                                         {
@@ -270,9 +270,12 @@ namespace Memulator
                         //if (_nKeyboardBufferCount > 0)
                         //    _ACIA_CONSStatusRegister |= ACIA_RDRF;
 
+                        lock (Program._cpu.buildingDebugLineLock)
+                        {
                         _ACIA_CONSStatusRegister &= (byte)~(ACIA_DCD | ACIA_CTS);    // signal CTS and DCD true after status read
 
                         d = _ACIA_CONSStatusRegister;
+                        }
                         break;
 
                     case 1:
@@ -292,19 +295,22 @@ namespace Memulator
                         }
 
                         //d = _ACIA_CONSDataRegister;                     // get the character from the ACIA data register
+                        lock (Program._cpu.buildingDebugLineLock)
+                        {
                         _ACIA_CONSStatusRegister &= (byte)~ACIA_RDRF;   // clear RDRF flag in ACIA command register
                         _bCanAssertConsoleRCVInterrupt = false;         // turn off ACIA interrupt
+                        }
 
-                        if (_bCanAssertConsoleXMTInterrupt | _bCanAssertConsoleRCVInterrupt)
+                        if (_bCanAssertConsoleXMTInterrupt || _bCanAssertConsoleRCVInterrupt)
                         {
                             SetInterrupt(_spin);
                             if (Program._cpu != null)
                             {
-                                if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                 {
                                     try
                                     {
-                                        Program._cpuThread.Resume();
+                                        Program.CpuThread.Resume();
                                     }
                                     catch (ThreadStateException e)
                                     {
@@ -365,7 +371,35 @@ namespace Memulator
                         {
                             // both interrupts are not allowed now - so mask it off
 
+                            lock (Program._cpu.buildingDebugLineLock)
+                            {
                             _ACIA_CONSStatusRegister &= (byte)~ACIA_IRQ;
+                            }
+                        }
+                        break;
+                }
+            }
+            return (d);
+        }
+        public override byte Peek(ushort m)
+        {
+            byte d = 0x00;
+            lock (_bMovingCharacter)                // anytime we are about to modify _nKeyboardBufferCount or _nKeyboardGetPointer we need a lock
+            {
+                switch (m & 0x0001)
+                {
+                    case 0:
+                        d = _ACIA_CONSStatusRegister;
+                        break;
+                    case 1:
+                        if (keyboardQueue.Count > 0)
+                        {
+                            _ACIA_CONSDataRegister = keyboardQueue[0];
+                            d = keyboardQueue[0];
+                        }
+                        else
+                        {
+                            d = _ACIA_CONSDataRegister;
                         }
 
                         break;

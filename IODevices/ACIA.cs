@@ -4,6 +4,8 @@ using System.Threading;
 
 using System.IO.Ports;
 
+// This class is only used by the linux version
+
 namespace Memulator
 {
     class ACIA : IODevice
@@ -20,32 +22,32 @@ namespace Memulator
 
         enum FILE_TYPE
         {
-            FILE_TYPE_UNKNOWN   = 0x0000,
-            FILE_TYPE_DISK      = 0x0001,
-            FILE_TYPE_CHAR      = 0x0002,
-            FILE_TYPE_PIPE      = 0x0003,
-            FILE_TYPE_REMOTE    = 0x8000
+            FILE_TYPE_UNKNOWN = 0x0000,
+            FILE_TYPE_DISK = 0x0001,
+            FILE_TYPE_CHAR = 0x0002,
+            FILE_TYPE_PIPE = 0x0003,
+            FILE_TYPE_REMOTE = 0x8000
         }
 
         enum PARITY
         {
-            NOPARITY       = 0,
-            ODDPARITY      = 1,
-            EVENPARITY     = 2,
-            MARKPARITY     = 3,
-            SPACEPARITY    = 4
+            NOPARITY = 0,
+            ODDPARITY = 1,
+            EVENPARITY = 2,
+            MARKPARITY = 3,
+            SPACEPARITY = 4
         }
 
         enum ACIA_STATUS
         {
-            ACIA_RDRF       = 0x01,
-            ACIA_TDRE       = 0x02,
-            ACIA_DCD        = 0x04,
-            ACIA_CTS        = 0x08,
-            ACIA_FE         = 0x10,
-            ACIA_OVRN       = 0x20,
-            ACIA_PE         = 0x40,
-            ACIA_IRQ        = 0x80
+            ACIA_RDRF = 0x01,
+            ACIA_TDRE = 0x02,
+            ACIA_DCD = 0x04,
+            ACIA_CTS = 0x08,
+            ACIA_FE = 0x10,
+            ACIA_OVRN = 0x20,
+            ACIA_PE = 0x40,
+            ACIA_IRQ = 0x80
         }
 
         enum ACIA_IRQ
@@ -56,15 +58,15 @@ namespace Memulator
 
         public class ACIAConfig
         {
-            public int _address          = 0;
-            public int _rtsControl       = 0;
-            public int _inputBufferSize  = 0;
+            public int _address = 0;
+            public int _rtsControl = 0;
+            public int _inputBufferSize = 0;
             public int _outputBufferSize = 0;
 
-            public int _baudRate         = 9600;
-            public int _parity           = 0;
-            public int _stopBits         = 1;
-            public int _dataBits         = 8;
+            public int _baudRate = 9600;
+            public int _parity = 0;
+            public int _stopBits = 1;
+            public int _dataBits = 8;
             public bool _interuptEnabled = false;
 
             public string _portName = "";
@@ -73,31 +75,31 @@ namespace Memulator
         public List<ACIAConfig> aciaConfigurations = new List<ACIAConfig>();
 
         int m_nCurrentLogicalPort;
-        int         m_nRow;
+        int m_nRow;
 
         bool[] m_nMPSTXInterrupt = new bool[16];
         bool[] m_nMPSRXInterrupt = new bool[16];
 
-        Thread  [] m_hCommWatchThread = new Thread[16];
-        volatile bool [] m_nAbortCommThread = new bool[16];
+        Thread[] m_hCommWatchThread = new Thread[16];
+        volatile bool[] m_nAbortCommThread = new bool[16];
 
-        volatile SerialPort [] m_hCommPort = new SerialPort[16];
+        volatile SerialPort[] m_hCommPort = new SerialPort[16];
 
-        long [] m_nBytesWritten = new long[16];
-        bool [] m_nResetACIA = new bool[16];
+        long[] m_nBytesWritten = new long[16];
+        bool[] m_nResetACIA = new bool[16];
 
-        bool [] m_nSettingRXInterrupt  = new bool[16];
-        bool [] m_nSettingTXInterrupt  = new bool[16];
-        bool [] m_nAllowTXInterrupt    = new bool[16];
-        bool [] m_nAllowRXInterrupt    = new bool[16];
+        bool[] m_nSettingRXInterrupt = new bool[16];
+        bool[] m_nSettingTXInterrupt = new bool[16];
+        bool[] m_nAllowTXInterrupt = new bool[16];
+        bool[] m_nAllowRXInterrupt = new bool[16];
 
         //DCB m_dcb[16];
 
-        byte [] m_ACIA_CommandRegister = new byte[16];      // need a separate byte to hold write value
-        byte [] m_ACIA_StatusRegister = new byte[16];
-        byte [] m_ACIA_DataRegister = new byte[16];
-        bool [] m_nInterruptEnabledArray = new bool[16];
-        uint [] m_nInterruptMaskArray = new uint[16];
+        byte[] m_ACIA_CommandRegister = new byte[16];      // need a separate byte to hold write value
+        byte[] m_ACIA_StatusRegister = new byte[16];
+        byte[] m_ACIA_DataRegister = new byte[16];
+        bool[] m_nInterruptEnabledArray = new bool[16];
+        uint[] m_nInterruptMaskArray = new uint[16];
 
         //SERIAL_INFO [] m_siPort = new SERIAL_INFO[16];      // allow 4 MP-S cards in addition to console
 
@@ -117,41 +119,41 @@ namespace Memulator
             m_nMPSRXInterrupt[nWhichController] = false;
 
             m_nInterruptEnabledArray[nWhichController] = bInterruptEnabled;
-            m_nInterruptMaskArray[nWhichController]    = m_nInterruptMask;
+            m_nInterruptMaskArray[nWhichController] = m_nInterruptMask;
 
             string board_port = nRow.ToString() + "_" + ((nWhichController % 4) + 1).ToString();
 
-            string baudRate         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "BaudRate",         board_port, "9600");
-            string parity           = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "Parity",           board_port, "0");
-            string stopBits         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "StopBits",         board_port, "1");
-            string dataBits         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "DataBits",         board_port, "8");
-            string interruptEnabled = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "InterruptEnabled", board_port, "0");
-            string portName         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "PortName",         board_port, "");
+            string baudRate = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "BaudRate", board_port, "9600");
+            string parity = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "Parity", board_port, "0");
+            string stopBits = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "StopBits", board_port, "1");
+            string dataBits = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "DataBits", board_port, "8");
+            string interruptEnabled = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "InterruptEnabled", board_port, "0");
+            string portName = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "PortName", board_port, "");
 
-            int _address          = sBaseAddress + ((nWhichController % 4) * 2);
+            int _address = sBaseAddress + ((nWhichController % 4) * 2);
 
             // these should be added to the Config screen
 
             int _rtsControl = 0;
-            int _inputBufferSize  = 32768;
+            int _inputBufferSize = 32768;
             int _outputBufferSize = 32768;
 
             if (baudRate.Length > 0 && parity.Length > 0 && stopBits.Length > 0 && dataBits.Length > 0 && interruptEnabled.Length > 0)
             {
                 ACIAConfig conf = new ACIAConfig();
 
-                conf._baudRate        = Convert.ToInt16(baudRate);
-                conf._parity          = Convert.ToInt16(parity);
-                conf._stopBits        = Convert.ToInt16(stopBits);
-                conf._dataBits        = Convert.ToInt16(dataBits);
+                conf._baudRate = Convert.ToInt16(baudRate);
+                conf._parity = Convert.ToInt16(parity);
+                conf._stopBits = Convert.ToInt16(stopBits);
+                conf._dataBits = Convert.ToInt16(dataBits);
                 conf._interuptEnabled = Convert.ToInt16(interruptEnabled) == 0 ? false : true;
 
-                conf._address          = _address;
-                conf._rtsControl       = _rtsControl;
-                conf._inputBufferSize  = _inputBufferSize ;
+                conf._address = _address;
+                conf._rtsControl = _rtsControl;
+                conf._inputBufferSize = _inputBufferSize;
                 conf._outputBufferSize = _outputBufferSize;
 
-                conf._portName         = portName;
+                conf._portName = portName;
 
                 aciaConfigurations.Add(conf);
             }
@@ -231,19 +233,19 @@ namespace Memulator
                             nDataBits = 7;
                         switch ((b & 0x1C) >> 2)
                         {
-                            case 0: nParity = Parity.Even; nStopBits = StopBits.Two;  break; //   w ...000..  7 bit, even parity, 2 stopbit
-                            case 1: nParity = Parity.Odd;  nStopBits = StopBits.Two;  break; //   w ...001..  7 bit,  odd parity, 2 stopbit
+                            case 0: nParity = Parity.Even; nStopBits = StopBits.Two; break; //   w ...000..  7 bit, even parity, 2 stopbit
+                            case 1: nParity = Parity.Odd; nStopBits = StopBits.Two; break; //   w ...001..  7 bit,  odd parity, 2 stopbit
                             case 2: nParity = Parity.Even; nStopBits = StopBits.None; break; //   w ...010..  7 bit, even parity, 1 stopbit
-                            case 3: nParity = Parity.Odd;  nStopBits = StopBits.None; break; //   w ...011..  7 bit,  odd parity, 1 stopbit
-                            case 4: nParity = Parity.None; nStopBits = StopBits.Two;  break; //   w ...100..  8 bit,   no parity, 2 stopbit
+                            case 3: nParity = Parity.Odd; nStopBits = StopBits.None; break; //   w ...011..  7 bit,  odd parity, 1 stopbit
+                            case 4: nParity = Parity.None; nStopBits = StopBits.Two; break; //   w ...100..  8 bit,   no parity, 2 stopbit
                             case 5: nParity = Parity.None; nStopBits = StopBits.None; break; //   w ...101..  8 bit,   no parity, 1 stopbit
                             case 6: nParity = Parity.Even; nStopBits = StopBits.None; break; //   w ...110..  8 bit, even parity, 1 stopbit
-                            case 7: nParity = Parity.Odd;  nStopBits = StopBits.None; break; //   w ...111..  8 bit,  odd parity, 1 stopbit
+                            case 7: nParity = Parity.Odd; nStopBits = StopBits.None; break; //   w ...111..  8 bit,  odd parity, 1 stopbit
                         }
 
                         switch (b & 0x03)
                         {
-                            case 0: nDivisor = 1;  break;      //   w ......00  counter/1
+                            case 0: nDivisor = 1; break;      //   w ......00  counter/1
                             case 1: nDivisor = 16; break;      //   w ......01  counter/16
                             case 2: nDivisor = 64; break;      //   w ......02  counter/64
                         }
@@ -284,7 +286,7 @@ namespace Memulator
 
                         m_hCommPort[nIndex].BaudRate = nBaudRate;
                         m_hCommPort[nIndex].DataBits = nDataBits;
-                        m_hCommPort[nIndex].Parity   = nParity;
+                        m_hCommPort[nIndex].Parity = nParity;
                         m_hCommPort[nIndex].StopBits = nStopBits;
 
                         m_hCommPort[nIndex].DataReceived += new SerialDataReceivedEventHandler(ACIA_DataReceived);
