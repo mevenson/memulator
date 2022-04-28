@@ -10,10 +10,10 @@ using System.Runtime.InteropServices;
 
 namespace Memulator
 {
-    class Keyboard : IODevice
+    public class Keyboard : IODevice
     {
         bool _spin;
-        Dictionary<ConsoleKey, KeyboardMapEntry> keyboardMap;
+        public Dictionary<ConsoleKey, KeyboardMapEntry> keyboardMap;
 
 
         //List<byte> keyInpBuffer = new List<byte>();
@@ -33,7 +33,7 @@ namespace Memulator
                 Program._cpu.InterruptRegister &= ~m_nInterruptMask;
         }
 
-        class KeyboardMapEntry
+        public class KeyboardMapEntry
         {
             public string normal;
             public string shifted;
@@ -47,11 +47,11 @@ namespace Memulator
             KeyboardMapEntry kbme;
 
             kbme = new KeyboardMapEntry(); keyboardMap.Add(k, kbme);
-            keyboardMap[k].normal  = Program.GetConfigurationAttribute(Program._configSection + "/KeyBoardMap/" + k.ToString(), "Normal",  "");
-            keyboardMap[k].shifted = Program.GetConfigurationAttribute(Program._configSection + "/KeyBoardMap/" + k.ToString(), "Shifted", "");
-            keyboardMap[k].control = Program.GetConfigurationAttribute(Program._configSection + "/KeyBoardMap/" + k.ToString(), "Control", "");
-            keyboardMap[k].both    = Program.GetConfigurationAttribute(Program._configSection + "/KeyBoardMap/" + k.ToString(), "Both",    "");
-            keyboardMap[k].alt     = Program.GetConfigurationAttribute(Program._configSection + "/KeyBoardMap/" + k.ToString(), "Alt",     "");
+            keyboardMap[k].normal  = Program.GetConfigurationAttribute(Program.ConfigSection + "/KeyBoardMap/" + k.ToString(), "Normal",  "");
+            keyboardMap[k].shifted = Program.GetConfigurationAttribute(Program.ConfigSection + "/KeyBoardMap/" + k.ToString(), "Shifted", "");
+            keyboardMap[k].control = Program.GetConfigurationAttribute(Program.ConfigSection + "/KeyBoardMap/" + k.ToString(), "Control", "");
+            keyboardMap[k].both    = Program.GetConfigurationAttribute(Program.ConfigSection + "/KeyBoardMap/" + k.ToString(), "Both",    "");
+            keyboardMap[k].alt     = Program.GetConfigurationAttribute(Program.ConfigSection + "/KeyBoardMap/" + k.ToString(), "Alt",     "");
         }
         void LoadKeyboardMap()
         {
@@ -65,6 +65,16 @@ namespace Memulator
             AddNewKeyboardMapEntry(ConsoleKey.PageDown);
             AddNewKeyboardMapEntry(ConsoleKey.Insert);
             AddNewKeyboardMapEntry(ConsoleKey.Delete);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad0);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad1);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad2);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad3);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad4);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad5);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad6);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad7);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad8);
+            AddNewKeyboardMapEntry(ConsoleKey.NumPad9);
         }
 
         // This is ONLY called from StuffKeyboard
@@ -106,11 +116,11 @@ namespace Memulator
                     else
                         ClearInterrupt();       //*Program._CConsole._pnInterruptRegister &= ~Program._CConsole._nInterruptMask;
 
-                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == System.Threading.ThreadState.Suspended)
                     {
                         try
                         {
-                            Program._cpuThread.Resume();
+                            Program.CpuThread.Resume();
                         }
                         catch (ThreadStateException e)
                         {
@@ -129,6 +139,11 @@ namespace Memulator
 
             lock (Program._CConsole._bMovingCharacter)                  // anytime we are about to modify _nKeyboardBufferCount or _nKeyboardGetPointer we need a lock
             {
+                // turn off traceing while stuffing the keyboard
+
+                bool traceEnabled = Program._cpu.TraceEnabled;
+                Program._cpu.TraceEnabled = false;
+
                 for (int i = 0; i < nLength; i++)
                 {
                     nChar = (byte)strTheString[i];
@@ -159,6 +174,8 @@ namespace Memulator
                         bControl = false;
                     }
                 }
+
+                Program._cpu.TraceEnabled = traceEnabled;
             }
         }
 
@@ -178,7 +195,7 @@ namespace Memulator
 
             lock (Program._CConsole._bMovingCharacter)                  // anytime we are about to modify _nKeyboardBufferCount or _nKeyboardGetPointer we need a lock
             {
-                if (cki.KeyChar == 0 && Program._cpu.Running)
+                if (cki.KeyChar == 0)
                 {
                     // Then this is a non ASCII key pressed
                     switch (cki.Key)
@@ -186,10 +203,9 @@ namespace Memulator
                         // special case handlers for program control keys like Quit, RESET, etc.
                         //
                         //       F1     Show Configuration Editor
-                        //  CTRL-F1     Kill emulation (Windows Only)
-                        //       F2     Stuff FLEX date time format into keyboard buffer (linux)
-                        //  CTRL-F2     Reset emulation (Windows)
-                        //
+                        //  CTRL-F1     Kill emulation
+                        //  CTRL-F2     Reset emulation
+                        //       F2     Show Special Keys Menu
                         //  CTRL-F3     Start save output to Console Dump File
                         //  CTRL-F4     Stop  save output to Console Dump File
                         //  CTRL-F5     Flush save output to Console Dump File
@@ -205,31 +221,41 @@ namespace Memulator
                         case ConsoleKey.F1:
                             if (cki.Modifiers == ConsoleModifiers.Control)
                             {
-                                bStoreChar = false;
-
-                                // kill any threads that may be running on any open IO cards.
-
-                                if (Program._CDMAF3 != null && Program._CDMAF3.DMAF3Timer != null)
-                                    Program._CDMAF3.DMAF3Timer.Stop();
-
-                                if (Program._CDMAF3 != null && Program._CDMAF3.DMAF3InterruptDelayTimer != null)
-                                    Program._CDMAF3.DMAF3InterruptDelayTimer.Stop();
-
-                                // if the cpu is in wait or sync - resume it so it can exit
-
-                                if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                if (Program._cpu.Running)
                                 {
-                                    try
-                                    {
-                                        Program._cpuThread.Resume();
-                                    }
-                                    catch (ThreadStateException e)
-                                    {
-                                        // do nothing if thread is not suspended
-                                    }
-                                }
+                                    bStoreChar = false;
 
-                                Program._cpu.Running = false;
+                                    // kill any threads that may be running on any open IO cards.
+
+                                    if (Program._CDMAF3 != null && Program._CDMAF3.DMAFTimer != null)
+                                        Program._CDMAF3.DMAFTimer.Stop();
+
+                                    if (Program._CDMAF3 != null && Program._CDMAF3.DMAFInterruptDelayTimer != null)
+                                        Program._CDMAF3.DMAFInterruptDelayTimer.Stop();
+
+                                    if (Program._CDMAF2 != null && Program._CDMAF2.DMAFTimer != null)
+                                        Program._CDMAF2.DMAFTimer.Stop();
+
+                                    if (Program._CDMAF2 != null && Program._CDMAF2.DMAFInterruptDelayTimer != null)
+                                        Program._CDMAF2.DMAFInterruptDelayTimer.Stop();
+
+                                    // if the cpu is in wait or sync - resume it so it can exit
+
+                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == System.Threading.ThreadState.Suspended)
+                                    {
+                                        try
+                                        {
+                                            Program.CpuThread.Resume();
+                                        }
+                                        catch (ThreadStateException e)
+                                        {
+                                            // do nothing if thread is not suspended
+                                        }
+                                    }
+
+                                    Program._cpu.CoreDump();
+                                    Program._cpu.Running = false;
+                                }
                             }
                             else
                             {
@@ -245,19 +271,18 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F2:
-                            if (Program.Platform == OSPlatform.Windows)
+                            if (cki.Modifiers == ConsoleModifiers.Control)
                             {
-
-                                if (cki.Modifiers == ConsoleModifiers.Control)
+                                if (Program._cpu.Running)
                                 {
                                     bStoreChar = false;
                                     Program._cpu.ResetPressed = true;
 
-                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                     {
                                         try
                                         {
-                                            Program._cpuThread.Resume();
+                                            Program.CpuThread.Resume();
                                         }
                                         catch (ThreadStateException e)
                                         {
@@ -265,24 +290,13 @@ namespace Memulator
                                         }
                                     }
                                 }
-                                else
-                                    Program._cpu.CoreDump();
                             }
-                            else if (Program.Platform == OSPlatform.Linux)
+                            else
                             {
+                                ShowSpecialKeys dlg = new ShowSpecialKeys();
+                                dlg.ShowDialog();
                                 bStoreChar = false;
-                                DateTime dt = DateTime.Now;
-                                StuffKeyboard
-                                    (
-                                        String.Format("{0}/{1}/{2} {3}/{4}/{5}\r",
-                                            dt.Month.ToString("00"),
-                                            dt.Day.ToString("00"),
-                                            (dt.Year - 2000).ToString("00"),
-                                            dt.Hour.ToString("00"),
-                                            dt.Minute.ToString("00"),
-                                            dt.Second.ToString("00")
-                                        )
-                                    );
+                                //Program._cpu.CoreDump();
                             }
                             break;
 
