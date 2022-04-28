@@ -7,11 +7,12 @@ using System.Xml;
 using System.IO;
 using System.Threading;
 
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 
 using System.Runtime.InteropServices;
+
+using System.Runtime.Remoting.Channels.Ipc;
+using System.Security.Permissions;
 
 // TODO:
 //
@@ -30,6 +31,22 @@ using System.Runtime.InteropServices;
 //      5)	Fix bug which prevents from pasting text code under BASIC to simulate a program being typed. Crashes after first line number. Strange...
 //          I will investigate this and correct.
 //
+
+namespace IPCRemoteObject
+{
+    // Remote object.
+    public class RemoteObject : MarshalByRefObject
+    {
+        private int callCount = 0;
+
+        public int GetCount()
+        {
+            Console.WriteLine("GetCount has been called.");
+            callCount++;
+            return (callCount);
+        }
+    }
+}
 
 namespace Memulator
 {
@@ -90,13 +107,26 @@ namespace Memulator
         S37_FORMAT  =  1,
         S19_FORMAT  =  2
     }
+    //enum DiskFormats
+    //{
+    //    DISK_FORMAT_UNKNOWN  = 0,
+    //    DISK_FORMAT_FLEX     = 1,
+    //    DISK_FORMAT_FLEX_IMA = 2,
+    //    DISK_FORMAT_OS9      = 3,
+    //    DISK_FORMAT_OS9_IMA  = 4,
+    //    DISK_FORMAT_UNIFLEX  = 5,
+    //    DISK_FORMAT_MF_FDOS  = 6
+    //}
     enum DiskFormats
     {
-        DISK_FORMAT_FLEX    = 0,
-        DISK_FORMAT_OS9     = 1,
-        DISK_FORMAT_UNIFLEX = 2,
-        DISK_FORMAT_MF_FDOS = 3
+        DISK_FORMAT_UNKNOWN = 0,
+        DISK_FORMAT_FLEX = 1,
+        DISK_FORMAT_FLEX_IMA = 2,
+        DISK_FORMAT_OS9 = 3,
+        DISK_FORMAT_UNIFLEX = 4,
+        DISK_FORMAT_MINIFLEX = 5
     }
+
     enum DriveCounts
     {
         NUMBER_OF_PIAIDE_DRIVES = 2,
@@ -105,6 +135,51 @@ namespace Memulator
 
     class Program
     {
+        [SecurityPermission(SecurityAction.Demand)]
+        public static void ServerMain(string[] args)
+        {
+            // Create the server channel.
+            IpcChannel serverChannel = new IpcChannel("localhost:9090");
+
+            // Register the server channel.
+            System.Runtime.Remoting.Channels.ChannelServices.RegisterChannel(serverChannel, false);
+
+            // Show the name of the channel.
+            Console.WriteLine("The name of the channel is {0}.", serverChannel.ChannelName);
+
+            // Show the priority of the channel.
+            Console.WriteLine("The priority of the channel is {0}.", serverChannel.ChannelPriority);
+
+            // Show the URIs associated with the channel.
+            System.Runtime.Remoting.Channels.ChannelDataStore channelData = (System.Runtime.Remoting.Channels.ChannelDataStore) serverChannel.ChannelData;
+            foreach (string uri in channelData.ChannelUris)
+            {
+                Console.WriteLine("The channel URI is {0}.", uri);
+            }
+
+            // Expose an object for remote calls.
+            System.Runtime.Remoting.RemotingConfiguration.RegisterWellKnownServiceType(typeof(IPCRemoteObject.RemoteObject), "RemoteObject.rem", System.Runtime.Remoting.WellKnownObjectMode.Singleton);
+
+            // Parse the channel's URI.
+            string[] urls = serverChannel.GetUrlsForUri("RemoteObject.rem");
+            if (urls.Length > 0)
+            {
+                string objectUrl = urls[0];
+                string objectUri;
+                string channelUri = serverChannel.Parse(objectUrl, out objectUri);
+
+                Console.WriteLine("The object URI is {0}.", objectUri);
+                Console.WriteLine("The channel URI is {0}.", channelUri);
+                Console.WriteLine("The object URL is {0}.", objectUrl);
+            }
+
+            // Wait for the user prompt.
+
+            Console.WriteLine("Press ENTER to exit the server.");
+            Console.ReadLine();
+            Console.WriteLine("The server is exiting.");
+        }
+
         #region variables
 
         public static String [] m_strPIAIDEFilename = new string[(int)DriveCounts.NUMBER_OF_PIAIDE_DRIVES];
@@ -126,8 +201,19 @@ namespace Memulator
             set { Program._consoleDumpFile = value; }
         }
 
-        public static string _traceFilePath = "";
-        public static Thread _cpuThread;
+        private static string _traceFilePath = "";
+        public static string TraceFilePath
+        {
+            get { return Program._traceFilePath; }
+            set { Program._traceFilePath = value; }
+        }
+
+        private static Thread _cpuThread;
+        public static Thread CpuThread
+        {
+            get { return Program._cpuThread; }
+            set { Program._cpuThread = value; }
+        }
 
         public static int m_nProcessorBoard;
         private static bool _bTraceEnabled;
@@ -136,6 +222,13 @@ namespace Memulator
         {
             get { return Program._bTraceEnabled; }
             set { Program._bTraceEnabled = value; }
+        }
+
+        private static bool _bDMAF2AccessLogging;
+        public static bool DMAF2AccessLogging
+        {
+            get { return _bDMAF2AccessLogging; }
+            set { _bDMAF2AccessLogging = value; }
         }
 
         private static bool _bDMAF3AccessLogging;
@@ -150,8 +243,8 @@ namespace Memulator
 
         public static string configFileName = "configuration.xml";
         public static string dataDir = ".\\";
-        public static string commonAppDir = ".\\";
-        public static string userAppDir = ".\\";
+        //public static string commonAppDir = ".\\";
+        //public static string userAppDir = ".\\";
 
         private static bool m_nEnableScratchPad;
         private static int _nTotalBoardsInstalled = 0;
@@ -187,16 +280,16 @@ namespace Memulator
             set { Program._bLowHigh = value; }
         }
 
-        public static ConsoleACIA  _CConsole;
-        public static CPrinter  _CPrinter;
-        public static FD_2     _CFD_2;
-        public static DMAF2    _CDMAF2;
-        public static DMAF3    _CDMAF3;
-        public static ACIA     _CACIA;
-        public static MPT      _CMPT;
-        public static MPID     _CMPID;
-        public static PIAIDE   _CPIAIDE;
-        public static TTLIDE   _CTTLIDE;
+        public static ConsoleACIA _CConsole;
+        public static CPrinter _CPrinter;
+        public static FD_2 _CFD_2;
+        public static DMAF2 _CDMAF2;
+        public static DMAF3 _CDMAF3;
+        public static ACIA _CACIA;
+        public static MPT _CMPT;
+        public static MPID _CMPID;
+        public static PIAIDE _CPIAIDE;
+        public static TTLIDE _CTTLIDE;
         public static PCStream _CPCStream;
 
         private static bool bAllowMultiSectorTransfers = false;
@@ -231,33 +324,24 @@ namespace Memulator
         }
         private static string[] driveImageFormats = new string[4];
 
-        private static FileStream[] _floppyDriveStream = new FileStream [4];
-
-        private static DiskFormats [] m_nDiskFormat   = new DiskFormats[4];
-
-        private static byte [] m_nSectorsPerTrack    = new byte[4];
-        private static byte [] m_nFormatByte         = new byte[4];
-        private static int  [] m_nSectorsOnTrackZero = new int [4];
-        private static int  [] m_nNumberOfTracks     = new int [4];
-        private static int  [] m_nIsDoubleSided      = new int [4];
-
-        private static OSPlatform _platform;
-        public static OSPlatform Platform { get => _platform; set => _platform = value; }
-        
-        public static void GetOSPlatform()
+        public static string[] DriveImageFormats
         {
-            OSPlatform osPlatform = OSPlatform.Create("Other Platform");
-            // Check if it's windows 
-            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            osPlatform = isWindows ? OSPlatform.Windows : osPlatform;
-            // Check if it's osx 
-            bool isOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-            osPlatform = isOSX ? OSPlatform.OSX : osPlatform;
-            // Check if it's Linux 
-            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-            osPlatform = isLinux ? OSPlatform.Linux : osPlatform;
-            Platform =  osPlatform;
+            get { return Program.driveImageFormats; }
+            set { Program.driveImageFormats = value; }
         }
+
+        private static FileStream[] _floppyDriveStream = new FileStream[4];
+        private static VirtualFloppyManipulationRoutines[] _virtualFloppyManipulationRoutines = new VirtualFloppyManipulationRoutines[4];
+        private static DiskFormats[] m_nDiskFormat = new DiskFormats[4];
+
+        private static byte[] m_nSectorsPerTrack = new byte[4];
+        private static byte[] m_nNumberOfCylinders = new byte[4];
+        private static byte[] m_nFormatByte = new byte[4];
+        private static int[] m_nSectorsOnTrackZero = new int[4];
+        private static int[] m_nSectorsOnTrackZeroSideZero = new int[4];
+        private static int[] m_nSectorsOnTrackZeroSideOne = new int[4];
+        private static int[] m_nNumberOfTracks = new int[4];
+        private static int[] m_nIsDoubleSided = new int[4];
 
         public static int[] IsDoubleSided
         {
@@ -274,11 +358,26 @@ namespace Memulator
             get { return Program._floppyDriveStream; }
             set { Program._floppyDriveStream = value; }
         }
-        public static int[] SectorsOnTrackZero
-        {
-            get { return Program.m_nSectorsOnTrackZero; }
-            set { Program.m_nSectorsOnTrackZero = value; }
+
+        public static VirtualFloppyManipulationRoutines[] VirtualFloppyManipulationRoutines 
+        { 
+            get => _virtualFloppyManipulationRoutines; 
+            set => _virtualFloppyManipulationRoutines = value; 
         }
+
+        public static int[] SectorsOnTrackZero { get => m_nSectorsOnTrackZero; set => m_nSectorsOnTrackZero = value; }
+
+        public static int[] SectorsOnTrackZeroSideZero
+        {
+            get { return Program.m_nSectorsOnTrackZeroSideZero; }
+            set { Program.m_nSectorsOnTrackZeroSideZero = value; }
+        }
+        public static int[] SectorsOnTrackZeroSideOne
+        {
+            get { return Program.m_nSectorsOnTrackZeroSideOne; }
+            set { Program.m_nSectorsOnTrackZeroSideOne = value; }
+        }
+
         public static byte[] FormatByte
         {
             get { return Program.m_nFormatByte; }
@@ -295,9 +394,21 @@ namespace Memulator
             set { Program.m_nDiskFormat = value; }
         }
 
+        public static bool enableDMAF2ActivityLogChecked = false;
+        public static bool enableFD2ActivityLogChecked = false;
+
+        public static string activityLogFileDMAF2 = "";
+        public static string activityLogFileDMAF3 = "";
+        public static string activityLogFileFD2 = "";
+
         #endregion
 
-        public static string _configSection = "";
+        private static string _configSection = "";
+        public static string ConfigSection
+        {
+            get { return Program._configSection; }
+            set { Program._configSection = value; }
+        }
 
         private static void ShowAverageSpeed() 
         {
@@ -331,7 +442,7 @@ namespace Memulator
         static bool LoadROM (Memory memory)
         {
             bool success = false;
-            string romFilename = dataDir + GetConfigurationAttribute(_configSection+"/romfile", "filename", "");
+            string romFilename = dataDir + GetConfigurationAttribute(ConfigSection+"/romfile", "filename", "");
 
             romFilename = romFilename.Replace("\\", "/");
             ROMLoaderStates nState = ROMLoaderStates.GETSTX;
@@ -675,14 +786,20 @@ namespace Memulator
             {
                 _stBoardInfo[nRow] = new BoardInfoClass();
 
+                // set default to 10 sector on track 0 side 0 for FD2 driver in OS9
+
+                _stBoardInfo[nRow].nBoardId = nRow;
+                _stBoardInfo[nRow].nSectorsOnTrack0Side0ForOS9 = 10;        // default to 10 sector on trac 0 side 0 for OS9 driver
+                _stBoardInfo[nRow].sBoardTypeName = GetConfigurationAttribute(ConfigSection + "/BoardConfiguration/Board", "Type", nRow.ToString(), "");
+
                 _stBoardInfo[nRow].cDeviceType = (byte)GetBoardType(nRow, 0);
                 if (_stBoardInfo[nRow].cDeviceType != 0)
                 {
-                    _stBoardInfo[nRow].sBaseAddress      = (ushort)GetConfigurationAttributeHex(_configSection + "/BoardConfiguration/Board", "Addr", nRow.ToString(), 0);
+                    _stBoardInfo[nRow].sBaseAddress      = (ushort)GetConfigurationAttributeHex(ConfigSection + "/BoardConfiguration/Board", "Addr", nRow.ToString(), 0);
+                    _stBoardInfo[nRow].sNumberOfBytes    = (ushort)GetConfigurationAttributeHex(ConfigSection + "/BoardConfiguration/Board", "Size", nRow.ToString(), 0);
 
-                    _stBoardInfo[nRow].sNumberOfBytes    = (ushort)GetConfigurationAttribute(_configSection + "/BoardConfiguration/Board", "Size", nRow.ToString(), 0);
-                    _stBoardInfo[nRow].strGuid           =         GetConfigurationAttribute(_configSection + "/BoardConfiguration/Board", "GUID", nRow.ToString(), "");
-                    _stBoardInfo[nRow].bInterruptEnabled =         GetConfigurationAttribute(_configSection + "/BoardConfiguration/Board", "IRQ",  nRow.ToString(), 0) == 0 ? false : true;
+                    _stBoardInfo[nRow].strGuid           =         GetConfigurationAttribute(ConfigSection + "/BoardConfiguration/Board", "GUID", nRow.ToString(), "");
+                    _stBoardInfo[nRow].bInterruptEnabled =         GetConfigurationAttribute(ConfigSection + "/BoardConfiguration/Board", "IRQ",  nRow.ToString(), 0) == 0 ? false : true;
 
                     // set up the device map for this board
 
@@ -744,6 +861,7 @@ namespace Memulator
                             _CFD_2 = new FD_2();
                             if (_CFD_2 != null)
                             {
+                                _stBoardInfo[nRow].nSectorsOnTrack0Side0ForOS9 = GetConfigurationAttribute(ConfigSection + "/BoardConfiguration/Board", "SectorsOnTrack0Side0ForOS9", nRow.ToString(), 10);
                                 _CFD_2.Init(0, memory.MemorySpace, _stBoardInfo[nRow].sBaseAddress, nRow, _stBoardInfo[nRow].bInterruptEnabled);
                             }
                             _nTotalBoardsInstalled++;
@@ -769,6 +887,11 @@ namespace Memulator
 
                         case (int)Devices.DEVICE_DMAF1:
                         case (int)Devices.DEVICE_DMAF2:
+                            _CDMAF2 = new DMAF2();
+                            if (_CDMAF2 != null)
+                            {
+                                _CDMAF2.Init(0, memory.MemorySpace, _stBoardInfo[nRow].sBaseAddress, nRow, _stBoardInfo[nRow].bInterruptEnabled);
+                            }
                             _nTotalBoardsInstalled++;
                             break;
 
@@ -834,8 +957,36 @@ namespace Memulator
                 }
             }
         }
-        
-        public static void LoadDrives()
+
+        // used by VirtualFloppyManipulationRoutines GetFileFormat to update
+        // the Program.DiskFormat for a given drive
+
+        public static void SetFileFormat(fileformat ff, byte drive)
+        {
+            switch (ff)
+            {
+                case fileformat.fileformat_FLEX:
+                    m_nDiskFormat[drive] = DiskFormats.DISK_FORMAT_FLEX;
+                    break;
+                case fileformat.fileformat_FLEX_IMA:
+                    m_nDiskFormat[drive] = DiskFormats.DISK_FORMAT_FLEX_IMA;
+                    break;
+                case fileformat.fileformat_OS9:
+                    m_nDiskFormat[drive] = DiskFormats.DISK_FORMAT_OS9;
+                    break;
+                case fileformat.fileformat_UniFLEX:
+                    m_nDiskFormat[drive] = DiskFormats.DISK_FORMAT_UNIFLEX;
+                    break;
+                case fileformat.fileformat_miniFLEX:
+                    m_nDiskFormat[drive] = DiskFormats.DISK_FORMAT_MINIFLEX;
+                    break;
+                case fileformat.fileformat_UNKNOWN:
+                    m_nDiskFormat[drive] = DiskFormats.DISK_FORMAT_UNKNOWN;
+                    break;
+            }
+        }
+
+        public static void LoadDrives(bool initialLoad = false)
         {
             long fileLength;
 
@@ -848,150 +999,494 @@ namespace Memulator
                 driveFormatChanged[i] = false;
 
                 string imagePath = "";
+                bool fileFound = false;
 
-                if ((GetConfigurationAttribute(_configSection + "/FloppyDisks/Disk", "Path", i.ToString(), "").StartsWith(@"\\")) || (GetConfigurationAttribute(_configSection + "/FloppyDisks/Disk", "Path", i.ToString(), "").Contains(@":")))
-                    imagePath = GetConfigurationAttribute(_configSection + "/FloppyDisks/Disk", "Path", i.ToString(), "");
+                if ((GetConfigurationAttribute(ConfigSection + "/FloppyDisks/Disk", "Path", i.ToString(), "").StartsWith(@"\\")) || (GetConfigurationAttribute(ConfigSection + "/FloppyDisks/Disk", "Path", i.ToString(), "").Contains(@":")))
+                    imagePath = GetConfigurationAttribute(ConfigSection + "/FloppyDisks/Disk", "Path", i.ToString(), "");
                 else
-                    imagePath = dataDir + GetConfigurationAttribute(_configSection + "/FloppyDisks/Disk", "Path", i.ToString(), "");
-                string imageFormat = GetConfigurationAttribute(_configSection + "/FloppyDisks/Disk", "Format", i.ToString(), "");
+                    imagePath = dataDir + GetConfigurationAttribute(ConfigSection + "/FloppyDisks/Disk", "Path", i.ToString(), "");
 
-                if (driveImagePaths[i] != imagePath)
-                {
-                    driveImagePaths[i] = imagePath;
-                    drivePathChanged[i] = true;
-                    if (_floppyDriveStream[i] != null)
-                    {
-                        _floppyDriveStream[i].Close();
-                        _floppyDriveStream[i] = null;
-                    }
-                }
+                string imageFormat = GetConfigurationAttribute(ConfigSection + "/FloppyDisks/Disk", "Format", i.ToString(), "");
+                string imageFilename = Path.GetFileName(imagePath);
 
-                if (driveImageFormats[i] != imageFormat)
-                {
-                    if (driveImagePaths[i] != dataDir)
-                    {
-                        driveImageFormats[i] = imageFormat;
-                        driveFormatChanged[i] = true;
-                    }
-                }
+                bool fileExists = false;
 
-                if ((driveImagePaths[i] != dataDir && _floppyDriveStream[i] == null) || driveFormatChanged[i])
+                switch (i)
                 {
-                    if (driveFormatChanged[i])
-                    {
-                        switch (driveImageFormats[i])
+                    case 0:
+                        if (imageFilename.Length > 0)
                         {
-                            case "FLEX":
-                                m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_FLEX;
-                                break;
-                            case "OS9":
-                                m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_OS9;
-                                break;
-                            case "UNIFLEX":
-                                m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_UNIFLEX;
-                                break;
-                            case "MF_FDOS":
-                                m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_MF_FDOS;
-                                break;
-                            default:
-                                Console.WriteLine("Improper disk format specified in configuration file");
-                                break;
-                        }
-                    }
-
-                    if (drivePathChanged[i])
-                    {
-                        FileStream fs = File.Open(driveImagePaths[i], FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-                        _floppyDriveStream[i] = fs;
-
-                        fileLength = fs.Length;
-
-                        if ((m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_FLEX) || (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_UNIFLEX))
-                        {
-                            if (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_FLEX)
+                            try
                             {
-                                byte[] nbroftracks = new byte[1];
-                                byte[] nbrofsectorspertrack = new byte[1];
-
-                                _floppyDriveStream[i].Seek(0x0226, SeekOrigin.Begin);
-                                _floppyDriveStream[i].Read(nbroftracks, 0, 1);           // this actually gets the MAX TRACK value
-                                m_nNumberOfTracks[i] = nbroftracks[0];
-                                m_nNumberOfTracks[i]++;                         // This converts it to Number of Tracks
-                                _floppyDriveStream[i].Read(nbrofsectorspertrack, 0, 1);
-                                m_nSectorsPerTrack[i] = nbrofsectorspertrack[0];
-
+                                //_mainForm.Drive0Image = global::SWTPCemuApp.Properties.Resources.drive0_closed;
+                                //if ((File.GetAttributes(imagePath) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                                //    _mainForm.Drive0StatusImage = global::SWTPCemuApp.Properties.Resources.reddot;
+                                //else
+                                //    _mainForm.Drive0StatusImage = global::SWTPCemuApp.Properties.Resources.greendot;
+                                //_mainForm.Drive0ActivityImage = global::SWTPCemuApp.Properties.Resources.greydot;
+                                //_mainForm.Drive0Tag = imagePath;
+                                //_mainForm.Drive0Name = Path.GetFileNameWithoutExtension(imagePath);
+                                fileFound = true;
                             }
-                            else if (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_UNIFLEX)
+                            catch
                             {
-
-                                m_nIsDoubleSided[i] = -1;        // -1 means it's not set yet, 0 = not double sided, 1 = double sided
-
-                                // there are 1,261,568 bytes on a double sided double density 8" uniflex diskette
-                                // there are   630,784 bytes on a single sided double density 8" uniflex diskette
-                                // there are   630,784 bytes on a double sided single density 8" uniflex diskette
-                                // there are   315,392 bytes on a single sided single density 8" uniflex diskette
-
-                                switch (fileLength)
-                                {
-                                    case 1261568:                                   // double sided double density 8" uniflex diskette
-                                        m_nNumberOfTracks[i] = 77;     // always 77 tracks
-                                        m_nSectorsPerTrack[i] = 32;     // 16 X 2 = 32 sectors
-                                        break;
-
-                                    case 630784:                                    // single sided double density 8" uniflex diskette or double sided single density 8" uniflex diskette
-                                        m_nNumberOfTracks[i] = 77;     // always 77 tracks
-                                        m_nSectorsPerTrack[i] = 16;     // Either way there are only 16 sectors per track (8 X 2 or 16 X 1 = 16 sectors)
-                                        break;
-
-                                    case 315392:                                    // 315,392 bytes on a single sided single density 8" uniflex diskette
-                                        m_nNumberOfTracks[i] = 77;     // always 77 tracks
-                                        m_nSectorsPerTrack[i] = 8;      // 8 X 1 = 8 sectors
-                                        break;
-
-                                    default:
-                                        m_nNumberOfTracks[i] = 77;     // maximum if size is incorrect
-                                        m_nSectorsPerTrack[i] = 32;
-                                        break;
-                                }
+                                //_mainForm.Drive0Image = global::SWTPCemuApp.Properties.Resources.drive0_open;
+                                //_mainForm.Drive0Name = "";
                             }
                         }
                         else
                         {
-                            int nTotalSectors = 0;
-                            byte[] temp = new byte[1];
-                            byte[] nbrofsectorspertrack = new byte[1];
-                            byte[] formatbyte = new byte[1];
-
-                            _floppyDriveStream[i].Seek(0, SeekOrigin.Begin);
-                            _floppyDriveStream[i].Read(temp, 0, 1);                    // offset 0
-                            nTotalSectors = (temp[0] * 65536);
-                            _floppyDriveStream[i].Read(temp, 0, 1);                    // offset 1
-                            nTotalSectors += (temp[0] * 256);
-                            _floppyDriveStream[i].Read(temp, 0, 1);                    // offset 2
-                            nTotalSectors += temp[0];
-                            _floppyDriveStream[i].Read(nbrofsectorspertrack, 0, 1);   // offset 3
-                            m_nSectorsPerTrack[i] = nbrofsectorspertrack[0];
-
-                            // leave it actual tracks for following calculation
-
-                            m_nNumberOfTracks[i] = nTotalSectors / m_nSectorsPerTrack[i];
-                            m_nSectorsOnTrackZero[i] = nTotalSectors - (m_nNumberOfTracks[i] * m_nSectorsPerTrack[i]);
-                            if (m_nSectorsOnTrackZero[i] == 0)
-                                m_nSectorsOnTrackZero[i] = m_nSectorsPerTrack[i];
-
-                            // now convert it to cylinders
-
-                            m_nNumberOfTracks[i] = (m_nNumberOfTracks[i] + 1) / 2;
-
-                            // get disk format byte
-
-                            _floppyDriveStream[i].Seek(16, SeekOrigin.Begin);
-                            _floppyDriveStream[i].Read(formatbyte, 0, 1);
-                            m_nFormatByte[i] = formatbyte[0];
+                            //_mainForm.Drive0Image = global::SWTPCemuApp.Properties.Resources.drive0_open;
+                            //_mainForm.Drive0Name = "";
                         }
+                        break;
+                    case 1:
+                        if (imageFilename.Length > 0)
+                        {
+                            try
+                            {
+                                //_mainForm.Drive1Image = global::SWTPCemuApp.Properties.Resources.drive1_closed;
+                                //if ((File.GetAttributes(imagePath) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                                //    _mainForm.Drive1StatusImage = global::SWTPCemuApp.Properties.Resources.reddot;
+                                //else
+                                //    _mainForm.Drive1StatusImage = global::SWTPCemuApp.Properties.Resources.greendot;
+                                //_mainForm.Drive1ActivityImage = global::SWTPCemuApp.Properties.Resources.greydot;
+                                //_mainForm.Drive1Tag = imagePath;
+                                //_mainForm.Drive1Name = Path.GetFileNameWithoutExtension(imagePath);
+                                fileFound = true;
+                            }
+                            catch
+                            {
+                                //_mainForm.Drive1Image = global::SWTPCemuApp.Properties.Resources.drive1_open;
+                                //_mainForm.Drive1Name = "";
+                            }
+                        }
+                        else
+                        {
+                            //_mainForm.Drive1Image = global::SWTPCemuApp.Properties.Resources.drive1_open;
+                            //_mainForm.Drive1Name = "";
+                        }
+                        break;
+                    case 2:
+                        if (imageFilename.Length > 0)
+                        {
+                            try
+                            {
+                                //_mainForm.Drive2Image = global::SWTPCemuApp.Properties.Resources.drive2_closed;
+                                //if ((File.GetAttributes(imagePath) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                                //    _mainForm.Drive2StatusImage = global::SWTPCemuApp.Properties.Resources.reddot;
+                                //else
+                                //    _mainForm.Drive2StatusImage = global::SWTPCemuApp.Properties.Resources.greendot;
+                                //_mainForm.Drive2ActivityImage = global::SWTPCemuApp.Properties.Resources.greydot;
+                                //_mainForm.Drive2Tag = imagePath;
+                                //_mainForm.Drive2Name = Path.GetFileNameWithoutExtension(imagePath);
+                                fileFound = true;
+                            }
+                            catch
+                            {
+                                //_mainForm.Drive2Image = global::SWTPCemuApp.Properties.Resources.drive2_open;
+                                //_mainForm.Drive2Name = "";
+                            }
+                        }
+                        else
+                        {
+                            //_mainForm.Drive2Image = global::SWTPCemuApp.Properties.Resources.drive2_open;
+                            //_mainForm.Drive2Name = "";
+                        }
+                        break;
+                    case 3:
+                        if (imageFilename.Length > 0)
+                        {
+                            try
+                            {
+                                //_mainForm.Drive3Image = global::SWTPCemuApp.Properties.Resources.drive3_closed;
+                                //if ((File.GetAttributes(imagePath) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                                //    _mainForm.Drive3StatusImage = global::SWTPCemuApp.Properties.Resources.reddot;
+                                //else
+                                //    _mainForm.Drive3StatusImage = global::SWTPCemuApp.Properties.Resources.greendot;
+                                //_mainForm.Drive3ActivityImage = global::SWTPCemuApp.Properties.Resources.greydot;
+                                //_mainForm.Drive3Tag = imagePath;
+                                //_mainForm.Drive3Name = Path.GetFileNameWithoutExtension(imagePath);
+                                fileFound = true;
+                            }
+                            catch
+                            {
+                                //_mainForm.Drive3Image = global::SWTPCemuApp.Properties.Resources.drive3_open;
+                                //_mainForm.Drive3Name = "";
+                            }
+                        }
+                        else
+                        {
+                            //_mainForm.Drive3Image = global::SWTPCemuApp.Properties.Resources.drive3_open;
+                            //_mainForm.Drive3Name = "";
+                        }
+                        break;
+                }
+
+                if (fileFound)
+                {
+                    fileExists = File.Exists(imagePath);
+
+                    if (fileExists)
+                    {
+                        if (driveImagePaths[i] != imagePath)
+                        {
+                            driveImagePaths[i] = imagePath;
+                            drivePathChanged[i] = true;
+                            if (_floppyDriveStream[i] != null)
+                            {
+                                _floppyDriveStream[i].Close();
+                                _floppyDriveStream[i] = null;
+                            }
+                        }
+
+                        if (driveImageFormats[i] != imageFormat)
+                        {
+                            if (driveImagePaths[i] != dataDir)
+                            {
+                                driveImageFormats[i] = imageFormat;
+                                driveFormatChanged[i] = true;
+                            }
+                        }
+
+                        if (initialLoad)
+                            driveFormatChanged[i] = true;
+
+                        if ((driveImagePaths[i] != dataDir && _floppyDriveStream[i] == null) || driveFormatChanged[i])
+                        {
+                            if (driveFormatChanged[i])
+                            {
+                                switch (driveImageFormats[i])
+                                {
+                                    case "FLEX":
+                                        m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_FLEX;
+                                        break;
+                                    case "FLEX_IMA":
+                                        m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_FLEX_IMA;
+                                        break;
+                                    case "OS9":
+                                        m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_OS9;
+                                        break;
+                                    case "UNIFLEX":
+                                        m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_UNIFLEX;
+                                        break;
+                                    case "MINIFLEX":
+                                        m_nDiskFormat[i] = DiskFormats.DISK_FORMAT_MINIFLEX;
+                                        break;
+                                    default:
+                                        Console.WriteLine("Improper disk format specified in configuration file");
+                                        break;
+                                }
+                            }
+
+                            if (drivePathChanged[i] || initialLoad)
+                            {
+                                m_nIsDoubleSided[i] = 11;
+
+                                try
+                                {
+                                    FileStream fs = File.Open(driveImagePaths[i], FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+                                    _floppyDriveStream[i] = fs;
+
+                                    _virtualFloppyManipulationRoutines[i] = new VirtualFloppyManipulationRoutines(DriveImagePaths[i], fs);
+
+                                    fileLength = fs.Length;
+
+                                    if ((m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_FLEX) || (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_UNIFLEX) || (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_FLEX_IMA))
+                                    {
+                                        if (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_FLEX)
+                                        {
+                                            byte[] nbroftracks = new byte[1];
+                                            byte[] nbrofsectorspertrack = new byte[1];
+
+                                            _floppyDriveStream[i].Seek(0x0226, SeekOrigin.Begin);
+                                            _floppyDriveStream[i].Read(nbroftracks, 0, 1);           // this actually gets the MAX TRACK value
+                                            m_nNumberOfTracks[i] = nbroftracks[0];
+                                            m_nNumberOfTracks[i]++;                         // This converts it to Number of Tracks
+                                            _floppyDriveStream[i].Read(nbrofsectorspertrack, 0, 1);
+                                            m_nSectorsPerTrack[i] = nbrofsectorspertrack[0];
+                                            m_nSectorsOnTrackZero[i] = nbrofsectorspertrack[0];
+                                            //m_nSectorsOnTrackZeroSideOne[i] = nbrofsectorspertrack[0];
+                                        }
+                                        else if (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_FLEX_IMA)
+                                        {
+                                            //m_nSectorsOnTrackZeroSideOne[i] = 10;
+
+                                            // if this image is  formatted as an IMA image, then track zero will have either 10, 15, 20  or 30 sectors
+                                            // depending on whether it is single or double sided or 5 1/4" or 8". We can tell if it is single or double
+                                            // sided if the maximum number of sectors is > 1
+                                            //
+                                            //  valid IMA formats:
+                                            //
+                                            //          5 1/4" drive geometries
+                                            //
+                                            //  tracks      sides   density     sectors/track 0 sectors/track   filesize                     blank filename
+                                            //  --------    -----   -------     -------------   -------------   --------------------------   --------------
+                                            //  35          1       single      10              10              35 * 1 * 10 * 256 =   89600  SSSD35T.IMA
+                                            //  35          2       single      20              20              35 * 2 * 10 * 256 =  179200  DSSD35T.IMA
+                                            //  35          1       double      10              18       2560 + 34 * 1 * 18 * 256 =  159232  SSDD35T.IMA
+                                            //  35          2       double      20              36       5120 + 34 * 2 * 18 * 256 =  318464  DSDD35T.IMA
+                                            //  40          1       single      10              10              40 * 1 * 10 * 256 =  102400  SSSD40T.IMA
+                                            //  40          2       single      20              20              40 * 2 * 10 * 256 =  204800  DSSD40T.IMA <-
+                                            //  40          1       double      10              18       2560 + 39 * 1 * 18 * 256 =  182272  SSDD40T.IMA
+                                            //  40          2       double      20              36       5120 + 39 * 2 * 18 * 256 =  364544  DSDD40T.IMA
+                                            //  80          1       single      10              10              80 * 1 * 10 * 256 =  204800  SSSD80T.IMA <-
+                                            //  80          2       single      20              20              80 * 2 * 10 * 256 =  409600  DSSD80T.IMA
+                                            //  80          1       double      10              18       2560 + 79 * 1 * 18 * 256 =  366592  SSDD80T.IMA
+                                            //  80          2       double      20              36       5120 + 79 * 2 * 18 * 256 =  733184  DSDD80T.IMA
+                                            //
+                                            //          8" drive geometries
+                                            //
+                                            //  tracks      sides   density     sectors/track 0 sectors/track   filesize                     blank filename
+                                            //  --------    -----   -------     -------------   -------------   --------------------------   --------------
+                                            //  77          1       single      15              15              77 * 1 * 15 * 256 =  295680  SSSD77T.IMA
+                                            //  77          2       single      30              30              77 * 2 * 15 * 256 =  591360  DSSD77T.IMA
+                                            //  77          1       double      15              26       3840 + 76 * 1 * 26 * 256 =  516352  SSSD77T.IMA
+                                            //  77          2       double      30              52       3840 + 76 * 2 * 26 * 256 = 1032704  DSSD77T.IMA
+                                            //
+                                            //      Since these are the only valid IMA formats - we can assume double sided if the max sectors for
+                                            //  this images is > 18 (because sectors are 1 based not 0 based)
+                                            //
+                                            //  80 track single sides single density is the same size as 40 track double sided single density. The 
+                                            //  only way to tell the difference is by the max sectors per track. If it's 10 - this is single sided
+                                            //  single density 80 track otherwise it is double single density sided 40 track
+
+                                            byte[] maxTrack = new byte[1];
+                                            byte[] nbrofsectorspertrack = new byte[1];
+
+                                            _floppyDriveStream[i].Seek(0x0226, SeekOrigin.Begin);
+                                            _floppyDriveStream[i].Read(maxTrack, 0, 1);             // this actually gets the MAX TRACK value
+                                            m_nNumberOfTracks[i] = maxTrack[0];                     // read the value from the image
+                                            m_nNumberOfTracks[i]++;                                 // This converts it to Number of Tracks
+                                            _floppyDriveStream[i].Read(nbrofsectorspertrack, 0, 1);
+                                            m_nSectorsPerTrack[i] = nbrofsectorspertrack[0];
+
+                                            if (m_nSectorsPerTrack[i] > 18)
+                                                m_nIsDoubleSided[i] = 1;
+                                            else
+                                                m_nIsDoubleSided[i] = 0;
+
+                                            long fileSizeMinusTrackZero = (m_nNumberOfTracks[i] - 1) * m_nSectorsPerTrack[i] * 256;
+                                            long sizeOfTrackZero = fileLength - fileSizeMinusTrackZero;
+                                            int numberOfSectorsOnTrackZero = (int)sizeOfTrackZero / 256;
+
+                                            // if the number of sectors on track zero = the number of sectors on the rest of the tracks
+                                            // that is OK
+
+                                            if (numberOfSectorsOnTrackZero != m_nSectorsPerTrack[i])
+                                                m_nSectorsOnTrackZero[i] = numberOfSectorsOnTrackZero;
+                                            else
+                                                m_nSectorsOnTrackZero[i] = numberOfSectorsOnTrackZero;
+                                        }
+                                        else if (m_nDiskFormat[i] == DiskFormats.DISK_FORMAT_UNIFLEX)
+                                        {
+
+                                            m_nIsDoubleSided[i] = -1;        // -1 means it's not set yet, 0 = not double sided, 1 = double sided
+
+                                            // there are 1,261,568 bytes on a double sided double density 8" uniflex diskette
+                                            // there are   630,784 bytes on a single sided double density 8" uniflex diskette
+                                            // there are   630,784 bytes on a double sided single density 8" uniflex diskette
+                                            // there are   315,392 bytes on a single sided single density 8" uniflex diskette
+
+                                            switch (fileLength)
+                                            {
+                                                case 1261568:                                   // double sided double density 8" uniflex diskette
+                                                    m_nNumberOfTracks[i] = 77;     // always 77 tracks
+                                                    m_nSectorsPerTrack[i] = 32;     // 16 X 2 = 32 sectors
+                                                    break;
+
+                                                case 630784:                                    // single sided double density 8" uniflex diskette or double sided single density 8" uniflex diskette
+                                                    m_nNumberOfTracks[i] = 77;     // always 77 tracks
+                                                    m_nSectorsPerTrack[i] = 16;     // Either way there are only 16 sectors per track (8 X 2 or 16 X 1 = 16 sectors)
+                                                    break;
+
+                                                case 315392:                                    // 315,392 bytes on a single sided single density 8" uniflex diskette
+                                                    m_nNumberOfTracks[i] = 77;     // always 77 tracks
+                                                    m_nSectorsPerTrack[i] = 8;      // 8 X 1 = 8 sectors
+                                                    break;
+
+                                                default:
+                                                    m_nNumberOfTracks[i] = 77;     // maximum if size is incorrect
+                                                    m_nSectorsPerTrack[i] = 32;
+                                                    break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        _virtualFloppyManipulationRoutines[i].physicalParameters = _virtualFloppyManipulationRoutines[i].GetPhysicalOS9Geometry(fs);
+
+                                        m_nSectorsPerTrack[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.sectorsPerTrack;
+                                        m_nNumberOfCylinders[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.numberOfCylinders;
+
+                                        if (_virtualFloppyManipulationRoutines[i].physicalParameters.doubleSided)
+                                            m_nNumberOfTracks[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.numberOfCylinders * 2;
+                                        else
+                                            m_nNumberOfTracks[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.numberOfCylinders;
+
+                                        m_nSectorsOnTrackZeroSideZero[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.sectorsOnTrackZeroSideZero;
+                                        m_nFormatByte[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.formatByte;
+                                        m_nSectorsOnTrackZeroSideOne[i] = (byte)_virtualFloppyManipulationRoutines[i].physicalParameters.sectorsOnTrackZeroSideOne;
+
+                                        // this is for OS - 9
+
+                                        int nTotalSectors = 0;
+                                        byte[] temp = new byte[1];
+                                        byte[] nbrofsectorspertrack = new byte[1];
+                                        byte[] formatbyte = new byte[1];
+
+                                        _floppyDriveStream[i].Seek(0, SeekOrigin.Begin);
+                                        _floppyDriveStream[i].Read(temp, 0, 1);                    // offset 0
+                                        nTotalSectors = (temp[0] * 65536);
+                                        _floppyDriveStream[i].Read(temp, 0, 1);                    // offset 1
+                                        nTotalSectors += (temp[0] * 256);
+                                        _floppyDriveStream[i].Read(temp, 0, 1);                    // offset 2
+                                        nTotalSectors += temp[0];
+                                        _floppyDriveStream[i].Read(nbrofsectorspertrack, 0, 1);   // offset 3
+                                        m_nSectorsPerTrack[i] = nbrofsectorspertrack[0];
+
+                                        // leave it actual tracks for following calculation
+
+                                        try
+                                        {
+                                            m_nNumberOfTracks[i] = nTotalSectors / m_nSectorsPerTrack[i];
+                                            m_nSectorsOnTrackZeroSideZero[i] = nTotalSectors - (m_nNumberOfTracks[i] * m_nSectorsPerTrack[i]);
+                                            m_nSectorsOnTrackZero[i] = nTotalSectors % m_nSectorsPerTrack[i];
+                                            if (m_nSectorsOnTrackZero[i] == 0)
+                                                m_nSectorsOnTrackZero[i] = m_nSectorsPerTrack[i];
+
+                                            // now convert it to cylinders
+
+                                            m_nNumberOfTracks[i] = (m_nNumberOfTracks[i] + 1) / 2;
+
+                                            // get disk format byte
+
+                                            _floppyDriveStream[i].Seek(16, SeekOrigin.Begin);
+                                            _floppyDriveStream[i].Read(formatbyte, 0, 1);
+                                            m_nFormatByte[i] = formatbyte[0];
+
+                                            // calculate number of sectors on track zero side one
+
+                                            m_nSectorsOnTrackZeroSideOne[i] = (m_nNumberOfTracks[i] - 1) * m_nSectorsPerTrack[i];
+                                            if ((m_nFormatByte[i] & 0x0001) != 0)   // double sided
+                                            {
+                                                m_nSectorsOnTrackZeroSideOne[i] *= 2;
+                                            }
+                                            m_nSectorsOnTrackZeroSideOne[i] = m_nSectorsOnTrackZeroSideOne[i] + m_nSectorsOnTrackZeroSideZero[i];
+                                            m_nSectorsOnTrackZeroSideOne[i] = nTotalSectors - m_nSectorsOnTrackZeroSideOne[i];
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine(string.Format("Invalid diskette image format for disk drive number {0}\r\n", i));
+                                            Console.WriteLine(string.Format("{0}\r\n", ex.Message));
+                                            Console.WriteLine("Press any key to continue.");
+                                            Console.ReadLine();
+                                            Console.Clear();
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(string.Format("{0}\r\n", e.Message));
+                                    Console.WriteLine("Press any key to continue.");
+                                    Console.ReadLine();
+                                    Console.Clear();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(string.Format("File Not Found for DRIVE {0}: {1}\r\n", i, imagePath));
+                        Console.WriteLine("Press any key to continue.");
+                        Console.ReadLine();
+                        Console.Clear();
                     }
                 }
             }
+        }
+
+        private static void LoadBreakPoints()
+        {
+            _cpu.BreakpointAddress.Clear();
+
+            string breakPoints = GetConfigurationAttribute("Global/DebugInfo/BreakPoints", "values", "");
+            string[] breakPointList = breakPoints.Split(',');
+            foreach (string bp in breakPointList)
+            {
+                uint result = 0;
+                if (uint.TryParse(bp, System.Globalization.NumberStyles.HexNumber, null, out result))
+                {
+                    _cpu.BreakpointAddress.Add((ushort)result);
+                }
+            }
+            _cpu.BreakpointsEnabled = GetConfigurationAttribute("Global/DebugInfo/BreakPoints", "enabled", 0) == 1 ? true : false;
+            _cpu.ExcludeSingleStepEnabled = GetConfigurationAttribute("Global/DebugInfo/Exclude", "enabled", 0) == 1 ? true : false;
+
+            //if (_cpu.BreakpointsEnabled)
+            //    _mainForm.Invoke(new Action(() => _mainForm.btnButtonEnableBreakPoints_Click(null, null)));
+
+            // Get these also:  <Exclude     enabled="0" values="CD03-CDFF,D406-D4FF" />
+
+            string exclude = GetConfigurationAttribute("Global/DebugInfo/Exclude", "values", "");
+            string[] excludeList = exclude.Split(',');
+            foreach (string e in excludeList)
+            {
+                string start = "";
+                string end = "";
+
+                string[] addresses = e.Split('-');
+                if (addresses.Length == 2)
+                {
+                    start = addresses[0];
+                    end = addresses[1];
+                }
+                else if (addresses.Length == 1)
+                {
+                    start = addresses[0];
+                    end = addresses[0];
+                }
+
+                //AddressPair ap = new AddressPair();
+                //if ((ushort.TryParse(start, System.Globalization.NumberStyles.HexNumber, null, out ap.start)) && (ushort.TryParse(end, System.Globalization.NumberStyles.HexNumber, null, out ap.end)))
+                //    _excludedAddressRangesFromSingleStep.Add(ap);
+            }
+        }
+
+        private static void LoadTraceExclusions ()
+        {
+            _cpu.TraceExclusionAddress.Clear();
+            _cpu.ExcludeExcludeTraceRangeEnabled = GetConfigurationAttribute("Global/DebugInfo/ExcludeTraceRange", "enabled", 0) == 1 ? true : false;
+
+            string exclude = GetConfigurationAttribute("Global/DebugInfo/ExcludeTraceRange", "values", "");
+            string[] excludeList = exclude.Split(',');
+            foreach (string e in excludeList)
+            {
+                string start = "";
+                string end = "";
+
+                string[] addresses = e.Split('-');
+                if (addresses.Length == 2)
+                {
+                    start = addresses[0];
+                    end = addresses[1];
+                }
+                else if (addresses.Length == 1)
+                {
+                    start = addresses[0];
+                    end = addresses[0];
+                }
+
+                //AddressPair ap = new AddressPair();
+                //if ((ushort.TryParse(start, System.Globalization.NumberStyles.HexNumber, null, out ap.start)) && (ushort.TryParse(end, System.Globalization.NumberStyles.HexNumber, null, out ap.end)))
+                //    _excludedAddressRangesFromTrace.Add(ap);
+            }
+        }
+
+        private static void LoadDebugInfo()
+        {
+            LoadBreakPoints();
+            LoadTraceExclusions();
         }
 
         static void StartCPU ()
@@ -1011,7 +1506,15 @@ namespace Memulator
 
                     // Load the drives
 
-                    LoadDrives();
+                    try
+                    {
+                        LoadDrives(true);
+                    }
+                    catch (Exception loadDrivesException)
+                    {
+                        Console.WriteLine(loadDrivesException.Message);
+                        Console.ReadKey();
+                    }
 
                     // Create a console to use for operator input/output
 
@@ -1019,11 +1522,17 @@ namespace Memulator
 
                     // create and start the cpu.
 
-                    _cpuThread = new Thread(_cpu.Run);
-                    _cpuThread.Start();
+                    LoadDebugInfo();
+
+                    _cpuThread = new Thread(_cpu.Run);      // set the thread entry point
+                    _cpuThread.Start();                     // start the thread
                 }
                 else
+                {
                     Console.WriteLine("Unable to load rom file");
+                    Console.ReadKey();
+
+                }
             }
             catch (Exception e)
             {
@@ -1034,7 +1543,12 @@ namespace Memulator
             Thread.Sleep(10);      // give everything time to start up before starting idle loop
         }
 
-        static List<Memory.MemoryBoard> memoryBoards = new List<Memory.MemoryBoard>();
+        private static List<Memory.MemoryBoard> memoryBoards = new List<Memory.MemoryBoard>();
+        internal static List<Memory.MemoryBoard> MemoryBoards
+        {
+            get { return Program.memoryBoards; }
+            set { Program.memoryBoards = value; }
+        }
 
         static void Start6800()
         {
@@ -1062,72 +1576,151 @@ namespace Memulator
             StartCPU();
         }
 
+        public static void SaveConfigurationAttribute(XmlDocument doc, string xpath, string attribute, string value)
+        {
+            XmlNode configurationNode = doc.SelectSingleNode("/configuration");
+            XmlNode node = configurationNode.SelectSingleNode(xpath);
+            if (node != null)
+            {
+                XmlAttributeCollection coll = node.Attributes;
+                if (coll != null)
+                {
+                    XmlNode valueNode = coll.GetNamedItem(attribute);
+
+                    if (valueNode != null)
+                    {
+                        if (value != valueNode.Value)
+                            valueNode.Value = value;
+                    }
+                    else
+                    {
+                        XmlAttribute attr = doc.CreateAttribute(attribute);
+                        attr.Value = value;
+                        node.Attributes.Append(attr);
+                    }
+                }
+            }
+            else
+            {
+                // need to add this xpath node to the keyboard map
+
+                string[] uriParts = xpath.Split('/');
+                string name = uriParts[uriParts.Length - 1];
+
+                XmlNode finalNode = configurationNode;
+                XmlNode previousNode = finalNode;
+                for (int i = 0; i < uriParts.Length - 1; i++)
+                {
+                    finalNode = finalNode.SelectSingleNode(uriParts[i]);
+                    if (finalNode == null)
+                    {
+                        XmlNode newNode = doc.CreateNode(XmlNodeType.Element, uriParts[i], "");
+                        previousNode.AppendChild(newNode);
+
+                        finalNode = previousNode.SelectSingleNode(uriParts[i]);
+                    }
+                    previousNode = finalNode;
+                }
+
+                if (finalNode != null)
+                {
+                    XmlNode newNode = doc.CreateNode(XmlNodeType.Element, name, "");
+                    XmlAttribute attr = doc.CreateAttribute(attribute);
+                    attr.Value = value;
+
+                    newNode.Attributes.Append(attr);
+                    finalNode.AppendChild(newNode);
+                }
+            }
+        }
+
         public static string GetConfigurationAttribute(string xpath, string attribute, string defaultvalue)
         {
             string value = defaultvalue;
 
-            FileStream xmlDocStream = File.OpenRead(configFileName);
-            XmlReader reader = XmlReader.Create(xmlDocStream);
-            
-            if (reader != null)
+            try
             {
-                XmlDocument doc = new XmlDocument();
-                if (doc != null)
+                FileStream xmlDocStream = File.OpenRead(configFileName);
+                XmlReader reader = XmlReader.Create(xmlDocStream);
+
+                if (reader != null)
                 {
-                    doc.Load(reader);
-
-                    XmlNode configurationNode = doc.SelectSingleNode("/configuration");
-                    XmlNode node = configurationNode.SelectSingleNode(xpath);
-                    if (node != null)
+                    XmlDocument doc = new XmlDocument();
+                    if (doc != null)
                     {
-                        XmlAttributeCollection coll = node.Attributes;
-                        if (coll != null)
-                        {
-                            XmlNode valueNode = coll.GetNamedItem(attribute);
+                        doc.Load(reader);
 
-                            if (valueNode != null)
-                                value = valueNode.Value;
+                        XmlNode configurationNode = doc.SelectSingleNode("/configuration");
+                        XmlNode node = configurationNode.SelectSingleNode(xpath);
+                        if (node != null)
+                        {
+                            XmlAttributeCollection coll = node.Attributes;
+                            if (coll != null)
+                            {
+                                XmlNode valueNode = coll.GetNamedItem(attribute);
+
+                                if (valueNode != null)
+                                    value = valueNode.Value;
+                            }
                         }
                     }
+                    reader.Close();
                 }
-                reader.Close();
+                xmlDocStream.Close();
             }
-            xmlDocStream.Close();
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             return value;
         }
+
+        // Modified to allow numbers to be specified as eothe decimal or hex if preceeded with "0x" or "0X"
         public static int GetConfigurationAttribute(string xpath, string attribute, int defaultvalue)
         {
             int value = defaultvalue;
 
-            FileStream xmlDocStream = File.OpenRead(configFileName);
-            XmlReader reader = XmlReader.Create(xmlDocStream);
-
-            if (reader != null)
+            try
             {
-                XmlDocument doc = new XmlDocument();
-                if (doc != null)
-                {
-                    doc.Load(reader);
+                FileStream xmlDocStream = File.OpenRead(configFileName);
+                XmlReader reader = XmlReader.Create(xmlDocStream);
 
-                    XmlNode configurationNode = doc.SelectSingleNode("/configuration");
-                    XmlNode node = configurationNode.SelectSingleNode(xpath);
-                    if (node != null)
+                if (reader != null)
+                {
+                    XmlDocument doc = new XmlDocument();
+                    if (doc != null)
                     {
-                        XmlAttributeCollection coll = node.Attributes;
-                        if (coll != null)
+                        doc.Load(reader);
+
+                        XmlNode configurationNode = doc.SelectSingleNode("/configuration");
+                        XmlNode node = configurationNode.SelectSingleNode(xpath);
+                        if (node != null)
                         {
-                            XmlNode valueNode = coll.GetNamedItem(attribute);
-                            if (valueNode != null)
+                            XmlAttributeCollection coll = node.Attributes;
+                            if (coll != null)
                             {
-                                string strvalue = valueNode.Value;
-                                Int32.TryParse(strvalue, out value);
+                                XmlNode valueNode = coll.GetNamedItem(attribute);
+                                if (valueNode != null)
+                                {
+                                    string strvalue = valueNode.Value;
+                                    if (strvalue.StartsWith("0x") || strvalue.StartsWith("0X"))
+                                    {
+                                        value = Convert.ToInt32(strvalue, 16);
+                                    }
+                                    else
+                                        Int32.TryParse(strvalue, out value);
+                                }
                             }
                         }
                     }
+                    reader.Close();
                 }
-                reader.Close();
+                xmlDocStream.Close();
             }
-            xmlDocStream.Close();
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             return value;
         }
 
@@ -1136,54 +1729,63 @@ namespace Memulator
             string value = defaultvalue;
             bool foundOrdinal = false;
 
-            FileStream xmlDocStream = File.OpenRead(configFileName);
-            XmlReader reader = XmlReader.Create(xmlDocStream);
-
-            if (reader != null)
+            try
             {
-                XmlDocument doc = new XmlDocument();
-                if (doc != null)
+                FileStream xmlDocStream = File.OpenRead(configFileName);
+                XmlReader reader = XmlReader.Create(xmlDocStream);
+
+                if (reader != null)
                 {
-                    doc.Load(reader);
-
-                    XmlNode configurationNode = doc.SelectSingleNode("/configuration");
-                    XmlNode node = configurationNode.SelectSingleNode(xpath);
-                    while (!foundOrdinal && node != null)
+                    XmlDocument doc = new XmlDocument();
+                    if (doc != null)
                     {
-                        if (node != null)
-                        {
-                            XmlAttributeCollection coll = node.Attributes;
-                            if (coll != null)
-                            {
-                                foreach (XmlAttribute a in coll)
-                                {
-                                    if (a.Name == "ID")
-                                    {
-                                        string index = a.Value;
-                                        if (index == ordinal)
-                                        {
-                                            XmlNode valueNode = coll.GetNamedItem(attribute);
+                        doc.Load(reader);
 
-                                            if (valueNode != null)
+                        XmlNode configurationNode = doc.SelectSingleNode("/configuration");
+                        XmlNode node = configurationNode.SelectSingleNode(xpath);
+                        while (!foundOrdinal && node != null)
+                        {
+                            if (node != null)
+                            {
+                                XmlAttributeCollection coll = node.Attributes;
+                                if (coll != null)
+                                {
+                                    foreach (XmlAttribute a in coll)
+                                    {
+                                        if (a.Name == "ID")
+                                        {
+                                            string index = a.Value;
+                                            if (index == ordinal)
                                             {
-                                                value = valueNode.Value;
-                                                foundOrdinal = true;
-                                                break;
+                                                XmlNode valueNode = coll.GetNamedItem(attribute);
+
+                                                if (valueNode != null)
+                                                {
+                                                    value = valueNode.Value;
+                                                    foundOrdinal = true;
+                                                    break;
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                if (!foundOrdinal)
+                                    node = node.NextSibling;
                             }
-                            if (!foundOrdinal)
-                                node = node.NextSibling;
                         }
                     }
+                    reader.Close();
                 }
-                reader.Close();
+                xmlDocStream.Close();
             }
-            xmlDocStream.Close();
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             return value;
         }
+
+        // Modified to allow numbers to be specified as eothe decimal or hex if preceeded with "0x" or "0X"
         public static int GetConfigurationAttribute(string xpath, string attribute, string ordinal, int defaultvalue)
         {
             int value = defaultvalue;
@@ -1218,7 +1820,12 @@ namespace Memulator
                                         if (valueNode != null)
                                         {
                                             string strvalue = valueNode.Value;
-                                            Int32.TryParse(strvalue, out value);
+                                            if (strvalue.StartsWith("0x") || strvalue.StartsWith("0X"))
+                                            {
+                                                value = Convert.ToInt32(strvalue, 16);
+                                            }
+                                            else
+                                                Int32.TryParse(strvalue, out value);
                                             foundOrdinal = true;
                                             break;
                                         }
@@ -1255,7 +1862,7 @@ namespace Memulator
         {
             byte boardtype = defaultValue;
 
-            string strBoardType = GetConfigurationAttribute(_configSection + "/BoardConfiguration/Board", "Type", nRow.ToString(), "");
+            string strBoardType = GetConfigurationAttribute(ConfigSection + "/BoardConfiguration/Board", "Type", nRow.ToString(), "");
             switch (strBoardType)
             {
                 case "CONS":     boardtype =  2; break;
@@ -1281,11 +1888,38 @@ namespace Memulator
         }
 
         private static object lockTestObject = new object();
-        public static Socket listenSocket = null;
 
-        public static bool debugMode = false;
-        public static bool verbose = false;
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
 
+        private static int doEventsInterval = 0;
+
+       public static void DoEvents()
+        {
+            //if ((++doEventsInterval % 100) == 0)
+            //    Application.DoEvents();
+        }
+
+        private static OSPlatform _platform;
+        public static OSPlatform Platform { get => _platform; set => _platform = value; }
+        public static void GetOSPlatform()
+        {
+            OSPlatform osPlatform = OSPlatform.Create("Other Platform");
+            // Check if it's windows 
+            bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            osPlatform = isWindows ? OSPlatform.Windows : osPlatform;
+            // Check if it's osx 
+            bool isOSX = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+            osPlatform = isOSX ? OSPlatform.OSX : osPlatform;
+            // Check if it's Linux 
+            bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            osPlatform = isLinux ? OSPlatform.Linux : osPlatform;
+            Platform = osPlatform;
+        }
+
+        // Satisfies rule: MarkWindowsFormsEntryPointsWithStaThread. <- this should allow us to use windows forms 
+        [STAThread]
         static void Main(string[] args)
         {
             /*
@@ -1316,59 +1950,27 @@ namespace Memulator
 
             // must do this first to see if user is overriding the configuration filename
 
-            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/EvensonConsultingServices/SWTPCmemulator/";
-            Directory.CreateDirectory(appDataFolder);
-            string defaultConfigFilename = appDataFolder + "defaultConfiguration.txt";
-            if (File.Exists(defaultConfigFilename))
-            {
-                configFileName = File.ReadAllText(defaultConfigFilename).TrimEnd();
-            }
+            configFileName = "configuration.xml";    // set default in case user has not made a preference on the command line
 
-            foreach (string arg in args)
-            {
-                if (arg.StartsWith("-configfile="))
-                {
-                    configFileName = arg.Replace("-configfile=", "");
-                }
-                else if (arg.StartsWith("-debugMode"))
-                {
-                    debugMode = true;
-                }
-                else if (arg.StartsWith("-verbose"))
-                {
-                    verbose = true;
-                }
-            }
-            
-            if (debugMode)
-            {
-                // create the socket
-                listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
+            string commonAppDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
+            string userAppDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
 
-                // bind the listening socket to the port
-                byte[] localHost = new byte[4] { 127, 0, 0, 1 };
-                IPAddress hostIP = new IPAddress(localHost);
-                IPEndPoint ep = new IPEndPoint(hostIP, 1410);
-                listenSocket.Bind(ep);
+            System.Diagnostics.Debug.WriteLine(string.Format("User User Profile Folder:        {0}", userAppDir));
+            System.Diagnostics.Debug.WriteLine(string.Format("Application Data Folder:         {0}", appDataFolder));
+            System.Diagnostics.Debug.WriteLine(string.Format("Common Application Data Fildeor: {0}", commonAppDir));
 
-                // Console.WriteLine("Listening");
-                // start listening
-                listenSocket.Listen(1024);
-            }
-
-            commonAppDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
-            userAppDir   = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
-
-            System.Diagnostics.Debug.WriteLine(string.Format("Common App Directory: {0}", commonAppDir));
-            System.Diagnostics.Debug.WriteLine(string.Format("User App Directory: {0}", userAppDir));
-
-            // this logic gives precedence to the common AppDir over the User AppDir. If neither exist - uses execution directory as dataDir.
+            // this logic gives precedence to the User AppDir over the App Data folder over the Common AppDir. If npn of these exist - uses execution directory as dataDir.
 
             if (Directory.Exists(userAppDir))
             {
                 dataDir = userAppDir;
             }
-            else if(Directory.Exists(commonAppDir))
+            else if (Directory.Exists(appDataFolder))
+            {
+                dataDir = appDataFolder;
+            }
+            else if (Directory.Exists(commonAppDir))
             {
                 dataDir = commonAppDir;
             }
@@ -1379,11 +1981,59 @@ namespace Memulator
 
             System.Diagnostics.Debug.WriteLine(string.Format("Data Directory: {0}", dataDir));
 
+            string defaultConfigFilename = dataDir + "defaultConfiguration.txt";
+            if (File.Exists(defaultConfigFilename))
+            {
+                configFileName = File.ReadAllText(defaultConfigFilename).TrimEnd();
+            }
+
+            foreach (string arg in args)
+            {
+                if (arg.ToLower().StartsWith("-configfile="))
+                {
+                    configFileName = arg.Replace("-configfile=", "");
+                }
+                else if (arg.ToLower().StartsWith("-dma3accesslogging="))
+                {
+                    DMAF3AccessLogging = true;
+                    activityLogFileDMAF3 = arg.ToLower().Replace("-dma3accesslogging=", "");
+                }
+                else if (arg.ToLower().StartsWith("-dma2accesslogging="))
+                {
+                    DMAF2AccessLogging = true;
+                    activityLogFileDMAF3 = arg.ToLower().Replace("-dma2accesslogging=", "");
+                }
+                //else if (arg.StartsWith("-debugMode"))
+                //{
+                //    debugMode = true;
+                //}
+                //else if (arg.StartsWith("-verbose"))
+                //{
+                //    verbose = true;
+                //}
+            }
+
+            //if (debugMode)
+            //{
+            //    // create the socket
+            //    listenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            //    // bind the listening socket to the port
+            //    byte[] localHost = new byte[4] { 127, 0, 0, 1 };
+            //    IPAddress hostIP = new IPAddress(localHost);
+            //    IPEndPoint ep = new IPEndPoint(hostIP, 1410);
+            //    listenSocket.Bind(ep);
+
+            //    // Console.WriteLine("Listening");
+            //    // start listening
+            //    listenSocket.Listen(1024);
+            //}
+
             if (File.Exists(dataDir + "CONFIGFILES/" + configFileName))
                 configFileName = dataDir + "CONFIGFILES/" + configFileName;
 
-            if (verbose)
-                Console.WriteLine("Loading ConfigFile: {0}", configFileName);
+            //if (verbose)
+            //    Console.WriteLine("Loading ConfigFile: {0}", configFileName);
 
             _consoleDumpFile = GetConfigurationAttribute("Global/ConsoleDump", "filename", string.Format("{0}consoledump.txt", dataDir));
 
@@ -1391,7 +2041,7 @@ namespace Memulator
             _bTraceEnabled = GetConfigurationAttribute("Global/Trace", "Enabled", 0) == 0 ? false : true;
 
             string ProcessorBoardCpu = GetConfigurationAttribute("Global/ProcessorBoard", "CPU", "6800");
-            _configSection = "config" + ProcessorBoardCpu;
+            ConfigSection = "config" + ProcessorBoardCpu;
 
             for (int i = 0; ; i++)
             {

@@ -142,6 +142,16 @@ namespace Memulator
 
                         m_MemoryDAT[nIndex] = (ulong)((b ^ 0x0F) << 12); // we need to flip the lower 4 bits and move them over 12 bits
                     }
+                    else
+                    {
+                        string message = string.Format("Attempted write to ROM from address: {0}, to address {1}, existing data: {2} new data: {3} - data not written\n"
+                            , Program._cpu.CurrentIP.ToString("X4")
+                            , m.ToString("X4")
+                            , MemorySpace[m].ToString("X2")
+                            , b.ToString("X2"));
+                        System.Diagnostics.Debug.WriteLine(message);
+                        Program._cpu.ForceSingleStep();
+                    }
                     break;
 
                 case (int)Devices.DEVICE_CONS:
@@ -224,6 +234,78 @@ namespace Memulator
         {
             StoreMemoryByte((byte)(w / 256), m);
             StoreMemoryByte((byte)(w % 256), (ushort)(m + 1));
+        }
+        public byte PeekMemoryByte (ushort m)
+        {
+            byte d = 0xff;
+            switch (_deviceMap[m])
+            {
+                case (int)Devices.DEVICE_RAM:
+                    if (_isInstalled[m])
+                        d = MemorySpace[m];
+                    break;
+                case (int)Devices.DEVICE_ROM:
+                case (int)Devices.DEVICE_DAT:            // need to read ROM if device is DAT
+                    d = MemorySpace[m];
+                    break;
+                case (int)Devices.DEVICE_CONS:
+                    if (Program._CConsole != null)
+                        d = Program._CConsole.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_MPS:
+                    if (Program._CACIA != null)
+                        d = Program._CACIA.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_PCSTREAM:
+                    if (Program._CPCStream != null)
+                        d = Program._CPCStream.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_FDC:
+                    if (Program._CFD_2 != null)
+                        d = Program._CFD_2.Peek(m);
+                    else
+                        d = 0xff;
+                    break;
+                case (int)Devices.DEVICE_DMAF2:
+                    if (Program._CDMAF2 != null)
+                        d = Program._CDMAF2.Peek(m);
+                    else
+                        d = 0xff;
+                    break;
+                case (int)Devices.DEVICE_DMAF3:
+                    if (Program._CDMAF3 != null)
+                        d = Program._CDMAF3.Peek(m);
+                    else
+                        d = 0xff;
+                    break;
+                case (int)Devices.DEVICE_MPT:
+                    if (Program._CMPT != null)
+                        d = Program._CMPT.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_MPID:
+                    if (Program._CMPID != null)
+                        d = Program._CMPID.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_DMAF1:
+                    break;
+                case (int)Devices.DEVICE_PRT:
+                    if (Program._CPrinter != null)
+                        d = Program._CPrinter.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_MPL:
+                    break;
+                case (int)Devices.DEVICE_PIAIDE:
+                    if (Program._CPIAIDE != null)
+                        d = Program._CPIAIDE.Peek(m);
+                    break;
+                case (int)Devices.DEVICE_TTLIDE:
+                    if (Program._CTTLIDE != null)
+                        d = Program._CTTLIDE.Peek(m);
+                    break;
+                default:
+                    break;
+            }
+            return (d);
         }
 
         public byte LoadMemoryByte(ushort m)
@@ -389,7 +471,7 @@ namespace Memulator
                     //  in the range of 0xE000 through 0xFFFF and the appropriate switch is set to make it valid memory
                     //  or it is an IO address.
 
-                    //if (((lRemappedAddress >= 0xE000) && (lRemappedAddress <= 0xFFFF)) || _deviceMap[lRemappedAddress] > 1) // this should improve performance for RAM address access. Not sure it does any good.
+                    if (((lRemappedAddress >= 0xE000) && (lRemappedAddress <= 0xFFFF)) || _deviceMap[lRemappedAddress] > 1) // this should improve performance for RAM address access. Not sure it does any good.
                     {
                         if
                         (
