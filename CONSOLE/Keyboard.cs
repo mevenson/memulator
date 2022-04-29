@@ -271,32 +271,51 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F2:
-                            if (cki.Modifiers == ConsoleModifiers.Control)
+                            if (Program.Platform == OSPlatform.Windows)
                             {
-                                if (Program._cpu.Running)
+                                if (cki.Modifiers == ConsoleModifiers.Control)
                                 {
-                                    bStoreChar = false;
-                                    Program._cpu.ResetPressed = true;
-
-                                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
+                                    if (Program._cpu.Running)
                                     {
-                                        try
+                                        bStoreChar = false;
+                                        Program._cpu.ResetPressed = true;
+
+                                        if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                                         {
-                                            Program.CpuThread.Resume();
-                                        }
-                                        catch (ThreadStateException e)
-                                        {
-                                            // do nothing if thread is not suspended
+                                            try
+                                            {
+                                                Program.CpuThread.Resume();
+                                            }
+                                            catch (ThreadStateException e)
+                                            {
+                                                // do nothing if thread is not suspended
+                                            }
                                         }
                                     }
                                 }
+                                else
+                                {
+                                    ShowSpecialKeys dlg = new ShowSpecialKeys();
+                                    dlg.ShowDialog();
+                                    bStoreChar = false;
+                                    //Program._cpu.CoreDump();
+                                }
                             }
-                            else
+                            else if (Program.Platform == OSPlatform.Linux)
                             {
-                                ShowSpecialKeys dlg = new ShowSpecialKeys();
-                                dlg.ShowDialog();
                                 bStoreChar = false;
-                                //Program._cpu.CoreDump();
+                                DateTime dt = DateTime.Now;
+                                StuffKeyboard
+                                    (
+                                        String.Format("{0}/{1}/{2} {3}/{4}/{5}\r",
+                                            dt.Month.ToString("00"),
+                                            dt.Day.ToString("00"),
+                                            (dt.Year - 2000).ToString("00"),
+                                            dt.Hour.ToString("00"),
+                                            dt.Minute.ToString("00"),
+                                            dt.Second.ToString("00")
+                                        )
+                                    );
                             }
                             break;
 
@@ -344,25 +363,6 @@ namespace Memulator
                                 Program.TraceEnabled = !Program.TraceEnabled;
                             }
                             break;
-
-//                        case ConsoleKey.F7:     // do UniFLEX date format
-//							{
-//                                bStoreChar = false;
-//                                DateTime dt = DateTime.Now;
-//                                StuffKeyboard
-//                                    (
-//                                    	// date [ [MM-DD[-YY]] HH:MM[:SS] ]
-//                                        String.Format("{0}-{1}-{2} {3}:{4}:{5}\r",
-//                                            dt.Month.ToString("00"),
-//                                            dt.Day.ToString("00"),
-//                                            (dt.Year - 2000).ToString("00"),
-//                                            dt.Hour.ToString("00"),
-//                                            dt.Minute.ToString("00"),
-//                                            dt.Second.ToString("00")
-//                                        )
-//                                    );
-//                            }
-//                            break;
 
                         case ConsoleKey.F8:
                             {
