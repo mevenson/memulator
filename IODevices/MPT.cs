@@ -39,6 +39,12 @@ namespace Memulator
 
             m_nMPTimer = new Timer(tcb, null, 0, m_nMPTRate);
         }
+        public void Dispose()
+        {
+            StopMPTimer();
+            m_nMPTimer = null;
+            base.Dispose();
+        }
 
         public void MPT_TimerProc (object state)
         {
@@ -50,11 +56,11 @@ namespace Memulator
                 SetInterrupt(_spin);
                 if (Program._cpu != null)
                 {
-                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program._cpuThread.ThreadState == ThreadState.Suspended)
+                    if ((Program._cpu.InWait || Program._cpu.InSync) && Program.CpuThread.ThreadState == ThreadState.Suspended)
                     {
                         try
                         {
-                            Program._cpuThread.Resume();
+                            Program.CpuThread.Resume();
                         }
                         catch (ThreadStateException e)
                         {   
@@ -82,7 +88,8 @@ namespace Memulator
 
         void StopMPTimer ()
         {
-            m_nMPTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            if (m_nMPTimer != null)
+            	m_nMPTimer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         public override byte Read (ushort m)
@@ -93,9 +100,28 @@ namespace Memulator
             {
                 // reading this port clears any pending interrupt flag
     
-                m_MPTOscPortRegister &= 0x7F;
                 c = m_MPTCtlPortRegister;
-                ClearInterrupt ();
+                lock (Program._cpu.buildingDebugLineLock)
+                {
+                m_MPTOscPortRegister &= 0x7F;
+                    ClearInterrupt();
+                }
+            }
+            else if (m == m_MPTOscPort)
+                c = m_MPTOscPortRegister;
+            else
+                c = 0xff;
+
+            return (c);
+        }
+		
+       public override byte Peek(ushort m)
+        {
+            byte c;
+
+            if (m == m_MPTCtlPort)
+            {
+                c = m_MPTCtlPortRegister;
             }
             else if (m == m_MPTOscPort)
                 c = m_MPTOscPortRegister;

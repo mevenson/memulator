@@ -55,10 +55,19 @@ namespace ConfigEditor
 
         enum DiskFormats
         {
-            DISK_FORMAT_FLEX = 0,
-            DISK_FORMAT_OS9 = 1,
-            DISK_FORMAT_UNIFLEX = 2,
-            DISK_FORMAT_MF_FDOS = 3
+            DISK_FORMAT_UNKNOWN = 0,
+            DISK_FORMAT_FLEX = 1,
+            DISK_FORMAT_FLEX_IMA = 2,
+            DISK_FORMAT_OS9 = 3,
+            DISK_FORMAT_UNIFLEX = 4,
+            DISK_FORMAT_MINIFLEX = 5
+
+            //DISK_FORMAT_FLEX = 0,
+            //DISK_FORMAT_FLEX_IMA = 1,
+            //DISK_FORMAT_OS9 = 2,
+            //DISK_FORMAT_OS9_IMA = 3,
+            //DISK_FORMAT_UNIFLEX = 4,
+            //DISK_FORMAT_MF_FDOS = 5
         }
 
         enum States
@@ -491,7 +500,7 @@ namespace ConfigEditor
                 case (int)DiskFormats.DISK_FORMAT_UNIFLEX:
                     formatName = "UNIFLEX";
                     break;
-                case (int)DiskFormats.DISK_FORMAT_MF_FDOS:
+                case (int)DiskFormats.DISK_FORMAT_MINIFLEX:
                     formatName = "MF_FDOS";
                     break;
             }

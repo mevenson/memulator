@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 using System.IO;
@@ -101,10 +95,6 @@ namespace ConfigEditor
         public static List<MPSBoard> mpsBoards = new List<MPSBoard>();
         public static BoardInfoClass[] _stBoardInfo = new BoardInfoClass[32];
 
-        //public static string commonAppDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData).Replace("\\", "/") + "/Evenson Consulting Services/SWTPCmemulator/";
-        public static string commonAppDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
-        public static string userAppDir   = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).Replace("\\", "/") + "/EvensonConsultingServices/SWTPCmemulator/";
-
         static public List<string> _deviceNames = new List<string>();
 
         static string configFileName = "";
@@ -137,18 +127,7 @@ namespace ConfigEditor
         {
             // this logic gives precedence to the common AppDir over the User AppDir. If neither exist - uses execution directory as dataDir.
 
-            if (Directory.Exists(userAppDir))
-            {
-                dataDir = userAppDir;
-            }
-            else if (Directory.Exists(commonAppDir))
-            {
-                dataDir = commonAppDir;
-            }
-            else
-            {
-                dataDir = "./";
-            }
+            dataDir = Memulator.Program.dataDir;
 
             cpuRunning = _cpuRunning;
 
@@ -1369,6 +1348,7 @@ namespace ConfigEditor
                 textBoxROMFile.Text = ofd.FileName.Replace(dataDir, "");
             }
         }
+
         private void buttonBrowseConsoleDumpFile_Click(object sender, EventArgs e)
         {
             string path = "";

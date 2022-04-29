@@ -120,12 +120,12 @@ namespace Memulator
 
             string board_port = nRow.ToString() + "_" + ((nWhichController % 4) + 1).ToString();
 
-            string baudRate         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "BaudRate",         board_port, "9600");
-            string parity           = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "Parity",           board_port, "0");
-            string stopBits         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "StopBits",         board_port, "1");
-            string dataBits         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "DataBits",         board_port, "8");
-            string interruptEnabled = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "InterruptEnabled", board_port, "0");
-            string portName         = Program.GetConfigurationAttribute(Program._configSection + "/SerialPorts/Board_Port", "PortName",         board_port, "");
+            string baudRate         = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "BaudRate",         board_port, "9600");
+            string parity           = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "Parity",           board_port, "0");
+            string stopBits         = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "StopBits",         board_port, "1");
+            string dataBits         = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "DataBits",         board_port, "8");
+            string interruptEnabled = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "InterruptEnabled", board_port, "0");
+            string portName         = Program.GetConfigurationAttribute(Program.ConfigSection + "/SerialPorts/Board_Port", "PortName",         board_port, "");
 
             int _address          = sBaseAddress + ((nWhichController % 4) * 2);
 

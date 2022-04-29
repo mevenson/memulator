@@ -495,18 +495,117 @@ namespace Memulator
 
                             if (nDrive != -1)
                             {
-                                m_IDE_DATARegister[nDrive] = m_caReadBuffer[m_nIDEReadPtr++];               // get next byte from the sector buffer
+                                m_IDE_DATARegister[nDrive] = m_caReadBuffer[m_nIDEReadPtr];                     // get next byte from the sector buffer
+                                lock (Program._cpu.buildingDebugLineLock)
+                                {
+                                    m_nIDEReadPtr++;
+                                }
                                 if (m_nIDEReadPtr == (m_nNumberOfBytesPerSector[nDrive] * m_nSectorCount))  // see if we are done
                                 {
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
                                     m_IDE_STATRegister[nDrive] &= (byte)(~(STSDRQ | STSBSY));               // yes we are - set status to not busy and no more DRQ
                                     m_nIDEReading = false;                                                  // set that we are no longer reading
                                     ClearInterrupt();
+                                    }
                                 }
                                 else
+                                {
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
                                     m_IDE_STATRegister[nDrive] |= STSDRQ;                                   // if we are not done yet - set DRQ
+                                    }
+                                }
 
                                 c = (byte)(m_IDE_DATARegister[nDrive] & nDirectionBits);                    // filter out the bits that are not set as output
                                 m_nStatusReads = 0;
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (m == m_PIACtlPortB)
+                c = m_PIACtlPortRegisterB;
+            else if (m == m_PIADataPortB)
+            {
+                byte nDirectionBits = (byte)~m_nPortBDirectionMask;
+                c = (byte)(m_PIADataPortRegisterB & nDirectionBits);
+            }
+            return (c);
+        }
+        public override byte Peek(ushort m)
+        {
+            byte c = m_PIADataPortRegisterA;
+            if (m == m_PIACtlPortA)
+                c = m_PIACtlPortRegisterA;
+            else if (m == m_PIADataPortA)
+            {
+                byte nDirectionBits = (byte)~m_nPortADirectionMask;
+                switch (m_nIDEAddressSelected)
+                {
+                    case 7:             //  DCA2|DCA1|DCA0|DCCS0|DCIOX    * ADD IN FOR FOR STATUS 7
+                        {
+                            int nDrive = -1;
+                            if (m_bDrive0Selected)
+                                nDrive = 0;
+                            else if (m_bDrive1Selected)
+                                nDrive = 1;
+                            if (nDrive != -1)
+                            {
+                                c = m_IDE_STATRegister[nDrive];
+                                if (!m_nIDEReading && !m_nIDEWriting)           // turn off BUSY if not read/writing
+                                    c = (byte)(m_IDE_STATRegister[nDrive] & (byte)(~STSBSY));
+                                else
+                                {
+                                    if (++m_nStatusReads > (m_nNumberOfBytesPerSector[nDrive] * m_nSectorCount * 2))      // turns out we really don't need this - just slows us down
+                                    {
+                                        c = (byte)(m_IDE_STATRegister[nDrive] & STSRDY);
+                                    }
+                                }
+                            }
+                            else
+                                c = STSRDY;
+                        }
+                        break;
+                    case 6:                 //  DCA2|DCA1|DCCS0|DCIOX         * ADD IN FOR HEAD 6
+                        c = (byte)(m_nHead & nDirectionBits);
+                        break;
+                    case 5:        //  DCA2|DCA0|DCCS0|DCIOX         * ADD IN FOR CYLINDER HIGH 5
+                        c = (byte)((m_nCylinder / 256) & nDirectionBits);
+                        break;
+                    case 4:        //  DCA2|DCCS0|DCIOX              * ADD IN FOR CYLINDER LOW 4
+                        c = (byte)((m_nCylinder & 0x00ff) & nDirectionBits);
+                        break;
+                    case 3:        //  DCA1|DCA0|DCCS0|DCIOX         * ADD IN FOR SECTOR 3
+                        c = (byte)(m_nSector & nDirectionBits);
+                        break;
+                    case 2:        //  DCA1|DCCS0|DCIOX              * ADD IN FOR NUMBER OF SECTORS 2
+                        c = (byte)(m_nSectorCount & nDirectionBits);
+                        break;
+                    case 1:        //  DCA0|DCCS0|DCIOX              * ADD IN FOR ERROR REGISTER 1
+                        c = 0;
+                        break;
+                    case 0:       //  DCCS0|DCIOX                   * ADD IN FOR FOR DATA BUS 0
+                        {
+                            int nDrive = -1;
+                            if (m_bDrive0Selected)
+                                nDrive = 0;
+                            else if (m_bDrive1Selected)
+                                nDrive = 1;
+                            if (nDrive != -1)
+                            {
+                                c = m_caReadBuffer[m_nIDEReadPtr];                     // get next byte from the sector buffer
+                                if (m_nIDEReadPtr == (m_nNumberOfBytesPerSector[nDrive] * m_nSectorCount))      // see if we are done
+                                {
+                                    c = (byte)(m_IDE_STATRegister[nDrive] & (byte)(~(STSDRQ | STSBSY)));        // yes we are - set status to not busy and no more DRQ
+                                }
+                                else
+                                {
+                                    c = (byte)(m_IDE_STATRegister[nDrive] |= STSDRQ);                           // if we are not done yet - set DRQ
+                                }
+                                c = (byte)(c & nDirectionBits);                        // filter out the bits that are not set as output
                             }
                         }
                         break;
@@ -537,8 +636,8 @@ namespace Memulator
 
             for (int i = 0; i < 2; i++)
             {
-                string imageFormat             = Program.GetConfigurationAttribute(Program._configSection + "/PIAIDEDisks/Disk", "Format", i.ToString(), "");
-                Program.m_strPIAIDEFilename[i] = Program.dataDir + Program.GetConfigurationAttribute(Program._configSection + "/PIAIDEDisks/Disk", "Path", i.ToString(), "");
+                string imageFormat             = Program.GetConfigurationAttribute(Program.ConfigSection + "/PIAIDEDisks/Disk", "Format", i.ToString(), "");
+                Program.m_strPIAIDEFilename[i] = Program.dataDir + Program.GetConfigurationAttribute(Program.ConfigSection + "/PIAIDEDisks/Disk", "Path", i.ToString(), "");
 
                 if (Program.m_strPIAIDEFilename[i].Length > Program.dataDir.Length)
                 {

@@ -587,16 +587,28 @@ namespace Memulator
                                 if (m_nIDEReading)
                                 {
                                     m_cHiByteLatch = m_caReadBufferEvenBytes[m_nIDEReadPtr];
-                                    m_IDE_DATARegister[nDrive] = m_caReadBufferOddBytes[m_nIDEReadPtr++];
+                                    m_IDE_DATARegister[nDrive] = m_caReadBufferOddBytes[m_nIDEReadPtr];
 
+                                    lock (Program._cpu.buildingDebugLineLock)
+                                    {
+                                        m_nIDEReadPtr++;
+                                    }
                                     if (m_nIDEReadPtr == (m_nNumberOfBytesPerSector[nDrive] * m_nSectorCount))
                                     {
+                                        lock (Program._cpu.buildingDebugLineLock)
+                                        {
                                         m_IDE_STATRegister[nDrive] &= (byte)(~(STSDRQ | STSBSY | STSERR));
                                         m_nIDEReading = false;
                                         ClearInterrupt();
+                                        }
                                     }
                                     else
+                                    {
+                                        lock (Program._cpu.buildingDebugLineLock)
+                                        {
                                         m_IDE_STATRegister[nDrive] |= STSDRQ;
+                                        }
+                                    }
                                 }
                                 c = m_IDE_DATARegister[nDrive];
                                 m_nStatusReads = 0;
@@ -613,6 +625,89 @@ namespace Memulator
             return (c);
         }
 
+        public override byte Peek(ushort m)
+        {
+            byte c = 0xff;
+            if (m == m_TTLAddressSelectRegister)
+            {
+                c = m_cHiByteLatch ;
+            }
+            else if (m == m_TTLTaskRegister)
+            {
+                switch (m_nIDEAddressSelected)
+                {
+                    case 7:             //  DCA2|DCA1|DCA0|DCCS0|DCIOX    * ADD IN FOR FOR STATUS 7
+                        {
+                            int nDrive = -1;
+                            if (m_bDrive0Selected)
+                                nDrive = 0;
+                            else if (m_bDrive1Selected)
+                                nDrive = 1;
+                            if (nDrive != -1)
+                            {
+                                byte temp = m_IDE_STATRegister[nDrive];
+                                if (!m_nIDEReading && !m_nIDEWriting)           // turn off BUSY if not read/writing
+                                    temp  = (byte)(m_IDE_STATRegister[nDrive] & (byte)(~STSBSY));
+                                else
+                                {
+                                    if (++m_nStatusReads > (m_nNumberOfBytesPerSector[nDrive] * m_nSectorCount * 2))
+                                        temp = STSRDY;
+                                }
+                                c = temp;
+                            }
+                            else
+                                c = STSRDY;
+                        }
+                        break;
+                    case 6:                 //  DCA2|DCA1|DCCS0|DCIOX         * ADD IN FOR HEAD 6
+                        c = (byte)m_nHead;
+                        break;
+                    case 5:        //  DCA2|DCA0|DCCS0|DCIOX         * ADD IN FOR CYLINDER HIGH 5
+                        c = (byte)(m_nCylinder / 256);
+                        break;
+                    case 4:        //  DCA2|DCCS0|DCIOX              * ADD IN FOR CYLINDER LOW 4
+                        c = (byte)(m_nCylinder & 0x00ff);
+                        break;
+                    case 3:        //  DCA1|DCA0|DCCS0|DCIOX         * ADD IN FOR SECTOR 3
+                        c = (byte)m_nSector;
+                        break;
+                    case 2:        //  DCA1|DCCS0|DCIOX              * ADD IN FOR NUMBER OF SECTORS 2
+                        c = (byte)m_nSectorCount;
+                        break;
+                    case 1:        //  DCA0|DCCS0|DCIOX              * ADD IN FOR ERROR REGISTER 1
+                        c = 0;
+                        break;
+                    case 0:       //  DCCS0|DCIOX                   * ADD IN FOR FOR DATA BUS 0
+                        {
+                            int nDrive = -1;
+                            if (m_bDrive0Selected)
+                                nDrive = 0;
+                            else if (m_bDrive1Selected)
+                                nDrive = 1;
+                            if (nDrive != -1)
+                            {
+                                byte temp = m_IDE_DATARegister[nDrive];
+                                if (m_nIDEReading)
+                                {
+                                    m_cHiByteLatch = m_caReadBufferEvenBytes[m_nIDEReadPtr];
+                                    temp = m_caReadBufferOddBytes[m_nIDEReadPtr];
+                                    if (m_nIDEReadPtr != (m_nNumberOfBytesPerSector[nDrive] * m_nSectorCount))
+                                    {
+                                        temp = (byte)(m_IDE_STATRegister[nDrive] | STSDRQ);
+                                    }
+                                }
+                                c = temp;
+                            }
+                        }
+                        break;
+                }
+            }
+            else if (m == m_TTLAlternatRegister)
+            {
+                c = m_TTLAlternatRegisterContents;
+            }
+            return (c);
+        }
         public override void Init(int nWhichController, byte[] sMemoryBase, ushort sBaseAddress, int nRow, bool bInterruptEnabled)
         {
             m_nRow = nRow;
@@ -624,8 +719,8 @@ namespace Memulator
 
             for (int i = 0; i < 2; i++)
             {
-                string imageFormat             = Program.GetConfigurationAttribute(Program._configSection + "/TTLIDEDisks/Disk", "Format", i.ToString(), "");
-                Program.m_strTTLIDEFilename[i] = Program.dataDir + Program.GetConfigurationAttribute(Program._configSection + "/TTLIDEDisks/Disk", "Path", i.ToString(), "");
+                string imageFormat             = Program.GetConfigurationAttribute(Program.ConfigSection + "/TTLIDEDisks/Disk", "Format", i.ToString(), "");
+                Program.m_strTTLIDEFilename[i] = Program.dataDir + Program.GetConfigurationAttribute(Program.ConfigSection + "/TTLIDEDisks/Disk", "Path", i.ToString(), "");
 
                 if (Program.m_strTTLIDEFilename[i].Length > Program.dataDir.Length)
                 {
