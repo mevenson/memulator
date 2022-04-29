@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace Memulator
 {
@@ -14,13 +15,84 @@ namespace Memulator
 
     class Cpu
     {
+        public int processorType = 0;
+        public bool _bUseCircularBufferTraceFile = false;
+
+        protected byte   _aReg = 0x00;
+        protected byte   _bReg = 0x00;
+        protected ushort _xReg = 0x0000;
+		
+        protected byte   _ccr;
+        protected ushort _sp = 0;
+
+        public byte AReg
+        {
+            get { return _aReg; }
+            set { _aReg = value; }
+        }
+        public byte BReg
+        {
+            get { return _bReg; }
+            set { _bReg = value; }
+        }
+        public ushort XReg
+        {
+            get { return _xReg; }
+            set { _xReg = value; }
+        }
+
         public Socket MySocket = null;
+
+        private bool traceEnabled = false;
+        public bool TraceEnabled { get => traceEnabled; set => traceEnabled = value; }
+        [StructLayout(LayoutKind.Explicit)]
+        public struct regs
+        {
+            [FieldOffset(0)]
+            public byte lo;
+            [FieldOffset(1)]
+            public byte hi;
+        };
+        protected regs _dReg = new regs();
+        public ushort Xreg;
+        public ushort Yreg;
+        public ushort Ureg;
+        public ushort Sreg;
+        protected ushort m_SP;        // Stack Pointer (6800)
+        protected byte m_DP;        // Direct Page Register         6809 only
+        protected byte m_CCR;       // Condition Code Register
+        protected ushort m_D
+        {
+            get { return (ushort)((ushort)(_dReg.hi * 256) + (ushort)(_dReg.lo)); }
+            set { _dReg.hi = (byte)(value / 256); _dReg.lo = (byte)(value % 256); }
+        }
+        public object buildingDebugLineLock = new object();
+        private bool _buildingDebugLine;
+        public bool BuildingDebugLine
+        {
+            get { return _buildingDebugLine; }
+            set { _buildingDebugLine = value; }
+        }
 
         private bool breakpointsEnabled = false;
         public bool BreakpointsEnabled
         {
             get { return breakpointsEnabled; }
             set { breakpointsEnabled = value; }
+        }
+
+        private bool _excludeExcludeTraceRangeEnabled = false;
+        public bool ExcludeExcludeTraceRangeEnabled
+        {
+            get { return _excludeExcludeTraceRangeEnabled; }
+            set { _excludeExcludeTraceRangeEnabled = value; }
+        }
+
+        private List<ushort> traceExclusionAddress = new List<ushort>();
+        public List<ushort> TraceExclusionAddress
+        {
+            get { return traceExclusionAddress; }
+            set { traceExclusionAddress = value; }
         }
 
         private int breakpointCount = 0;
@@ -35,6 +107,13 @@ namespace Memulator
         {
             get { return breakpointAddress; }
             set { breakpointAddress = value; }
+        }
+
+        private bool _excludeSingleStepEnabled = false;
+        public bool ExcludeSingleStepEnabled
+        {
+            get { return _excludeSingleStepEnabled; }
+            set { _excludeSingleStepEnabled = value; }
         }
 
         private List<ushort> callStack = new List<ushort>();
@@ -102,9 +181,12 @@ namespace Memulator
             set { running = value; }
         }
 
+        public virtual void ForceSingleStep ()
+        {
 
+        }
         public static int traceSize = 65536;
-        public static bool traceFull;
+        public static bool traceHasWrapped;
 
         public static TraceEntry [] clsTraceBuffer = new TraceEntry[traceSize];
         public string [] DebugLine = new string[traceSize];
@@ -178,6 +260,11 @@ namespace Memulator
         {
         }
 
+        public virtual void DumpTraceBuffer()
+        {
+
+        }
+        
         public virtual void WriteToFirst64K (ushort m, byte b)
         {
         }
