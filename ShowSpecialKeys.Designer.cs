@@ -38,10 +38,10 @@ namespace Memulator
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxSpecialKeys.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBoxSpecialKeys.Location = new System.Drawing.Point(32, 26);
+            this.textBoxSpecialKeys.Location = new System.Drawing.Point(12, 12);
             this.textBoxSpecialKeys.Multiline = true;
             this.textBoxSpecialKeys.Name = "textBoxSpecialKeys";
-            this.textBoxSpecialKeys.Size = new System.Drawing.Size(405, 214);
+            this.textBoxSpecialKeys.Size = new System.Drawing.Size(427, 189);
             this.textBoxSpecialKeys.TabIndex = 0;
             this.textBoxSpecialKeys.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBoxSpecialKeys_KeyDown);
             // 
@@ -49,7 +49,7 @@ namespace Memulator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(474, 270);
+            this.ClientSize = new System.Drawing.Size(451, 213);
             this.Controls.Add(this.textBoxSpecialKeys);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
