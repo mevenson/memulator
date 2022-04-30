@@ -202,20 +202,23 @@ namespace Memulator
                     {
                         // special case handlers for program control keys like Quit, RESET, etc.
                         //
-                        //       F1     Show Configuration Editor
-                        //  CTRL-F1     Kill emulation
-                        //  CTRL-F2     Reset emulation
-                        //       F2     Show Special Keys Menu
-                        //  CTRL-F3     Start save output to Console Dump File
-                        //  CTRL-F4     Stop  save output to Console Dump File
-                        //  CTRL-F5     Flush save output to Console Dump File
-                        //  CTRL-F6     Reload drive maps from configuration file (Windows)
-                        //       F6     Reload drive maps from configuration file (Linux)
-                        //  CTRL-F7     Start Trace
+                        //       F1     Show Special Keys Menu
+                        //  CTRL-F1     Kill emulation (Windows Only)
+                        //
+                        //       F2     Stuff UniFLEX date time format into keyboard buffer 
+                        //  CTRL-F2     Reset emulation (Windows Only)
+                        //
+                        //       F3     Start save output to Console Dump File 
+                        //       F4     Stop  save output to Console Dump File 
+                        //       F5     Flush save output to Console Dump File
+                        //       F6     Reload drive maps from configuration file 
+                        //       F7     Start Trace
                         //       F8     Stuff OS9 format date time string into keyboard buffer
-                        //  CTRL-F9     Toggle DMAF-3 access logging
+                        //       F9     Toggle DMAF-3 access logging
+                        //
                         //       F11    Stuff FLEX date time format into keyboard buffer
-                        //  CTRL-F11    Stuff UniFLEX date time format into keyboard buffer
+                        //  CTRL-F11    Stuff UniFLEX date time format into keyboard buffer (Windows Only)
+                        //
                         //       F12    Toggle Debug output
 
                         case ConsoleKey.F1:
@@ -261,12 +264,16 @@ namespace Memulator
                             {
                                 bStoreChar = false;
 
-                                // open configuation editor.
+                                ShowSpecialKeys dlg = new ShowSpecialKeys();
+                                dlg.ShowDialog();
+                                bStoreChar = false;
 
-                                if (pMemulatorConfigEditorDlg == null)
-                                    pMemulatorConfigEditorDlg = new ConfigEditor.memulatorConfigEditor(Program.configFileName, Program._cpu.Running);
+                                //// open configuation editor.
 
-                                pMemulatorConfigEditorDlg.ShowDialog();
+                                //if (pMemulatorConfigEditorDlg == null)
+                                //    pMemulatorConfigEditorDlg = new ConfigEditor.memulatorConfigEditor(Program.configFileName, Program._cpu.Running);
+
+                                //pMemulatorConfigEditorDlg.ShowDialog();
                             }
                             break;
 
@@ -295,14 +302,28 @@ namespace Memulator
                                 }
                                 else
                                 {
-                                    ShowSpecialKeys dlg = new ShowSpecialKeys();
-                                    dlg.ShowDialog();
+                                    // Stuff UniFLEX datetime into the keyboard buffer
+
                                     bStoreChar = false;
-                                    //Program._cpu.CoreDump();
+                                    DateTime dt = DateTime.Now;
+                                    StuffKeyboard
+                                        (
+                                            // date [ [MM-DD[-YY]] HH:MM[:SS] ]
+                                            String.Format("{0}-{1}-{2} {3}:{4}:{5}\r",
+                                                dt.Month.ToString("00"),
+                                                dt.Day.ToString("00"),
+                                                (dt.Year - 2000).ToString("00"),
+                                                dt.Hour.ToString("00"),
+                                                dt.Minute.ToString("00"),
+                                                dt.Second.ToString("00")
+                                            )
+                                        );
                                 }
                             }
                             else if (Program.Platform == OSPlatform.Linux)
                             {
+                                // Stuff FLEX datetime into the keyboard buffer
+
                                 bStoreChar = false;
                                 DateTime dt = DateTime.Now;
                                 StuffKeyboard
@@ -320,7 +341,7 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F3:
-                            if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
+                            //if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
                             {
                                 bStoreChar = false;
                                 Program._theConsole.Terminal.saveOutput = true;
@@ -328,7 +349,7 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F4:
-                            if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
+                            //if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
                             {
                                 bStoreChar = false;
                                 Program._theConsole.Terminal.saveOutput = false;
@@ -336,7 +357,7 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F5:
-                            if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
+                            //if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
                             {
                                 bStoreChar = false;
 
@@ -349,7 +370,7 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F6:     // Load drives from configuration.xml file
-                            if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
+                            //if (((Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)) || Program.Platform == OSPlatform.Linux)
                             {
                                 bStoreChar = false;
                                 Program.LoadDrives();
@@ -357,7 +378,7 @@ namespace Memulator
                             break;
 
                         case ConsoleKey.F7:     // toggle trace
-                            if (cki.Modifiers == ConsoleModifiers.Control)
+                            //if (cki.Modifiers == ConsoleModifiers.Control)
                             {
                                 bStoreChar = false;
                                 Program.TraceEnabled = !Program.TraceEnabled;
@@ -386,14 +407,18 @@ namespace Memulator
                             Program.DMAF3AccessLogging = !Program.DMAF3AccessLogging;
                             break;
 
-                        case ConsoleKey.F11:
-                            if (cki.Modifiers == ConsoleModifiers.Control)          // do UniFLEX date format
+                        // does not work in linux because linux steals the F-11 key
+
+                        case ConsoleKey.F11:        
+                            if (Program.Platform == OSPlatform.Windows && cki.Modifiers == ConsoleModifiers.Control)
                             {
+                                // Stuff UniFLEX datetime into the keyboard buffer
+
                                 bStoreChar = false;
                                 DateTime dt = DateTime.Now;
                                 StuffKeyboard
                                     (
-                                    // date [ [MM-DD[-YY]] HH:MM[:SS] ]
+                                        // date [ [MM-DD[-YY]] HH:MM[:SS] ]
                                         String.Format("{0}-{1}-{2} {3}:{4}:{5}\r",
                                             dt.Month.ToString("00"),
                                             dt.Day.ToString("00"),
@@ -404,8 +429,10 @@ namespace Memulator
                                         )
                                     );
                             }
-                            else                                                    // do FLEX date format
+                            else
                             {
+                                // Stuff FLEX datetime into the keyboard buffer
+
                                 bStoreChar = false;
                                 DateTime dt = DateTime.Now;
                                 StuffKeyboard
