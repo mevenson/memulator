@@ -19,7 +19,7 @@
   </Global>
 
   <config6809>
-    <romfile filename="roms\OS9-69-5.stx" />
+    <romfile filename="roms/OS9-69-5.stx" />
     
     <BoardConfiguration>
 
