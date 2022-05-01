@@ -3,7 +3,7 @@
 
   <Global>
 
-    <ConsoleDump filename="D:\ConsoleDump.txt" />
+    <ConsoleDump filename="ConsoleDump.txt" />
     
     <ProcessorJumpers         J_150_9600="1" 
                               J_600_4800="0" 
@@ -39,7 +39,7 @@
   </Global>
 
   <config6809>
-    <romfile filename="roms\OS9rom.stx" />
+    <romfile filename="roms/OS9rom.stx" />
     
     <BoardConfiguration>
 
@@ -50,7 +50,7 @@
     </BoardConfiguration>
     
     <FloppyDisks>
-      <Disk ID ="0" Path="disks\EmuOs9Boot.DSK" Format="OS9"/>
+      <Disk ID ="0" Path="disks/EmuOs9Boot.DSK" Format="OS9"/>
     </FloppyDisks>
    
     <KeyBoardMap>
