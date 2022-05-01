@@ -57,7 +57,7 @@
     </BoardConfiguration>
     <FloppyDisks>
 
-      <Disk ID ="0" Path="DISKS/UNIFLEX\McCoshCandFortran.dsk" Format="UNIFLEX"/>
+      <Disk ID ="0" Path="DISKS/UNIFLEX/McCoshCandFortran.dsk" Format="UNIFLEX"/>
 
     </FloppyDisks>
     <WinchesterDrives>
