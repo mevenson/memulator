@@ -47,7 +47,7 @@
   </Global>
 
   <config6809>
-    <romfile filename="ROMS/UOS_3S_UNIFLEX.stx" />
+    <romfile filename="ROMS/UOS_3S_UNIFLEX_840.stx" />
     <BoardConfiguration>
 
       <Board ID = "0" Type="CONS"  Addr="E000" Size="2"     GUID="" IRQ="1"/>
@@ -57,7 +57,7 @@
     </BoardConfiguration>
     <FloppyDisks>
 
-      <Disk ID ="0" Path="DISKS/UNIFLEX\McCoshCandFortran.dsk" Format="UNIFLEX"/>
+      <Disk ID ="0" Path="DISKS/UNIFLEX/McCoshCandFortran.dsk" Format="UNIFLEX"/>
 
     </FloppyDisks>
     <WinchesterDrives>
