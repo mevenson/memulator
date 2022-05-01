@@ -47,7 +47,7 @@
   </Global>
 
   <config6809>
-    <romfile filename="ROMS/UOS_3S_UNIFLEX_840.stx" />
+    <romfile filename="ROMS/UOS_3S_UNIFLEX_840K.stx" />
     <BoardConfiguration>
 
       <Board ID = "0" Type="CONS"  Addr="E000" Size="2"     GUID="" IRQ="1"/>
